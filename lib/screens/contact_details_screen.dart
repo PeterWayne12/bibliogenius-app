@@ -103,14 +103,14 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
           const SizedBox(height: 24),
         _buildInfoCard(context, TranslationService.translate(context, 'contact_type_label'), 
           _contact.type == 'borrower' 
-              ? TranslationService.translate(context, 'contact_type_borrower')
-              : TranslationService.translate(context, 'contact_type_lender')),
-        _buildInfoCard(context, TranslationService.translate(context, 'name_label'), _contact.name),
-        if (_contact.email != null) _buildInfoCard(context, TranslationService.translate(context, 'email_label'), _contact.email!),
-        if (_contact.phone != null) _buildInfoCard(context, TranslationService.translate(context, 'phone_label'), _contact.phone!),
+              ? TranslationService.translate(context, 'role_borrower')
+              : TranslationService.translate(context, 'role_library')),
+        _buildInfoCard(context, TranslationService.translate(context, 'contact_name_label'), _contact.name),
+        if (_contact.email != null) _buildInfoCard(context, TranslationService.translate(context, 'contact_email_label'), _contact.email!),
+        if (_contact.phone != null) _buildInfoCard(context, TranslationService.translate(context, 'contact_phone_label'), _contact.phone!),
         if (_contact.address != null)
-          _buildInfoCard(context, TranslationService.translate(context, 'address_label'), _contact.address!),
-        if (_contact.notes != null) _buildInfoCard(context, TranslationService.translate(context, 'notes_label'), _contact.notes!),
+          _buildInfoCard(context, TranslationService.translate(context, 'contact_address_label'), _contact.address!),
+        if (_contact.notes != null) _buildInfoCard(context, TranslationService.translate(context, 'contact_notes_label'), _contact.notes!),
         _buildInfoCard(
           context,
           TranslationService.translate(context, 'status_label'),

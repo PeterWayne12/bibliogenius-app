@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../models/book.dart';
 import 'dart:math';
+import '../services/translation_service.dart';
 
 class BookCoverCard extends StatelessWidget {
   final Book book;
@@ -42,19 +43,19 @@ class BookCoverCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Background / Cover
+            // Background / Cover (Layered for robust fallback)
+            _buildFallbackCover(),
+            
             if (book.coverUrl != null && book.coverUrl!.isNotEmpty)
-              CachedNetworkImage(
-                imageUrl: book.coverUrl!,
+              Image.network(
+                book.coverUrl!,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[200],
-                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                ),
-                errorWidget: (context, url, error) => _buildFallbackCover(),
-              )
-            else
-              _buildFallbackCover(),
+                loadingBuilder: (context, child, loadingProgress) {
+                   if (loadingProgress == null) return child; // Image loaded
+                   return const SizedBox.shrink(); // Show fallback while loading
+                },
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(), // Show fallback on error
+              ),
 
             // Gradient overlay for text readability (only if using fallback or if needed)
             if (book.coverUrl == null || book.coverUrl!.isEmpty)
@@ -74,7 +75,7 @@ class BookCoverCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    _formatStatus(book.readingStatus!),
+                    TranslationService.translate(context, 'reading_status_${book.readingStatus}').toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -87,16 +88,6 @@ class BookCoverCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatStatus(String status) {
-    switch(status) {
-      case 'to_read': return 'TO READ';
-      case 'reading': return 'READING';
-      case 'read': return 'READ';
-      case 'borrowed': return 'BORROWED';
-      default: return status.toUpperCase();
-    }
   }
 
   Widget _buildFallbackCover() {

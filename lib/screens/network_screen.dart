@@ -605,21 +605,27 @@ class _NetworkScreenState extends State<NetworkScreen>
           backgroundColor: bgColor,
           child: Icon(icon, color: iconColor),
         ),
-        title: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        title: Text(
+          member.name,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: isPending ? Colors.grey[700] : null,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            member.secondaryInfo,
+            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Text(
-                member.name,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: isPending ? Colors.grey[700] : null,
-                ),
-              ),
-            ),
             if (isNetwork)
               Container(
+                margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: isPending
@@ -654,7 +660,7 @@ class _NetworkScreenState extends State<NetworkScreen>
               ),
             if (!isNetwork && member.isActive == true)
               Container(
-                margin: const EdgeInsets.only(left: 8),
+                margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.1),
@@ -669,16 +675,9 @@ class _NetworkScreenState extends State<NetworkScreen>
                   ),
                 ),
               ),
+            _buildMemberActions(member),
           ],
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            member.secondaryInfo,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
-          ),
-        ),
-        trailing: _buildMemberActions(member),
         onTap: () => _onMemberTap(member),
       ),
     );

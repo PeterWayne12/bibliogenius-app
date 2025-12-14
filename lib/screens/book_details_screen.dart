@@ -112,6 +112,76 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
+  Color _generateRandomColor(String seed) {
+    final hash = seed.hashCode;
+    final colors = [
+      Colors.blue.shade800,
+      Colors.red.shade800,
+      Colors.green.shade800,
+      Colors.purple.shade800,
+      Colors.orange.shade800,
+      Colors.teal.shade800,
+      Colors.indigo.shade800,
+      Colors.brown.shade800,
+    ];
+    return colors[hash.abs() % colors.length];
+  }
+
+  Widget _buildFallbackCover() {
+    final color = _generateRandomColor(_book.title + (_book.id?.toString() ?? ''));
+    
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        color: color,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color,
+            color.withValues(alpha: 0.6),
+          ],
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            _book.title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              shadows: [Shadow(color: Colors.black26, offset: Offset(0, 1), blurRadius: 2)],
+            ),
+          ),
+          if (_book.author != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              _book.author!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Icon(Icons.auto_stories, color: Colors.white.withValues(alpha: 0.2), size: 32),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSliverAppBar(BuildContext context, String? coverUrl) {
     return SliverAppBar(
       expandedHeight: 400.0,
@@ -122,31 +192,28 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Blurry Background
-            if (coverUrl != null)
+            // Layer 0: Fallback (always rendered at bottom)
+            _buildFallbackCover(),
+
+            // Layer 1: Network Image (if available)
+            if (coverUrl != null && coverUrl.isNotEmpty)
               Image.network(
                 coverUrl,
                 fit: BoxFit.cover,
-              )
-            else
-              Container(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                child: Center(
-                  child: Icon(
-                    Icons.book,
-                    size: 100,
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                  ),
-                ),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const SizedBox.shrink(); // Show fallback while loading
+                },
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
-            // Blur Effect
-            if (coverUrl != null)
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.4),
-                ),
+
+            // Layer 2: Blur Effect (applied on top of fallback or image)
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.4),
               ),
+            ),
             
             // Hero Image
             Center(
@@ -167,15 +234,24 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: coverUrl != null
-                        ? Image.network(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                         // Fallback always at bottom
+                        _buildFallbackCover(),
+                        // Image on top
+                        if (coverUrl != null && coverUrl.isNotEmpty)
+                          Image.network(
                             coverUrl,
                             fit: BoxFit.cover,
-                          )
-                        : Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.book, size: 64, color: Colors.grey),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const SizedBox.shrink();
+                            },
+                            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                           ),
+                      ],
+                    ),
                   ),
                 ),
               ),

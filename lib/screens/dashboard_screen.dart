@@ -111,14 +111,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 return 0;
               });
               
-              _readingListBooks = readingListCandidates.take(3).toList();
+              _readingListBooks = readingListCandidates.take(10).toList();
 
               final readingListIds = _readingListBooks.map((b) => b.id).toSet();
               
               final recentCandidates = books.where((b) => !readingListIds.contains(b.id)).toList();
               recentCandidates.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
               
-              _recentBooks = recentCandidates.take(3).toList();
+              _recentBooks = recentCandidates.take(10).toList();
 
               _heroBook = _readingListBooks.isNotEmpty ? _readingListBooks.first : (_recentBooks.isNotEmpty ? _recentBooks.first : null);
               if (_heroBook != null) {

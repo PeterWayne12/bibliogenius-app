@@ -37,7 +37,12 @@ class Book {
       summary: json['summary'],
       publisher: json['publisher'],
       publicationYear: json['publication_year'],
-      readingStatus: json['reading_status'],
+      readingStatus: (() {
+        final raw = json['reading_status']?.toString();
+        final normalized = raw?.toLowerCase().replaceAll(' ', '_');
+        // debugPrint('Book.fromJson: raw="$raw", normalized="$normalized"');
+        return normalized;
+      })(),
       finishedReadingAt: json['finished_reading_at'] != null 
           ? DateTime.tryParse(json['finished_reading_at']) 
           : null,
@@ -45,7 +50,7 @@ class Book {
           ? DateTime.tryParse(json['started_reading_at']) 
           : null,
       author: json['author'],
-      coverUrl: json['cover_url'],
+      coverUrl: (json['cover_url'] as String?)?.trim().isEmpty == true ? null : json['cover_url'],
       subjects: json['subjects'] != null 
           ? List<String>.from(json['subjects']) 
           : null,
@@ -95,7 +100,7 @@ class Book {
   String? get coverUrl {
     if (_coverUrl != null && _coverUrl!.isNotEmpty) return _coverUrl;
     if (isbn != null && isbn!.isNotEmpty) {
-      return 'https://covers.openlibrary.org/b/isbn/$isbn-M.jpg';
+      return 'https://covers.openlibrary.org/b/isbn/$isbn-M.jpg?default=false';
     }
     return null;
   }
@@ -103,7 +108,7 @@ class Book {
   String? get largeCoverUrl {
     if (_coverUrl != null && _coverUrl!.isNotEmpty) return _coverUrl; // Or try to get large version if possible
     if (isbn != null && isbn!.isNotEmpty) {
-      return 'https://covers.openlibrary.org/b/isbn/$isbn-L.jpg';
+      return 'https://covers.openlibrary.org/b/isbn/$isbn-L.jpg?default=false';
     }
     return null;
   }

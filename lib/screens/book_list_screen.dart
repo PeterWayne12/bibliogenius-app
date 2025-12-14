@@ -249,6 +249,8 @@ class _BookListScreenState extends State<BookListScreen> {
   }
 
 
+  bool _showBorrowedConfig = true; // Store config value
+  
   Future<void> _fetchBooks() async {
     setState(() => _isLoading = true);
     final apiService = Provider.of<ApiService>(context, listen: false);
@@ -259,16 +261,15 @@ class _BookListScreenState extends State<BookListScreen> {
       final books = await apiService.getBooks();
 
       final configRes = await apiService.getLibraryConfig(); 
-      bool showBorrowed = true;
       String? libraryName;
       if (configRes.statusCode == 200) {
-         showBorrowed = configRes.data['show_borrowed_books'] == true;
+         _showBorrowedConfig = configRes.data['show_borrowed_books'] == true;
          libraryName = configRes.data['library_name'] as String?;
       }
       
       if (mounted) {
         setState(() {
-          _books = showBorrowed ? books : books.where((b) => b.readingStatus != 'borrowed').toList();
+          _books = books; // Store ALL books, filtering happens in _filterBooks
           _libraryName = libraryName;
           _filterBooks(); // Apply filters after fetching all books
           _isLoading = false;
@@ -285,6 +286,12 @@ class _BookListScreenState extends State<BookListScreen> {
   // Triggered when filters change or search query changes
   void _filterBooks() {
     List<Book> tempBooks = List.from(_books);
+    
+    // Apply "show borrowed" config logic:
+    // If config says hide borrowed books, ONLY hide them if the user hasn't explicitly asked to see them.
+    if (!_showBorrowedConfig && _selectedStatus != 'borrowed') {
+         tempBooks = tempBooks.where((b) => b.readingStatus != 'borrowed').toList();
+    }
 
     // Apply status filter
     if (_selectedStatus != null) {
@@ -293,7 +300,11 @@ class _BookListScreenState extends State<BookListScreen> {
 
     // Apply tag filter
     if (_tagFilter != null) {
-      tempBooks = tempBooks.where((book) => (book.subjects ?? []).contains(_tagFilter)).toList();
+      final filterLower = _tagFilter!.toLowerCase();
+      tempBooks = tempBooks.where((book) {
+        final bookTags = book.subjects?.map((s) => s.toLowerCase()).toSet() ?? {};
+        return bookTags.contains(filterLower);
+      }).toList();
     }
 
     // Apply search query filter
@@ -609,7 +620,8 @@ class _BookListScreenState extends State<BookListScreen> {
           _buildFilterPill(status: 'wanting', label: TranslationService.translate(context, 'reading_status_wanting')),
           _buildFilterPill(status: 'read', label: TranslationService.translate(context, 'reading_status_read')),
           _buildFilterPill(status: 'lent', label: TranslationService.translate(context, 'lent_status')),
-          _buildFilterPill(status: 'borrowed', label: TranslationService.translate(context, 'borrowed_status')),
+          if (!Provider.of<ThemeProvider>(context).isLibrarian)
+            _buildFilterPill(status: 'borrowed', label: TranslationService.translate(context, 'borrowed_status')),
         ],
       ),
     );

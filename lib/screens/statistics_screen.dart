@@ -459,8 +459,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       case 'wanted':
       case 'wanting':
         return TranslationService.translate(context, 'reading_status_wanting');
+      case 'lent':
+        return TranslationService.translate(context, 'reading_status_lent');
       case 'borrowed':
-        return TranslationService.translate(context, 'filter_borrowed');
+        return TranslationService.translate(context, 'reading_status_borrowed');
       default:
         return status.replaceAll('_', ' ');
     }

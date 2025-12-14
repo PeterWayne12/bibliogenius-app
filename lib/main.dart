@@ -138,14 +138,22 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AppRouter extends StatelessWidget {
+class AppRouter extends StatefulWidget {
   const AppRouter({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+  State<AppRouter> createState() => _AppRouterState();
+}
 
-    final router = GoRouter(
+class _AppRouterState extends State<AppRouter> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+
+    _router = GoRouter(
       initialLocation: '/dashboard',
       refreshListenable: themeProvider,
       redirect: (context, state) async {
@@ -341,6 +349,11 @@ class AppRouter extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp.router(
       title: 'BiblioGenius',
@@ -358,7 +371,7 @@ class AppRouter extends StatelessWidget {
         Locale('de'), // German
       ],
       scrollBehavior: AppScrollBehavior(),
-      routerConfig: router,
+      routerConfig: _router,
     );
   }
 }

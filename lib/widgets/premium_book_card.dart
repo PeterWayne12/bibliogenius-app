@@ -188,18 +188,25 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: widget.book.coverUrl != null
-                              ? CachedNetworkImage(
-                                  imageUrl: widget.book.coverUrl!,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    color: Colors.grey[300],
-                                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                                  ),
-                                  errorWidget: (context, url, error) =>
-                                      _buildFallbackCover(context),
-                                )
-                              : _buildFallbackCover(context),
+                            child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  // Fallback always at bottom
+                                  _buildFallbackCover(context),
+                                  // Image on top
+                                  if (widget.book.coverUrl != null && widget.book.coverUrl!.isNotEmpty)
+                                    Image.network(
+                                      widget.book.coverUrl!,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                         if (loadingProgress == null) return child; // Image loaded
+                                         return const SizedBox.shrink(); // Show fallback while loading
+                                      },
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const SizedBox.shrink(), // Show fallback on error
+                                    ),
+                                ],
+                              ),
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -327,17 +334,22 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                     SizedBox(
                       height: widget.height,
                       width: widget.width,
-                      child: widget.book.coverUrl != null
-                          ? CachedNetworkImage(
-                              imageUrl: widget.book.coverUrl!,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildFallbackCover(context),
+                          if (widget.book.coverUrl != null && widget.book.coverUrl!.isNotEmpty)
+                            Image.network(
+                              widget.book.coverUrl!,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[300],
-                                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                              ),
-                              errorWidget: (context, url, error) => _buildFallbackCover(context),
-                            )
-                          : _buildFallbackCover(context),
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const SizedBox.shrink();
+                              },
+                              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                            ),
+                        ],
+                      ),
                     ),
                     // Gradient Overlay on Hover
                     AnimatedOpacity(
@@ -369,9 +381,7 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            (widget.book.readingStatus ?? 'unknown')
-                                .replaceAll('_', ' ')
-                                .toUpperCase(),
+                            TranslationService.translate(context, 'reading_status_${widget.book.readingStatus}').toUpperCase(),
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 9,
