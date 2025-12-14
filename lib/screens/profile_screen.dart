@@ -359,6 +359,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          // Profile Type Summary Card
+          _buildProfileTypeSummary(),
           const SizedBox(height: 32),
 
           // Data Management
@@ -580,6 +583,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
               minimumSize: const Size(double.infinity, 50),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileTypeSummary() {
+    final profileType = _config?['profile_type'] ?? 'individual';
+    
+    // Define features and restrictions for each profile type
+    Map<String, List<String>> advantages = {};
+    Map<String, List<String>> restrictions = {};
+    
+    switch (profileType) {
+      case 'individual':
+        advantages = {
+          'profile_advantage_borrow': ['✓'],
+          'profile_advantage_lend': ['✓'],
+          'profile_advantage_wishlist': ['✓'],
+        };
+        restrictions = {};
+        break;
+      case 'professional':
+      case 'librarian':
+        advantages = {
+          'profile_advantage_lending': ['✓'],
+          'profile_advantage_contacts': ['✓'],
+          'profile_advantage_statistics': ['✓'],
+        };
+        restrictions = {
+          'profile_restriction_no_borrow': ['✗'],
+        };
+        break;
+      case 'kid':
+        advantages = {
+          'profile_advantage_wishlist': ['✓'],
+          'profile_advantage_simple_ui': ['✓'],
+        };
+        restrictions = {
+          'profile_restriction_no_lend': ['✗'],
+          'profile_restriction_no_borrow': ['✗'],
+        };
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                TranslationService.translate(context, 'profile_summary'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Advantages
+          if (advantages.isNotEmpty) ...[
+            ...advantages.keys.map((key) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      TranslationService.translate(context, key),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ],
+          // Restrictions
+          if (restrictions.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            ...restrictions.keys.map((key) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.remove_circle, size: 16, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      TranslationService.translate(context, key),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ],
         ],
       ),
     );
