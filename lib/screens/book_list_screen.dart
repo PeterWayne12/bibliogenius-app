@@ -735,37 +735,55 @@ class _BookListScreenState extends State<BookListScreen> {
   }
 
   Widget _buildBody() {
-    if (_filteredBooks.isEmpty && !_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 64, color: Colors.grey.withOpacity(0.5)),
-            const SizedBox(height: 16),
-            Text(
-              TranslationService.translate(context, 'no_books_found'),
-              style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.8)),
+  if (_filteredBooks.isEmpty && !_isLoading) {
+    return RefreshIndicator(
+      onRefresh: _fetchBooks,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.search_off, size: 64, color: Colors.grey.withOpacity(0.5)),
+                const SizedBox(height: 16),
+                Text(
+                  TranslationService.translate(context, 'no_books_found'),
+                  style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.8)),
+                ),
+              ],
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  switch (_viewMode) {
+    case ViewMode.coverGrid:
+      return RefreshIndicator(
+        onRefresh: _fetchBooks,
+        child: BookCoverGrid(
+          books: _filteredBooks,
+          onBookTap: _onBookTap,
         ),
       );
-    }
-    
-    switch (_viewMode) {
-      case ViewMode.coverGrid:
-        return BookCoverGrid(
+    case ViewMode.spineShelf:
+      return RefreshIndicator(
+        onRefresh: _fetchBooks,
+        child: BookshelfView(
           books: _filteredBooks,
           onBookTap: _onBookTap,
-        );
-      case ViewMode.spineShelf:
-        return BookshelfView(
-          books: _filteredBooks,
-          onBookTap: _onBookTap,
-        );
-      case ViewMode.list:
-        return _buildListView();
-    }
+        ),
+      );
+    case ViewMode.list:
+      return RefreshIndicator(
+        onRefresh: _fetchBooks,
+        child: _buildListView(),
+      );
   }
+}
 
   Widget _buildListView() {
     if (_isReordering) {
