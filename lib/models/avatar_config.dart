@@ -80,13 +80,12 @@ class AvatarConfig {
     if (skinColor != null) params['skinColor'] = skinColor!;
     if (hairColor != null) params['hairColor'] = hairColor!;
     
-    if (accessories != null) {
-      if (accessories == 'none') {
-        params['accessoriesProbability'] = '0';
-      } else {
-        params['accessories'] = accessories!;
-        params['accessoriesProbability'] = '100';
-      }
+    if (accessories != null && accessories != 'none') {
+      params['accessories'] = accessories!;
+      params['accessoriesProbability'] = '100';
+    } else {
+      // Default: no accessories unless explicitly selected
+      params['accessoriesProbability'] = '0';
     }
     if (clothing != null) params['clothing'] = clothing!;
     if (clothingColor != null) params['clothingColor'] = clothingColor!;
