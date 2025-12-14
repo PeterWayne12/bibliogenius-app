@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/gamification_status.dart';
 import '../services/translation_service.dart';
 
@@ -20,21 +21,21 @@ BadgeInfo getBadgeInfo(int level) {
   switch (level) {
     case 0:
       return BadgeInfo(
-        assetPath: 'assets/images/badges/curieux.png',
+        assetPath: 'assets/images/badges/curieux.svg',
         translationKey: 'level_curieux',
         color: const Color(0xFF4CAF50), // Green
         secondaryColor: const Color(0xFF81C784),
       );
     case 1:
       return BadgeInfo(
-        assetPath: 'assets/images/badges/initie.png',
+        assetPath: 'assets/images/badges/initie.svg',
         translationKey: 'level_initie',
         color: const Color(0xFF2196F3), // Blue
         secondaryColor: const Color(0xFF64B5F6),
       );
     case 2:
       return BadgeInfo(
-        assetPath: 'assets/images/badges/bibliophile.png',
+        assetPath: 'assets/images/badges/bibliophile.svg',
         translationKey: 'level_bibliophile',
         color: const Color(0xFFFF9800), // Orange
         secondaryColor: const Color(0xFFFFB74D),
@@ -42,7 +43,7 @@ BadgeInfo getBadgeInfo(int level) {
     case 3:
     default:
       return BadgeInfo(
-        assetPath: 'assets/images/badges/erudit.png',
+        assetPath: 'assets/images/badges/erudit.svg',
         translationKey: 'level_erudit',
         color: const Color(0xFFFFC107), // Gold
         secondaryColor: const Color(0xFFFFD54F),
@@ -122,13 +123,12 @@ class BadgeCollectionWidget extends StatelessWidget {
                                     ]),
                               child: Opacity(
                                 opacity: isUnlocked ? 1.0 : 0.5,
-                                child: Image.asset(
+                                child: SvgPicture.asset(
                                   badgeInfo.assetPath,
                                   width: 48,
                                   height: 48,
-                                  filterQuality: FilterQuality.high,
-                                  isAntiAlias: true,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
+                                  fit: BoxFit.contain,
+                                  placeholderBuilder: (context) => Icon(
                                     Icons.emoji_events, 
                                     size: 28, 
                                     color: Colors.grey[400]
@@ -315,28 +315,24 @@ class _CurrentBadgeWidgetState extends State<CurrentBadgeWidget> with SingleTick
                         ),
                       ],
                     ),
-                    child: Image.asset(
+                    child: SvgPicture.asset(
                       badgeInfo.assetPath,
                       width: 140,
                       height: 140,
-                      filterQuality: FilterQuality.high,
-                      isAntiAlias: true,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            color: badgeInfo.color.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.emoji_events,
-                            size: 64,
-                            color: badgeInfo.color,
-                          ),
-                        );
-                      },
+                      placeholderBuilder: (context) => Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: badgeInfo.color.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.emoji_events,
+                          size: 64,
+                          color: badgeInfo.color,
+                        ),
+                      ),
                     ),
                   ),
                 ),

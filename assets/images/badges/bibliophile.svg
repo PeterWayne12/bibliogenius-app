@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9800;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#FFB74D;stop-opacity:0.1"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#bgGrad)" stroke="#FF9800" stroke-width="3"/>
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#FF9800" stroke-width="1.5" stroke-opacity="0.5"/>
+  <!-- Stack of books -->
+  <rect x="32" y="55" width="36" height="8" rx="1" fill="#FF9800" fill-opacity="0.3" stroke="#FF9800" stroke-width="1.5"/>
+  <rect x="34" y="46" width="32" height="8" rx="1" fill="#FF9800" fill-opacity="0.4" stroke="#FF9800" stroke-width="1.5"/>
+  <rect x="36" y="37" width="28" height="8" rx="1" fill="#FF9800" fill-opacity="0.5" stroke="#FF9800" stroke-width="1.5"/>
+  <!-- Heart on top -->
+  <path d="M50 28 C45 22, 38 25, 38 32 C38 38, 50 46, 50 46 C50 46, 62 38, 62 32 C62 25, 55 22, 50 28 Z" 
+        fill="#FFB74D" fill-opacity="0.6" stroke="#FF9800" stroke-width="1.5"/>
+  <!-- Sparkles -->
+  <circle cx="28" cy="35" r="2" fill="#FFB74D"/>
+  <circle cx="72" cy="35" r="2" fill="#FFB74D"/>
+  <circle cx="25" cy="50" r="1.5" fill="#FFB74D" fill-opacity="0.7"/>
+  <circle cx="75" cy="50" r="1.5" fill="#FFB74D" fill-opacity="0.7"/>
+</svg>

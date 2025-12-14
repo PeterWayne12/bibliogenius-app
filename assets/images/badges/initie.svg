@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#64B5F6;stop-opacity:0.1"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#bgGrad)" stroke="#2196F3" stroke-width="3"/>
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#2196F3" stroke-width="1.5" stroke-opacity="0.5"/>
+  <!-- Open book -->
+  <path d="M30 35 L50 40 L50 70 L30 65 Z" fill="#2196F3" fill-opacity="0.2" stroke="#2196F3" stroke-width="2"/>
+  <path d="M70 35 L50 40 L50 70 L70 65 Z" fill="#2196F3" fill-opacity="0.2" stroke="#2196F3" stroke-width="2"/>
+  <path d="M50 40 L50 70" stroke="#2196F3" stroke-width="2"/>
+  <!-- Lightbulb above book -->
+  <ellipse cx="50" cy="28" rx="6" ry="7" fill="#64B5F6" fill-opacity="0.5" stroke="#2196F3" stroke-width="1.5"/>
+  <path d="M47 35 L53 35" stroke="#2196F3" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M48 37 L52 37" stroke="#2196F3" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Light rays -->
+  <path d="M50 18 L50 14" stroke="#64B5F6" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 21 L39 17" stroke="#64B5F6" stroke-width="2" stroke-linecap="round"/>
+  <path d="M58 21 L61 17" stroke="#64B5F6" stroke-width="2" stroke-linecap="round"/>
+</svg>

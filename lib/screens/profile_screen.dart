@@ -653,6 +653,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
+              const SizedBox(width: 6),
+              Text(
+                TranslationService.translate(context, profileType),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),

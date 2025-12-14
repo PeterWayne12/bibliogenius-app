@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFC107;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#FFD54F;stop-opacity:0.15"/>
+    </linearGradient>
+    <linearGradient id="crownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD54F"/>
+      <stop offset="100%" style="stop-color:#FFC107"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#bgGrad)" stroke="#FFC107" stroke-width="3"/>
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#FFC107" stroke-width="1.5" stroke-opacity="0.5"/>
+  <!-- Crown -->
+  <path d="M28 45 L35 30 L42 40 L50 25 L58 40 L65 30 L72 45 L72 55 L28 55 Z" 
+        fill="url(#crownGrad)" stroke="#FFC107" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Crown gems -->
+  <circle cx="35" cy="33" r="2.5" fill="#fff" fill-opacity="0.8"/>
+  <circle cx="50" cy="28" r="3" fill="#fff" fill-opacity="0.9"/>
+  <circle cx="65" cy="33" r="2.5" fill="#fff" fill-opacity="0.8"/>
+  <!-- Book below crown -->
+  <rect x="35" y="58" width="30" height="12" rx="2" fill="#FFC107" fill-opacity="0.4" stroke="#FFC107" stroke-width="1.5"/>
+  <line x1="50" y1="58" x2="50" y2="70" stroke="#FFC107" stroke-width="1"/>
+  <!-- Sparkles -->
+  <path d="M22 38 L24 42 L22 46 L20 42 Z" fill="#FFD54F"/>
+  <path d="M78 38 L80 42 L78 46 L76 42 Z" fill="#FFD54F"/>
+  <circle cx="30" cy="25" r="2" fill="#FFD54F" fill-opacity="0.7"/>
+  <circle cx="70" cy="25" r="2" fill="#FFD54F" fill-opacity="0.7"/>
+</svg>
