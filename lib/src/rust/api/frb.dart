@@ -161,6 +161,12 @@ sealed class FrbContact with _$FrbContact {
     String? email,
     String? phone,
     String? address,
+    String? streetAddress,
+    String? postalCode,
+    String? city,
+    String? country,
+    double? latitude,
+    double? longitude,
     String? notes,
     required bool isActive,
   }) = _FrbContact;

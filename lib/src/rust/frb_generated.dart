@@ -773,6 +773,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
   FrbBook dco_decode_box_autoadd_frb_book(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_frb_book(raw);
@@ -788,6 +794,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int dco_decode_box_autoadd_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  double dco_decode_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
   }
 
   @protected
@@ -821,8 +833,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   FrbContact dco_decode_frb_contact(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    if (arr.length != 15)
+      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
     return FrbContact(
       id: dco_decode_opt_box_autoadd_i_32(arr[0]),
       contactType: dco_decode_String(arr[1]),
@@ -831,8 +843,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       email: dco_decode_opt_String(arr[4]),
       phone: dco_decode_opt_String(arr[5]),
       address: dco_decode_opt_String(arr[6]),
-      notes: dco_decode_opt_String(arr[7]),
-      isActive: dco_decode_bool(arr[8]),
+      streetAddress: dco_decode_opt_String(arr[7]),
+      postalCode: dco_decode_opt_String(arr[8]),
+      city: dco_decode_opt_String(arr[9]),
+      country: dco_decode_opt_String(arr[10]),
+      latitude: dco_decode_opt_box_autoadd_f_64(arr[11]),
+      longitude: dco_decode_opt_box_autoadd_f_64(arr[12]),
+      notes: dco_decode_opt_String(arr[13]),
+      isActive: dco_decode_bool(arr[14]),
     );
   }
 
@@ -908,6 +926,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_f_64(raw);
+  }
+
+  @protected
   int? dco_decode_opt_box_autoadd_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_i_32(raw);
@@ -949,6 +973,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_f_64(deserializer));
+  }
+
+  @protected
   FrbBook sse_decode_box_autoadd_frb_book(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_frb_book(deserializer));
@@ -964,6 +994,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int sse_decode_box_autoadd_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat64();
   }
 
   @protected
@@ -1017,6 +1053,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_email = sse_decode_opt_String(deserializer);
     var var_phone = sse_decode_opt_String(deserializer);
     var var_address = sse_decode_opt_String(deserializer);
+    var var_streetAddress = sse_decode_opt_String(deserializer);
+    var var_postalCode = sse_decode_opt_String(deserializer);
+    var var_city = sse_decode_opt_String(deserializer);
+    var var_country = sse_decode_opt_String(deserializer);
+    var var_latitude = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_longitude = sse_decode_opt_box_autoadd_f_64(deserializer);
     var var_notes = sse_decode_opt_String(deserializer);
     var var_isActive = sse_decode_bool(deserializer);
     return FrbContact(
@@ -1027,6 +1069,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       email: var_email,
       phone: var_phone,
       address: var_address,
+      streetAddress: var_streetAddress,
+      postalCode: var_postalCode,
+      city: var_city,
+      country: var_country,
+      latitude: var_latitude,
+      longitude: var_longitude,
       notes: var_notes,
       isActive: var_isActive,
     );
@@ -1142,6 +1190,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_f_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -1186,6 +1245,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_frb_book(FrbBook self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_frb_book(self, serializer);
@@ -1204,6 +1269,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat64(self);
   }
 
   @protected
@@ -1238,6 +1309,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.email, serializer);
     sse_encode_opt_String(self.phone, serializer);
     sse_encode_opt_String(self.address, serializer);
+    sse_encode_opt_String(self.streetAddress, serializer);
+    sse_encode_opt_String(self.postalCode, serializer);
+    sse_encode_opt_String(self.city, serializer);
+    sse_encode_opt_String(self.country, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.latitude, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.longitude, serializer);
     sse_encode_opt_String(self.notes, serializer);
     sse_encode_bool(self.isActive, serializer);
   }
@@ -1329,6 +1406,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_f_64(self, serializer);
     }
   }
 

@@ -6,6 +6,12 @@ class Contact {
   final String? email;
   final String? phone;
   final String? address;
+  final String? streetAddress;
+  final String? postalCode;
+  final String? city;
+  final String? country;
+  final double? latitude;
+  final double? longitude;
   final String? notes;
   final int? userId;
   final int libraryOwnerId;
@@ -19,6 +25,12 @@ class Contact {
     this.email,
     this.phone,
     this.address,
+    this.streetAddress,
+    this.postalCode,
+    this.city,
+    this.country,
+    this.latitude,
+    this.longitude,
     this.notes,
     this.userId,
     required this.libraryOwnerId,
@@ -36,6 +48,24 @@ class Contact {
     return name;
   }
 
+  /// Returns formatted full address from structured fields
+  String get formattedAddress {
+    final parts = <String>[];
+    if (streetAddress != null && streetAddress!.isNotEmpty) {
+      parts.add(streetAddress!);
+    }
+    if (postalCode != null && postalCode!.isNotEmpty) {
+      parts.add(postalCode!);
+    }
+    if (city != null && city!.isNotEmpty) {
+      parts.add(city!);
+    }
+    if (country != null && country!.isNotEmpty) {
+      parts.add(country!);
+    }
+    return parts.isNotEmpty ? parts.join(', ') : (address ?? '');
+  }
+
   factory Contact.fromJson(Map<String, dynamic> json) {
     return Contact(
       id: json['id'] as int?,
@@ -45,6 +75,12 @@ class Contact {
       email: json['email'] as String?,
       phone: json['phone'] as String?,
       address: json['address'] as String?,
+      streetAddress: json['street_address'] as String?,
+      postalCode: json['postal_code'] as String?,
+      city: json['city'] as String?,
+      country: json['country'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       notes: json['notes'] as String?,
       userId: json['user_id'] as int?,
       libraryOwnerId: json['library_owner_id'] as int,
@@ -61,6 +97,12 @@ class Contact {
       'email': email,
       'phone': phone,
       'address': address,
+      'street_address': streetAddress,
+      'postal_code': postalCode,
+      'city': city,
+      'country': country,
+      'latitude': latitude,
+      'longitude': longitude,
       'notes': notes,
       'user_id': userId,
       'library_owner_id': libraryOwnerId,

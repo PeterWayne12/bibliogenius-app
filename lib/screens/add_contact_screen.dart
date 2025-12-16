@@ -23,7 +23,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _streetAddressController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   bool _isSaving = false;
@@ -37,7 +40,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
       _firstNameController.text = widget.contact!.firstName ?? '';
       _emailController.text = widget.contact!.email ?? '';
       _phoneController.text = widget.contact!.phone ?? '';
-      _addressController.text = widget.contact!.address ?? '';
+      _streetAddressController.text = widget.contact!.streetAddress ?? widget.contact!.address ?? '';
+      _postalCodeController.text = widget.contact!.postalCode ?? '';
+      _cityController.text = widget.contact!.city ?? '';
+      _countryController.text = widget.contact!.country ?? '';
       _notesController.text = widget.contact!.notes ?? '';
     }
   }
@@ -48,7 +54,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
     _firstNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
+    _streetAddressController.dispose();
+    _postalCodeController.dispose();
+    _cityController.dispose();
+    _countryController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -78,7 +87,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
         'first_name': _firstNameController.text.isNotEmpty ? _firstNameController.text : null,
         'email': _emailController.text.isNotEmpty ? _emailController.text : null,
         'phone': _phoneController.text.isNotEmpty ? _phoneController.text : null,
-        'address': _addressController.text.isNotEmpty ? _addressController.text : null,
+        'street_address': _streetAddressController.text.isNotEmpty ? _streetAddressController.text : null,
+        'postal_code': _postalCodeController.text.isNotEmpty ? _postalCodeController.text : null,
+        'city': _cityController.text.isNotEmpty ? _cityController.text : null,
+        'country': _countryController.text.isNotEmpty ? _countryController.text : null,
         'notes': _notesController.text.isNotEmpty ? _notesController.text : null,
         'user_id': userId,
         'library_owner_id': libraryId,
@@ -230,16 +242,62 @@ class _AddContactScreenState extends State<AddContactScreen> {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
+            // Street Address
             TextFormField(
-              controller: _addressController,
+              controller: _streetAddressController,
               decoration: InputDecoration(
                 labelText: TranslationService.translate(
                   context,
-                  'contact_address_label',
-                ),
+                  'street_address_label',
+                ) ?? 'Street Address',
                 border: const OutlineInputBorder(),
               ),
-              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            // Postal Code and City in a row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: TextFormField(
+                    controller: _postalCodeController,
+                    decoration: InputDecoration(
+                      labelText: TranslationService.translate(
+                        context,
+                        'postal_code_label',
+                      ) ?? 'Postal Code',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: _cityController,
+                    decoration: InputDecoration(
+                      labelText: TranslationService.translate(
+                        context,
+                        'city_label',
+                      ) ?? 'City',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Country
+            TextFormField(
+              controller: _countryController,
+              decoration: InputDecoration(
+                labelText: TranslationService.translate(
+                  context,
+                  'country_label',
+                ) ?? 'Country',
+                border: const OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
