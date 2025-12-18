@@ -39,6 +39,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
   bool _isSaving = false;
   bool _isFetchingDetails = false;
   bool _hasChanges = false;
+  
+  // Copy availability management
+  String _copyStatus = 'available';
+  int? _copyId;
 
   @override
   void initState() {
@@ -77,10 +81,33 @@ class _EditBookScreenState extends State<EditBookScreen> {
             widget.book.readingStatus ?? getDefaultStatus(isLibrarian);
         _originalReadingStatus = _readingStatus; // Store original for comparison
       });
+      // Load copy status
+      _loadCopyStatus();
     });
 
     // Add listener for ISBN changes
     _isbnController.addListener(_onIsbnChanged);
+  }
+
+  Future<void> _loadCopyStatus() async {
+    if (widget.book.id == null) return;
+    try {
+      final api = Provider.of<ApiService>(context, listen: false);
+      final res = await api.getBookCopies(widget.book.id!);
+      if (res.statusCode == 200 && res.data != null) {
+        final copies = res.data['copies'] as List? ?? [];
+        if (copies.isNotEmpty) {
+          final firstCopy = copies.first;
+          setState(() {
+            _copyId = firstCopy['id'];
+            _copyStatus = firstCopy['status'] ?? 'available';
+          });
+          debugPrint('📦 Loaded copy: id=$_copyId, status=$_copyStatus');
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to load copy status: $e');
+    }
   }
 
   void _onIsbnChanged() {
@@ -205,6 +232,12 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
     try {
       await apiService.updateBook(widget.book.id!, bookData);
+      
+      // Also update copy status if changed
+      if (_copyId != null) {
+        await apiService.updateCopy(_copyId!, status: _copyStatus);
+      }
+      
       if (mounted) {
         setState(() {
           _isSaving = false;
@@ -651,7 +684,67 @@ class _EditBookScreenState extends State<EditBookScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Copy Availability Status
+              if (_copyId != null) ...[
+                _buildLabel(
+                  TranslationService.translate(context, 'availability_label') ?? 'Availability',
+                ),
+                DropdownButtonFormField<String>(
+                  value: _copyStatus,
+                  decoration: _buildInputDecoration(),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'available',
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle, size: 20, color: Colors.green),
+                          const SizedBox(width: 12),
+                          Text(TranslationService.translate(context, 'availability_available') ?? 'Available'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'loaned',
+                      child: Row(
+                        children: [
+                          Icon(Icons.call_made, size: 20, color: Colors.orange),
+                          const SizedBox(width: 12),
+                          Text(TranslationService.translate(context, 'availability_loaned') ?? 'Loaned'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'borrowed',
+                      child: Row(
+                        children: [
+                          Icon(Icons.call_received, size: 20, color: Colors.purple),
+                          const SizedBox(width: 12),
+                          Text(TranslationService.translate(context, 'availability_borrowed') ?? 'Borrowed'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'lost',
+                      child: Row(
+                        children: [
+                          Icon(Icons.help_outline, size: 20, color: Colors.red),
+                          const SizedBox(width: 12),
+                          Text(TranslationService.translate(context, 'availability_lost') ?? 'Lost'),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _copyStatus = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+
               // Reading Dates (Conditional)
+
               if (_readingStatus != 'to_read' &&
                   _readingStatus != 'wanted') ...[
                 _buildLabel(

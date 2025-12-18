@@ -360,6 +360,46 @@ class ApiService {
     return await _dio.post('/api/loans/$loanId/return');
   }
 
+  // Copy management methods
+  
+  /// Get all copies of a specific book
+  Future<Response> getBookCopies(int bookId) async {
+    debugPrint('📦 getBookCopies: bookId=$bookId');
+    if (useFfi) {
+      try {
+        final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+        return await localDio.get('/api/books/$bookId/copies');
+      } catch (e) {
+        debugPrint('❌ getBookCopies error: $e');
+        return Response(
+          requestOptions: RequestOptions(path: '/api/books/$bookId/copies'),
+          statusCode: 200,
+          data: {'copies': [], 'total': 0},
+        );
+      }
+    }
+    return await _dio.get('/api/books/$bookId/copies');
+  }
+
+  /// Update a copy (mainly for status changes)
+  Future<Response> updateCopy(int copyId, {String? status, String? notes}) async {
+    debugPrint('📦 updateCopy: copyId=$copyId, status=$status');
+    final data = <String, dynamic>{};
+    if (status != null) data['status'] = status;
+    if (notes != null) data['notes'] = notes;
+    
+    if (useFfi) {
+      try {
+        final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+        return await localDio.put('/api/copies/$copyId', data: data);
+      } catch (e) {
+        debugPrint('❌ updateCopy error: $e');
+        rethrow;
+      }
+    }
+    return await _dio.put('/api/copies/$copyId', data: data);
+  }
+
   // Contact methods
   Future<Response> getContacts({int? libraryId, String? type}) async {
     // In FFI mode, use FfiService and return mock Response
@@ -1011,12 +1051,21 @@ class ApiService {
   }
 
   Future<Response> updateRequestStatus(String requestId, String status) async {
+    debugPrint('📝 updateRequestStatus: id=$requestId, status=$status, useFfi=$useFfi');
     if (useFfi) {
-      return Response(
-        requestOptions: RequestOptions(path: '/api/peers/requests/$requestId'),
-        statusCode: 200,
-        data: {'message': 'Not available in offline mode'},
-      );
+      // In FFI mode, call the local HTTP server directly
+      try {
+        final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+        final res = await localDio.put(
+          '/api/peers/requests/$requestId',
+          data: {'status': status},
+        );
+        debugPrint('✅ updateRequestStatus response: ${res.statusCode}');
+        return res;
+      } catch (e) {
+        debugPrint('❌ updateRequestStatus error: $e');
+        rethrow;
+      }
     }
     return await _dio.put(
       '/api/peers/requests/$requestId',
