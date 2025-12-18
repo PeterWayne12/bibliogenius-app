@@ -653,6 +653,9 @@ class TranslationService {
       'network_search_prompt':
           'Search for books available in your friends\' libraries',
       'request_book_btn': 'Request',
+      'request_to_borrow': 'Request to Borrow',
+      'borrow_request_sent': 'Request sent successfully!',
+      'error_sending_request': 'Error sending request',
       'manual_connection_btn': 'Manual Connection',
       // mDNS Local Network Discovery
       'local_network_title': 'Local Network',
@@ -1366,6 +1369,9 @@ class TranslationService {
       'network_search_prompt':
           'Recherchez des livres disponibles dans les bibliothèques de vos amis',
       'request_book_btn': 'Demander',
+      'request_to_borrow': 'Demander un emprunt',
+      'borrow_request_sent': 'Demande envoyée avec succès !',
+      'error_sending_request': 'Erreur lors de l\'envoi de la demande',
       'manual_connection_btn': 'Connexion manuelle',
       // Celebration Animations
       'book_complete_celebration': '📖 Livre terminé !',
@@ -1714,6 +1720,9 @@ class TranslationService {
       'network_search_prompt':
           'Busca libros disponibles en las bibliotecas de tus amigos',
       'request_book_btn': 'Solicitar',
+      'request_to_borrow': 'Solicitar préstamo',
+      'borrow_request_sent': '¡Solicitud enviada con éxito!',
+      'error_sending_request': 'Error al enviar la solicitud',
       'manual_connection_btn': 'Conexión manual',
       // Celebration Animations
       'book_complete_celebration': '📖 ¡Libro completado!',
@@ -1989,6 +1998,9 @@ class TranslationService {
       'network_search_prompt':
           'Suchen Sie nach Büchern, die in den Bibliotheken Ihrer Freunde verfügbar sind',
       'request_book_btn': 'Anfragen',
+      'request_to_borrow': 'Ausleihe anfragen',
+      'borrow_request_sent': 'Anfrage erfolgreich gesendet!',
+      'error_sending_request': 'Fehler beim Senden der Anfrage',
       'manual_connection_btn': 'Manuelle Verbindung',
       // Celebration Animations
       'book_complete_celebration': '📖 Buch abgeschlossen!',

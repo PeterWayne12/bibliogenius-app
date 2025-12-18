@@ -940,11 +940,52 @@ class ApiService {
     String title,
   ) async {
     if (useFfi) {
-      return Response(
-        requestOptions: RequestOptions(path: '/api/peers/request_by_url'),
-        statusCode: 200,
-        data: {'message': 'Request not available in offline mode'},
-      );
+      try {
+        // 1. Get my info
+        final configRes = await getLibraryConfig();
+        final myName = configRes.data['library_name'];
+        final myUrl = configRes.data['default_uri'];
+
+        if (myUrl == null) throw Exception("My library URL not set");
+
+        // 2. Send request to peer
+        // Use clean URL without trailing slash
+        final cleanPeerUrl = peerUrl.endsWith('/')
+            ? peerUrl.substring(0, peerUrl.length - 1)
+            : peerUrl;
+
+        final remoteDio = Dio(BaseOptions(
+          baseUrl: cleanPeerUrl,
+          connectTimeout: const Duration(seconds: 5),
+        ));
+
+        debugPrint('📡 Sending P2P loan request to $cleanPeerUrl/api/peers/requests/incoming');
+        final remoteRes = await remoteDio.post(
+          '/api/peers/requests/incoming',
+          data: {
+            'from_name': myName,
+            'from_url': myUrl,
+            'book_isbn': isbn,
+            'book_title': title,
+          },
+        );
+
+        if (remoteRes.statusCode == 200) {
+          // 3. Log outgoing request locally
+          final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+          await localDio.post('/api/peers/requests/outgoing', data: {
+            'to_peer_url': cleanPeerUrl,
+            'book_isbn': isbn,
+            'book_title': title,
+          });
+          return remoteRes;
+        } else {
+          throw Exception('Remote peer rejected request: ${remoteRes.statusCode}');
+        }
+      } catch (e) {
+        debugPrint('❌ requestBookByUrl error: $e');
+        rethrow;
+      }
     }
     return await _dio.post(
       '/api/peers/request_by_url',
@@ -954,22 +995,16 @@ class ApiService {
 
   Future<Response> getIncomingRequests() async {
     if (useFfi) {
-      return Response(
-        requestOptions: RequestOptions(path: '/api/peers/requests'),
-        statusCode: 200,
-        data: [],
-      );
+      final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+      return await localDio.get('/api/peers/requests');
     }
     return await _dio.get('/api/peers/requests');
   }
 
   Future<Response> getOutgoingRequests() async {
     if (useFfi) {
-      return Response(
-        requestOptions: RequestOptions(path: '/api/peers/requests/outgoing'),
-        statusCode: 200,
-        data: [],
-      );
+      final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+      return await localDio.get('/api/peers/requests/outgoing');
     }
     return await _dio.get('/api/peers/requests/outgoing');
   }

@@ -935,21 +935,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onEdit: () => _showEditGoalDialog(yearlyGoal, isMonthly: false),
         ),
         
-        const SizedBox(height: 12),
-        
-        // Monthly Goal Card (optional - only if set)
-        _buildGoalCard(
-          icon: Icons.today,
-          color: Colors.orange,
-          title: TranslationService.translate(context, 'monthly_goal'),
-          subtitle: monthlyGoal > 0 
-            ? '$monthlyGoal ${TranslationService.translate(context, 'books_per_month')}'
-            : TranslationService.translate(context, 'not_set'),
-          progress: 0.0, // TODO: Calculate monthly progress
-          current: 0, // TODO: Calculate books read this month
-          onEdit: () => _showEditGoalDialog(monthlyGoal, isMonthly: true),
-          isOptional: monthlyGoal == 0,
-        ),
+        // TODO: Monthly goals per month (backlog)
+        // Example: "Goal for December 2024: 3 books"
       ],
     );
   }

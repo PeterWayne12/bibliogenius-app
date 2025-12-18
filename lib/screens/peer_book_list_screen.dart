@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../models/book.dart';
 import '../widgets/bookshelf_view.dart';
+import '../services/translation_service.dart';
 
 class PeerBookListScreen extends StatefulWidget {
   final int peerId; // Keep for compatibility
@@ -137,6 +138,7 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
     }
   }
 
+
   Future<void> _requestBorrow(Book book) async {
     final api = Provider.of<ApiService>(context, listen: false);
     try {
@@ -144,13 +146,13 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text("Request sent!")));
+        ).showSnackBar(SnackBar(content: Text(TranslationService.translate(context, 'borrow_request_sent'))));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Failed to send request: $e")));
+        ).showSnackBar(SnackBar(content: Text("${TranslationService.translate(context, 'error_sending_request')}: $e")));
       }
     }
   }
@@ -371,7 +373,7 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
                     _requestBorrow(book);
                   },
                   icon: const Icon(Icons.bookmark_add),
-                  label: const Text("Request to Borrow"),
+                  label: Text(TranslationService.translate(context, 'request_to_borrow')),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     textStyle: const TextStyle(
