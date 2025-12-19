@@ -582,6 +582,9 @@ class ApiService {
 
   // Peer methods
   Future<Response> connectPeer(String name, String url) async {
+    if (useFfi) {
+      return connectLocalPeer(name, url);
+    }
     // Fetch my config to send to remote peer for handshake
     String? myName;
     try {
@@ -1279,6 +1282,22 @@ class ApiService {
         });
         
         debugPrint('P2P Handshake Success: ${response.statusCode} - ${response.data}');
+        
+        // 3. Save peer locally (FFI mode)
+        try {
+          final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:${ApiService.httpPort}'));
+          await localDio.post('/api/peers/connect', data: {
+            'name': name,
+            'url': url,
+            'public_key': null,
+          });
+          debugPrint('✅ Peer saved locally: $name');
+        } catch (e) {
+             debugPrint('❌ Failed to save peer locally: $e');
+             // Depending on implementation, we might want to throw or return partial success.
+             // Given the UI reloads peers, if it fails to save, it won't show up.
+        }
+
         return response;
       } on DioException catch (e) {
         final statusCode = e.response?.statusCode;
@@ -1618,6 +1637,17 @@ class ApiService {
 
   Future<Response> getTranslations(String locale) async {
     return await _dio.get('$hubUrl/api/translations/$locale');
+  }
+
+  /// Get MCP configuration for AI Assistant integrations (Claude Desktop, Cursor, etc.)
+  /// Returns dynamic paths based on the running server's actual location
+  Future<Response> getMcpConfig() async {
+    if (useFfi) {
+      // In FFI mode, call the local HTTP server
+      final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+      return await localDio.get('/api/integrations/mcp-config');
+    }
+    return await _dio.get('/api/integrations/mcp-config');
   }
 
   Future<List<Tag>> getTags() async {

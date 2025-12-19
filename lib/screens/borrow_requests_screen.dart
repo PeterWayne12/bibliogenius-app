@@ -48,6 +48,7 @@ class _BorrowRequestsScreenState extends State<BorrowRequestsScreen>
       final inRes = await api.getIncomingRequests();
       final outRes = await api.getOutgoingRequests();
       final connRes = await api.getPendingPeers();
+      debugPrint('📥 getIncomingRequests response: ${inRes.data}');
       if (mounted) {
         setState(() {
           _incomingRequests = inRes.data;
@@ -55,6 +56,10 @@ class _BorrowRequestsScreenState extends State<BorrowRequestsScreen>
           _connectionRequests = connRes.data['requests'] ?? [];
         });
         debugPrint('📋 _fetchRequests: ${_connectionRequests.length} connection requests');
+        debugPrint('📋 _fetchRequests: ${_incomingRequests.length} incoming requests');
+        for (var r in _incomingRequests) {
+          debugPrint('  📖 Incoming Request: ${r['book_title']} from ${r['peer_name']} status=${r['status']}');
+        }
         for (var r in _connectionRequests) {
           debugPrint('  📚 Connection: id=${r['id']}, name="${r['name']}", url=${r['url']}');
         }
@@ -214,14 +219,17 @@ class _BorrowRequestsScreenState extends State<BorrowRequestsScreen>
           indicatorColor: Colors.white,
           tabs: [
             Tab(
+              key: Key('incomingTab'),
               icon: const Icon(Icons.move_to_inbox),
               text: TranslationService.translate(context, 'tab_incoming'),
             ),
             Tab(
+              key: Key('outgoingTab'),
               icon: const Icon(Icons.outbox),
               text: TranslationService.translate(context, 'tab_outgoing'),
             ),
             Tab(
+              key: Key('connectionsTab'),
               icon: const Icon(Icons.link),
               text: TranslationService.translate(context, 'tab_connections'),
             ),
@@ -263,6 +271,7 @@ class _BorrowRequestsScreenState extends State<BorrowRequestsScreen>
       );
     }
     return ListView.builder(
+      key: const Key('incomingRequestsList'),
       itemCount: _incomingRequests.length,
       itemBuilder: (context, index) {
         final req = _incomingRequests[index];

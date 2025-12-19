@@ -767,6 +767,13 @@ class TranslationService {
       'mfa_setup_success': 'Two-factor authentication enabled',
       'mfa_setup_error': 'Failed to set up two-factor authentication',
       'mfa_code_required': 'Please enter the verification code',
+      // Integrations / MCP
+      'integrations': 'Integrations',
+      'mcp_integration': 'AI Assistants (MCP)',
+      'mcp_description': 'Connect your library to Claude, Cursor, Continue, and other AI assistants',
+      'copy_mcp_config': 'Copy MCP Config',
+      'mcp_config_copied': 'MCP configuration copied to clipboard!',
+      'mcp_instructions': 'Paste this configuration into your AI assistant\'s settings file (e.g. claude_desktop_config.json for Claude Desktop)'
     },
     'fr': {
       'app_title': 'BiblioGenius',
@@ -800,6 +807,13 @@ class TranslationService {
       'mfa_setup_success': 'Authentification à deux facteurs activée',
       'mfa_setup_error': 'Échec de la configuration de l\'authentification',
       'mfa_code_required': 'Veuillez entrer le code de vérification',
+      // Intégrations / MCP
+      'integrations': 'Intégrations',
+      'mcp_integration': 'Assistants IA (MCP)',
+      'mcp_description': 'Connectez votre bibliothèque à Claude, Cursor, Continue et autres assistants IA',
+      'copy_mcp_config': 'Copier la config MCP',
+      'mcp_config_copied': 'Configuration MCP copiée dans le presse-papier !',
+      'mcp_instructions': 'Collez cette configuration dans le fichier de paramètres de votre assistant IA (ex: claude_desktop_config.json pour Claude Desktop)',
       'loans': 'Prêts',
       'edits': 'Modifications',
       'next_level_progress': 'Progression',

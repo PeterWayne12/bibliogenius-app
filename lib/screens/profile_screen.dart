@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // For Clipboard
 import '../widgets/genie_app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -648,6 +649,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 32),
 
+          // Integrations (MCP for Claude Desktop)
+          if (!kIsWeb) _buildMcpIntegrationSection(),
 
           // Data Management
           Text(
@@ -1150,6 +1153,126 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${TranslationService.translate(context, 'error_updating')}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+
+  Widget _buildMcpIntegrationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          TranslationService.translate(context, 'integrations') ?? 'Integrations',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 16),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurple.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.extension, color: Colors.deepPurple),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            TranslationService.translate(context, 'mcp_integration') ?? 'Claude Desktop (MCP)',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          Text(
+                            TranslationService.translate(context, 'mcp_description') ?? 
+                                'Connect your library to Claude AI for intelligent book discussions',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _copyMcpConfig(),
+                    icon: const Icon(Icons.copy),
+                    label: Text(
+                      TranslationService.translate(context, 'copy_mcp_config') ?? 'Copy Config for Claude Desktop',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  TranslationService.translate(context, 'mcp_instructions') ?? 
+                      'Paste this configuration into your Claude Desktop settings file (claude_desktop_config.json)',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[500],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Future<void> _copyMcpConfig() async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    
+    try {
+      // Fetch config from backend with dynamic paths
+      final response = await apiService.getMcpConfig();
+      
+      if (response.statusCode == 200 && response.data != null) {
+        // Use the config_json directly from the response
+        final configJson = response.data['config_json'] as String? ?? '{}';
+        
+        await Clipboard.setData(ClipboardData(text: configJson));
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                TranslationService.translate(context, 'mcp_config_copied') ?? 
+                    'MCP configuration copied to clipboard!',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        throw Exception('Failed to fetch MCP config');
+      }
+    } catch (e) {
+      debugPrint('Error fetching MCP config: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error fetching configuration: $e'),
             backgroundColor: Colors.red,
           ),
         );

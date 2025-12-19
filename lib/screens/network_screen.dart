@@ -454,6 +454,7 @@ class _NetworkScreenState extends State<NetworkScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
+                        key: const Key('manualConnectNameField'),
                         controller: nameController,
                         decoration: InputDecoration(
                           labelText: TranslationService.translate(
@@ -464,6 +465,7 @@ class _NetworkScreenState extends State<NetworkScreen>
                         enabled: !isLoading,
                       ),
                       TextField(
+                        key: const Key('manualConnectUrlField'),
                         controller: urlController,
                         decoration: InputDecoration(
                           labelText: TranslationService.translate(
@@ -485,6 +487,7 @@ class _NetworkScreenState extends State<NetworkScreen>
                       ),
                     ),
                     TextButton(
+                      key: const Key('manualConnectConfirmBtn'),
                       onPressed: handleConnect,
                       child: Text(
                         TranslationService.translate(context, 'connect'),
@@ -530,6 +533,7 @@ class _NetworkScreenState extends State<NetworkScreen>
               'manual_connection_btn',
             ),
             onPressed: _showManualConnectionDialog,
+            key: const Key('manualConnectBtn'),
           ),
         ],
         bottom: TabBar(
@@ -672,6 +676,7 @@ class _NetworkScreenState extends State<NetworkScreen>
             child: RefreshIndicator(
               onRefresh: _loadAllMembers,
               child: ListView.builder(
+                key: const Key('networkMemberList'),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 itemCount: filtered.length,
                 itemBuilder: (context, index) =>
