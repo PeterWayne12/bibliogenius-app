@@ -455,7 +455,8 @@ class _BookListScreenState extends State<BookListScreen> {
           });
         },
         onSelected: (Book selection) {
-          context.push('/books/${selection.id}');
+          if (selection.id == null) return;
+          context.push('/books/${selection.id}', extra: selection);
         },
         fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
           // Sync internal _searchQuery with Autocomplete's controller
@@ -766,6 +767,7 @@ class _BookListScreenState extends State<BookListScreen> {
   }
 
   Future<void> _onBookTap(Book book) async {
+    if (book.id == null) return;
     final result = await context.push('/books/${book.id}', extra: book);
     if (result == true) {
       _fetchBooks();

@@ -338,24 +338,48 @@ class _AppRouterState extends State<AppRouter> {
                 GoRoute(
                   path: ':id',
                   builder: (context, state) {
-                    final book = state.extra as Book;
-                    return BookDetailsScreen(book: book);
+                    final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    Book? book;
+                    if (state.extra is Book) {
+                      book = state.extra as Book;
+                    } else if (state.extra is Map<String, dynamic>) {
+                      book = Book.fromJson(state.extra as Map<String, dynamic>);
+                    }
+                    return BookDetailsScreen(bookId: bookId, book: book);
                   },
                 ),
                 GoRoute(
                   path: ':id/edit',
                   builder: (context, state) {
-                    final book = state.extra as Book;
+                    Book? book;
+                    if (state.extra is Book) {
+                      book = state.extra as Book;
+                    } else if (state.extra is Map<String, dynamic>) {
+                      book = Book.fromJson(state.extra as Map<String, dynamic>);
+                    }
+                    /* WARNING: EditBookScreen currently REQUIRES a Book object. 
+                       If deep linking support is needed here, EditBookScreen must also be refactored 
+                       to fetch by ID, similar to BookDetailsScreen. 
+                       For now, this remains a risk if navigated to directly without extra. */
+                    if (book == null) {
+                       // Fallback or error screen could be returned here ideally
+                       // For now we assume typical navigation flow or let it throw/show error
+                       // But to prevent hard crash let's redirect or show details if possible?
+                       // Actually EditBookScreen constructor requires 'book'.
+                       throw Exception('Direct navigation to edit not fully supported without object properly passed yet. Please go via details.');
+                    }
                     return EditBookScreen(book: book);
                   },
                 ),
                 GoRoute(
                   path: ':id/copies',
                   builder: (context, state) {
-                    final extra = state.extra as Map<String, dynamic>;
+                    final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final extra = state.extra as Map<String, dynamic>?;
+                    final bookTitle = extra?['bookTitle'] as String? ?? '';
                     return BookCopiesScreen(
-                      bookId: extra['bookId'],
-                      bookTitle: extra['bookTitle'],
+                      bookId: bookId,
+                      bookTitle: bookTitle,
                     );
                   },
                 ),

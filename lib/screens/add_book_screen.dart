@@ -36,6 +36,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   bool _isSaving = false;
   String? _lastLookedUpIsbn; // Prevent duplicate lookups
   final List<String> _selectedTags = [];
+  final List<String> _authors = []; // Multiple authors support
   late TextEditingController _tagsController;
 
   @override
@@ -89,8 +90,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
         setState(() {
           if (_titleController.text.isEmpty)
             _titleController.text = bookData['title'] ?? '';
-          if (_authorController.text.isEmpty)
-            _authorController.text = bookData['author'] ?? '';
+            
+          // Handle authors
+          _authors.clear();
+          if (bookData['authors'] != null && bookData['authors'] is List) {
+             _authors.addAll(List<String>.from(bookData['authors']));
+          } else if (bookData['author'] != null) {
+             _authors.add(bookData['author']);
+          }
+          // Also set text controller for fallback/display if needed
+          _authorController.text = _authors.join(', ');
+
           if (_publisherController.text.isEmpty)
             _publisherController.text = bookData['publisher'] ?? '';
           if (_publicationYearController.text.isEmpty)
@@ -143,12 +153,25 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
   Future<void> _saveBook() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Check for pending author
+    if (_authorController.text.trim().isNotEmpty) {
+       final pendingRaw = _authorController.text;
+       // Only add if it's not already joined string of all authors (avoid duplication)
+       if (pendingRaw != _authors.join(', ')) {
+          final pending = pendingRaw.trim();
+          if (!_authors.contains(pending)) {
+             _authors.add(pending);
+          }
+       }
+    }
+    
     setState(() => _isSaving = true);
 
     final apiService = Provider.of<ApiService>(context, listen: false);
     final book = Book(
       title: _titleController.text,
-      author: _authorController.text,
+      author: _authors.isNotEmpty ? _authors.join(', ') : _authorController.text,
       publisher: _publisherController.text,
       publicationYear: int.tryParse(_publicationYearController.text),
       isbn: _isbnController.text,
@@ -411,12 +434,73 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
             // Author
             _buildLabel(TranslationService.translate(context, 'author_label')),
-            TextFormField(
-              controller: _authorController,
-              key: const Key('authorField'),
-              decoration: _buildInputDecoration(
-                hint: TranslationService.translate(context, 'author_hint'),
-              ),
+            Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                return const Iterable<String>.empty(); // No autocomplete for now, just manual
+              },
+              fieldViewBuilder: (
+                context,
+                textEditingController,
+                focusNode,
+                onFieldSubmitted,
+              ) {
+                // Keep reference to controller for manual adding
+                if (_authorController != textEditingController) {
+                  // If we are replacing the controller, we should copy the text if any
+                  // But usually Autocomplete creates its own. 
+                  // Let's just use the one provided by Autocomplete for the input
+                }
+                return TextFormField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  decoration: _buildInputDecoration(
+                    hint: TranslationService.translate(context, 'author_hint'),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                         if (textEditingController.text.trim().isNotEmpty) {
+                           setState(() {
+                             final val = textEditingController.text.trim();
+                             if (!_authors.contains(val)) {
+                               _authors.add(val);
+                             }
+                             textEditingController.clear();
+                           });
+                         }
+                      },
+                    ),
+                  ),
+                  onFieldSubmitted: (String value) {
+                    final trimmed = value.trim();
+                    if (trimmed.isNotEmpty) {
+                      setState(() {
+                         if (!_authors.contains(trimmed)) {
+                           _authors.add(trimmed);
+                         }
+                         textEditingController.clear();
+                      });
+                      // Keep focus for next entry
+                      focusNode.requestFocus();
+                    }
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _authors.map((author) {
+                return Chip(
+                  label: Text(author),
+                  deleteIcon: const Icon(Icons.close, size: 18),
+                  onDeleted: () {
+                    setState(() {
+                      _authors.remove(author);
+                    });
+                  },
+                );
+              }).toList(),
             ),
             if (_authorsData != null && _authorsData!.isNotEmpty) ...[
               const SizedBox(height: 16),

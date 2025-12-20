@@ -1072,8 +1072,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   FrbContact dco_decode_frb_contact(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 15)
-      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
+    if (arr.length != 17)
+      throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
     return FrbContact(
       id: dco_decode_opt_box_autoadd_i_32(arr[0]),
       contactType: dco_decode_String(arr[1]),
@@ -1089,7 +1089,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       latitude: dco_decode_opt_box_autoadd_f_64(arr[11]),
       longitude: dco_decode_opt_box_autoadd_f_64(arr[12]),
       notes: dco_decode_opt_String(arr[13]),
-      isActive: dco_decode_bool(arr[14]),
+      userId: dco_decode_opt_box_autoadd_i_32(arr[14]),
+      libraryOwnerId: dco_decode_opt_box_autoadd_i_32(arr[15]),
+      isActive: dco_decode_bool(arr[16]),
     );
   }
 
@@ -1347,6 +1349,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_latitude = sse_decode_opt_box_autoadd_f_64(deserializer);
     var var_longitude = sse_decode_opt_box_autoadd_f_64(deserializer);
     var var_notes = sse_decode_opt_String(deserializer);
+    var var_userId = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_libraryOwnerId = sse_decode_opt_box_autoadd_i_32(deserializer);
     var var_isActive = sse_decode_bool(deserializer);
     return FrbContact(
       id: var_id,
@@ -1363,6 +1367,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       latitude: var_latitude,
       longitude: var_longitude,
       notes: var_notes,
+      userId: var_userId,
+      libraryOwnerId: var_libraryOwnerId,
       isActive: var_isActive,
     );
   }
@@ -1671,6 +1677,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_f_64(self.latitude, serializer);
     sse_encode_opt_box_autoadd_f_64(self.longitude, serializer);
     sse_encode_opt_String(self.notes, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.userId, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.libraryOwnerId, serializer);
     sse_encode_bool(self.isActive, serializer);
   }
 

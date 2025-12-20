@@ -34,22 +34,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   GamificationStatus? _gamificationStatus;
   String? _libraryName;
 
-  final GlobalKey _addKey = GlobalKey();
-  final GlobalKey _searchKey = GlobalKey();
-  final GlobalKey _statsKey = GlobalKey();
-  final GlobalKey _menuKey = GlobalKey();
+  final GlobalKey _addKey = GlobalKey(debugLabel: 'dashboard_add');
+  final GlobalKey _searchKey = GlobalKey(debugLabel: 'dashboard_search');
+  final GlobalKey _statsKey = GlobalKey(debugLabel: 'dashboard_stats');
+  final GlobalKey _menuKey = GlobalKey(debugLabel: 'dashboard_menu');
 
   @override
   void initState() {
     super.initState();
     _fetchDashboardData();
     // Verify locale changes on startup/init
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      _lastLocale = themeProvider.locale.languageCode;
-      _fetchDashboardData();
-    });
-    _checkWizard();
+    // Removed redundant _fetchDashboardData call in postFrameCallback
+    // Add delay to ensure layout is complete and stable before showing wizard
+    Future.delayed(const Duration(seconds: 1), _checkWizard);
     _checkBackupReminder();
   }
 
@@ -75,9 +72,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _checkWizard() async {
+    if (!mounted) return;
+    
+    // Skip wizard completely for Kid profile
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    if (themeProvider.isKid) return;
+
     if (!await WizardService.hasSeenDashboardWizard()) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        WizardService.showDashboardWizard(
+      if (mounted) {
+         WizardService.showDashboardWizard(
           context: context,
           addKey: _addKey,
           searchKey: _searchKey,
@@ -85,7 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           menuKey: _menuKey,
           onFinish: () {},
         );
-      });
+      }
     }
   }
 
@@ -679,8 +682,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          child: Stack(
-            clipBehavior: Clip.hardEdge,
+          child: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
             children: [
               // Decorative background icon
               Positioned(
@@ -742,9 +747,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
@@ -1161,11 +1167,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeroBook(BuildContext context, Book book) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 32),
-      child: PremiumBookCard(
-        book: book,
-        isHero: true,
+      child: SizedBox(
         width: double.infinity,
         height: 300,
+        child: PremiumBookCard(
+          book: book,
+          isHero: true,
+          width: double.infinity,
+          height: 300,
+        ),
       ),
     );
   }

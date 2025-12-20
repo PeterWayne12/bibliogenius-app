@@ -194,23 +194,34 @@ class _SetupScreenState extends State<SetupScreen> {
               }
             },
             controlsBuilder: (context, details) {
+              final isLastStep = currentStep == 5;
               return Padding(
-                padding: const EdgeInsets.only(top: 20.0),
+                padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
                 child: Row(
                   children: [
                     ElevatedButton(
                       key: const Key('setupNextButton'),
                       onPressed: details.onStepContinue,
+                      style: ElevatedButton.styleFrom(
+                        // Ensure button is visible but not full width
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      ),
                       child: Text(
-                        currentStep == 5
+                        isLastStep
                             ? strings['btn_finish']!
                             : strings['btn_next']!,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     if (currentStep > 0) ...[
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 16),
                       TextButton(
                         onPressed: details.onStepCancel,
+                        style: TextButton.styleFrom(
+                          // Ensure text is visible in all themes
+                          foregroundColor: Theme.of(context).colorScheme.primary,
+                        ),
                         child: Text(strings['btn_back']!),
                       ),
                     ],
@@ -401,41 +412,97 @@ class _SetupScreenState extends State<SetupScreen> {
                     const SizedBox(height: 10),
                     Text(strings['theme_label']!),
                     const SizedBox(height: 10),
-                    DropdownButton<String>(
-                      value: validTheme,
-                      isExpanded: true,
-                      items: ThemeRegistry.all.map((theme) {
-                        return DropdownMenuItem(
-                          value: theme.id,
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  color: theme.previewColor,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  TranslationService.translate(
-                                        context,
-                                        'theme_${theme.id}',
-                                      ) ??
-                                      theme.displayName,
-                                ),
-                              ),
-                            ],
-                          ),
+                    GestureDetector(
+                      onTap: () async {
+                        final selected = await showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SimpleDialog(
+                              title: Text(strings['theme_title']!),
+                              children: ThemeRegistry.all.map((theme) {
+                                return SimpleDialogOption(
+                                  onPressed: () {
+                                    Navigator.pop(context, theme.id);
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 24,
+                                        height: 24,
+                                        margin: const EdgeInsets.only(right: 12),
+                                        decoration: BoxDecoration(
+                                          color: theme.previewColor,
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: Colors.grey.shade300),
+                                        ),
+                                      ),
+                                      Text(
+                                        TranslationService.translate(
+                                              context,
+                                              'theme_${theme.id}',
+                                            ) ??
+                                            theme.displayName,
+                                      ),
+                                      if (theme.id == validTheme) ...[
+                                        const Spacer(),
+                                        Icon(
+                                          Icons.check,
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          },
                         );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          themeProvider.setThemeStyle(newValue);
+
+                        if (selected != null) {
+                           // Wait for dialog close animation to complete before triggering a global theme rebuild
+                           // This prevents RenderBox/layout errors during the transition
+                           await Future.delayed(const Duration(milliseconds: 300));
+                           if (context.mounted) {
+                              themeProvider.setThemeStyle(selected);
+                           }
                         }
                       },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                color: ThemeRegistry.get(validTheme)?.previewColor ?? Colors.grey,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                TranslationService.translate(
+                                      context,
+                                      'theme_$validTheme',
+                                    ) ??
+                                    ThemeRegistry.get(validTheme)?.displayName ?? validTheme,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            const Icon(Icons.arrow_drop_down),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -519,9 +586,14 @@ class _SetupScreenState extends State<SetupScreen> {
           Navigator.of(context).pop();
         }
 
+        // Wait for dialog animation to finish and frame to settle
+        await Future.delayed(const Duration(milliseconds: 300));
+
         // Trigger completion - this will notify listeners
         // GoRouter will detect isSetupComplete=true and redirect to /login automatically
-        await themeProvider.completeSetup();
+        if (context.mounted) {
+           await themeProvider.completeSetup();
+        }
       }
     } catch (e) {
       // Close loading dialog

@@ -13,44 +13,88 @@ import '../widgets/loan_dialog.dart';
 import '../providers/theme_provider.dart';
 
 class BookDetailsScreen extends StatefulWidget {
-  final Book book;
+  final Book? book;
+  final int bookId;
 
-  const BookDetailsScreen({super.key, required this.book});
+  const BookDetailsScreen({
+    super.key, 
+    this.book, 
+    required this.bookId,
+  });
 
   @override
   State<BookDetailsScreen> createState() => _BookDetailsScreenState();
 }
 
 class _BookDetailsScreenState extends State<BookDetailsScreen> {
-  late Book _book;
-
+  Book? _book;
   List<dynamic> _copies = [];
   bool _isLoadingCopies = true;
+  bool _isLoadingBook = false;
 
   @override
   void initState() {
     super.initState();
-    _book = widget.book;
-    _fetchBookDetails();
+    if (widget.book != null) {
+      _book = widget.book;
+      _fetchCopies();
+      // Optionally refresh book details in background
+      _fetchBookDetails(); 
+    } else {
+      _isLoadingBook = true;
+      _fetchBookDetails();
+    }
+  }
+
+  Future<void> _fetchCopies() async {
+    if (!mounted) return;
+    try {
+       final api = Provider.of<ApiService>(context, listen: false);
+       final response = await api.getBookCopies(widget.bookId);
+       if (mounted && response.statusCode == 200) {
+          final data = response.data;
+          setState(() {
+             if (data is Map && data.containsKey('copies')) {
+               _copies = data['copies'];
+             } else if (data is List) {
+               _copies = data;
+             }
+             _isLoadingCopies = false;
+          });
+       }
+    } catch (e) {
+       debugPrint('Error fetching copies: $e');
+       if (mounted) setState(() => _isLoadingCopies = false);
+    }
   }
 
   Future<void> _fetchBookDetails() async {
     final api = Provider.of<ApiService>(context, listen: false);
     try {
-      if (_book.id == null) return;
+      final futures = <Future<dynamic>>[
+         api.getBookCopies(widget.bookId),
+      ];
+      
+      // If we don't have the book, we need to fetch it
+      if (_book == null) {
+        futures.add(api.getBook(widget.bookId));
+      }
 
-      // Fetch book details and copies in parallel
-      final results = await Future.wait([
-        api.getBook(_book.id!),
-        api.getBookCopies(_book.id!),
-      ]);
-
-      final freshBook = results[0] as Book;
-      final copiesResponse = results[1] as Response; // Assuming Dio Response
+      final results = await Future.wait(futures);
+      
+      final copiesResponse = results[0] as Response;
+      Book? freshBook;
+      if (results.length > 1) {
+        freshBook = results[1] as Book;
+      }
 
       if (mounted) {
         setState(() {
-          _book = freshBook;
+          if (freshBook != null) {
+            _book = freshBook;
+            _isLoadingBook = false;
+          }
+          
           if (copiesResponse.statusCode == 200) {
             final data = copiesResponse.data;
             if (data is Map && data.containsKey('copies')) {
@@ -66,6 +110,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       debugPrint('Error fetching book details: $e');
       if (mounted) {
         setState(() {
+          _isLoadingBook = false;
           _isLoadingCopies = false;
         });
       }
@@ -81,14 +126,15 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   // ... existing build methods ...
 
   Future<void> _updateRating(int? newRating) async {
+    if (_book == null || _book!.id == null) return;
     final api = Provider.of<ApiService>(context, listen: false);
     try {
-      await api.updateBook(_book.id!, {
-        'title': _book.title,
+      await api.updateBook(_book!.id!, {
+        'title': _book!.title,
         'user_rating': newRating,
       });
       setState(() {
-        _book = _book.copyWithRating(newRating);
+        _book = _book!.copyWithRating(newRating);
       });
     } catch (e) {
       if (mounted) {
@@ -101,26 +147,37 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_book == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    // Guaranteed non-null here
+    final book = _book!;
+
     // Use large cover URL if available, otherwise fallback
-    final coverUrl = _book.largeCoverUrl ?? _book.coverUrl;
+    final coverUrl = book.largeCoverUrl ?? book.coverUrl;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(context, coverUrl),
+          _buildSliverAppBar(context, book, coverUrl),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context),
+                  _buildHeader(context, book),
                   const SizedBox(height: 24),
-                  _buildActionButtons(context),
+                  _buildActionButtons(context, book),
                   const SizedBox(height: 32),
-                  _buildMetadataGrid(context),
+                  _buildMetadataGrid(context, book),
                   const SizedBox(height: 32),
-                  if (_book.summary != null && _book.summary!.isNotEmpty) ...[
+                  if (book.summary != null && book.summary!.isNotEmpty) ...[
                     Text(
                       TranslationService.translate(context, 'book_summary') ??
                           'Summary',
@@ -130,7 +187,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      _book.summary!,
+                      book.summary!,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         height: 1.6,
                         color: Colors.grey[700],
@@ -162,9 +219,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     return colors[hash.abs() % colors.length];
   }
 
-  Widget _buildFallbackCover() {
+  Widget _buildFallbackCover(Book book) {
     final color = _generateRandomColor(
-      _book.title + (_book.id?.toString() ?? ''),
+      book.title + (book.id?.toString() ?? ''),
     );
 
     return Container(
@@ -184,7 +241,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            _book.title,
+            book.title,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -201,10 +258,10 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               ],
             ),
           ),
-          if (_book.author != null) ...[
+          if (book.author != null) ...[
             const SizedBox(height: 4),
             Text(
-              _book.author!,
+              book.author!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -226,7 +283,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, String? coverUrl) {
+  Widget _buildSliverAppBar(BuildContext context, Book book, String? coverUrl) {
     return SliverAppBar(
       expandedHeight: 400.0,
       pinned: true,
@@ -237,7 +294,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           fit: StackFit.expand,
           children: [
             // Layer 0: Fallback (always rendered at bottom)
-            _buildFallbackCover(),
+            _buildFallbackCover(book),
 
             // Layer 1: Network Image (if available)
             if (coverUrl != null && coverUrl.isNotEmpty)
@@ -261,7 +318,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             // Hero Image
             Center(
               child: Hero(
-                tag: 'book_cover_${_book.id}',
+                tag: 'book_cover_${book.id}',
                 child: Container(
                   width: 200,
                   height: 300,
@@ -283,7 +340,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       fit: StackFit.expand,
                       children: [
                         // Fallback always at bottom
-                        _buildFallbackCover(),
+                        _buildFallbackCover(book),
                         // Image on top
                         if (coverUrl != null && coverUrl.isNotEmpty)
                           Image.network(
@@ -308,21 +365,21 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, Book book) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _book.title,
+          book.title,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
             color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
-        if (_book.author != null) ...[
+        if (book.author != null) ...[
           const SizedBox(height: 8),
           Text(
-            _book.author!,
+            book.author!,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).primaryColor,
               fontWeight: FontWeight.w600,
@@ -333,10 +390,10 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    final isReading = _book.readingStatus == 'reading';
+  Widget _buildActionButtons(BuildContext context, Book book) {
+    final isReading = book.readingStatus == 'reading';
     final isToRead =
-        _book.readingStatus == 'to_read' || _book.readingStatus == null;
+        book.readingStatus == 'to_read' || book.readingStatus == null;
 
     return Column(
       children: [
@@ -349,8 +406,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     'Edit Book',
                 child: ElevatedButton.icon(
                   onPressed: () async {
+                    if (_book == null) return;
                     final result = await context.push(
-                      '/books/${_book.id}/edit',
+                      '/books/${_book!.id}/edit',
                       extra: _book,
                     );
                     if (result == true && context.mounted) {
@@ -383,9 +441,10 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     'Manage Copies',
                 child: OutlinedButton.icon(
                   onPressed: () {
+                    if (_book == null) return;
                     context.push(
-                      '/books/${_book.id}/copies',
-                      extra: {'bookId': _book.id, 'bookTitle': _book.title},
+                      '/books/${_book!.id}/copies',
+                      extra: {'bookId': _book!.id, 'bookTitle': _book!.title},
                     );
                   },
                   icon: const Icon(Icons.library_books_outlined),
@@ -473,11 +532,10 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             ),
           ),
         ],
-        // Lend book button - only visible when book is not lent/borrowed
-        // Lend book button - only visible when book is not lent/borrowed AND owned
-        if (_book.readingStatus != 'lent' &&
-            _book.readingStatus != 'borrowed' &&
-            _book.owned) ...[
+        // Lend book button - only visible when book is not lent/borrowed and owned
+        if (book.readingStatus != 'lent' &&
+            book.readingStatus != 'borrowed' &&
+            book.owned) ...[
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -508,7 +566,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           ),
         ],
         // Return lent book button - only visible when book is lent
-        if (_book.readingStatus == 'lent') ...[
+        if (book.readingStatus == 'lent') ...[
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -531,7 +589,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           ),
         ],
         // Return borrowed book button - only visible when book is borrowed (not for librarian)
-        if (_book.readingStatus == 'borrowed' &&
+        if (book.readingStatus == 'borrowed' &&
             !Provider.of<ThemeProvider>(
               context,
               listen: false,
@@ -561,7 +619,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Widget _buildMetadataGrid(BuildContext context) {
+  Widget _buildMetadataGrid(BuildContext context, Book book) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -582,25 +640,25 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               _buildMetadataItem(
                 context,
                 TranslationService.translate(context, 'year_label') ?? 'Year',
-                _book.publicationYear?.toString() ?? '-',
+                book.publicationYear?.toString() ?? '-',
               ),
               _buildMetadataItem(
                 context,
                 TranslationService.translate(context, 'publisher_label') ??
                     'Publisher',
-                _book.publisher ?? '-',
+                book.publisher ?? '-',
               ),
             ],
           ),
           const Divider(height: 32),
           Row(
             children: [
-              _buildMetadataItem(context, 'ISBN', _book.isbn ?? '-'),
+              _buildMetadataItem(context, 'ISBN', book.isbn ?? '-'),
               _buildMetadataItem(
                 context,
                 TranslationService.translate(context, 'status_label') ??
                     'Status',
-                _translateStatus(context, _book.readingStatus),
+                _translateStatus(context, book.readingStatus),
               ),
             ],
           ),
@@ -625,7 +683,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     ),
                     const SizedBox(height: 8),
                     StarRatingWidget(
-                      rating: _book.userRating,
+                      rating: book.userRating,
                       onRatingChanged: _updateRating,
                       size: 32,
                     ),
@@ -634,9 +692,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               ),
             ],
           ),
-          if ((_book.readingStatus == 'reading' ||
-                  _book.readingStatus == 'read') &&
-              _book.startedReadingAt != null) ...[
+          if ((book.readingStatus == 'reading' ||
+                  book.readingStatus == 'read') &&
+              book.startedReadingAt != null) ...[
             const Divider(height: 32),
             Row(
               children: [
@@ -644,13 +702,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   context,
                   TranslationService.translate(context, 'started_on') ??
                       'Started',
-                  _formatDate(_book.startedReadingAt!),
+                  _formatDate(book.startedReadingAt!),
                 ),
               ],
             ),
           ],
-          if (_book.readingStatus == 'read' &&
-              _book.finishedReadingAt != null) ...[
+          if (book.readingStatus == 'read' &&
+              book.finishedReadingAt != null) ...[
             const Divider(height: 32),
             Row(
               children: [
@@ -658,12 +716,12 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   context,
                   TranslationService.translate(context, 'finished_on') ??
                       'Finished',
-                  _formatDate(_book.finishedReadingAt!),
+                  _formatDate(book.finishedReadingAt!),
                 ),
               ],
             ),
           ],
-          if (_book.subjects != null && _book.subjects!.isNotEmpty) ...[
+          if (book.subjects != null && book.subjects!.isNotEmpty) ...[
             const Divider(height: 32),
             SizedBox(
               width: double.infinity,
@@ -695,7 +753,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 10,
-                    children: _book.subjects!.asMap().entries.map((entry) {
+                    children: book.subjects!.asMap().entries.map((entry) {
                       final index = entry.key;
                       final subject = entry.value;
                       // Cycle through colors for visual variety
@@ -822,6 +880,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   }
 
   Future<void> _startReading(BuildContext context) async {
+    if (_book == null) return;
     await _showStatusChangeOptions(
       context,
       'reading',
@@ -830,6 +889,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   }
 
   Future<void> _markAsFinished(BuildContext context) async {
+    if (_book == null) return;
     await _showStatusChangeOptions(
       context,
       'read',
@@ -924,7 +984,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     final apiService = Provider.of<ApiService>(context, listen: false);
     try {
       final Map<String, dynamic> updateData = {
-        'title': _book.title,
+        'title': _book!.title,
         'reading_status': newStatus,
       };
 
@@ -944,7 +1004,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         updateData['finished_reading_at'] = selectedDate?.toIso8601String();
       }
 
-      await apiService.updateBook(_book.id!, updateData);
+      await apiService.updateBook(_book!.id!, updateData);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -999,7 +1059,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     if (confirmed == true && context.mounted) {
       final apiService = Provider.of<ApiService>(context, listen: false);
       try {
-        await apiService.deleteBook(_book.id!);
+        if (_book == null) return;
+        await apiService.deleteBook(_book!.id!);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1032,8 +1093,10 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
 
     final apiService = Provider.of<ApiService>(context, listen: false);
     try {
+      if (_book == null) return;
+      if (_book == null) return;
       // 1. Get existing copies for this book
-      final copiesResponse = await apiService.getBookCopies(_book.id!);
+      final copiesResponse = await apiService.getBookCopies(_book!.id!);
       List<dynamic> copies = copiesResponse.data['copies'] ?? [];
 
       int copyId;
@@ -1041,7 +1104,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       if (copies.isEmpty) {
         // 2. Create a copy if none exists
         final newCopyResponse = await apiService.createCopy({
-          'book_id': _book.id,
+          'book_id': _book!.id,
           'library_id': 1, // Default library
           'status': 'available',
           'is_temporary': false,
@@ -1070,8 +1133,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       });
 
       // 5. Update book reading status to 'lent'
-      await apiService.updateBook(_book.id!, {
-        'title': _book.title,
+      await apiService.updateBook(_book!.id!, {
+        'title': _book!.title,
         'reading_status': 'lent',
       });
 
@@ -1103,8 +1166,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     final apiService = Provider.of<ApiService>(context, listen: false);
 
     try {
+      if (_book == null) return;
       // Find active loan for this book's copy
-      final copiesResponse = await apiService.getBookCopies(_book.id!);
+      final copiesResponse = await apiService.getBookCopies(_book!.id!);
       List<dynamic> copies = copiesResponse.data['copies'] ?? [];
 
       if (copies.isEmpty) {
@@ -1132,8 +1196,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       }
 
       // Update book reading status
-      await apiService.updateBook(_book.id!, {
-        'title': _book.title,
+      await apiService.updateBook(_book!.id!, {
+        'title': _book!.title,
         'reading_status': 'read', // or 'to_read' based on preference
       });
 
@@ -1166,9 +1230,10 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     final apiService = Provider.of<ApiService>(context, listen: false);
 
     try {
+      if (_book == null) return;
       // Update book reading status back to to_read (user gave it back)
-      await apiService.updateBook(_book.id!, {
-        'title': _book.title,
+      await apiService.updateBook(_book!.id!, {
+        'title': _book!.title,
         'reading_status': 'to_read',
       });
 

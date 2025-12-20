@@ -191,6 +191,7 @@ class ThemeProvider with ChangeNotifier {
   String get libraryName => _libraryName;
 
   Future<void> setLibraryName(String name, {ApiService? apiService}) async {
+    if (_libraryName == name) return;
     _libraryName = name;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('libraryName', name);

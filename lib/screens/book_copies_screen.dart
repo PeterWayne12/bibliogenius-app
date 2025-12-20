@@ -700,19 +700,9 @@ class _Book3DState extends State<_Book3D> {
                         topRight: Radius.circular(3),
                         bottomRight: Radius.circular(3),
                       ),
-                      border: Border(
-                        top: BorderSide(
-                          color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                        right: BorderSide(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                        bottom: BorderSide(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
+                      border: Border.all(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+                        width: 1,
                       ),
                     ),
                     child: Stack(
@@ -1375,9 +1365,13 @@ class _StandardAddCopySheetState extends State<_StandardAddCopySheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
         left: 16,
         right: 16,
         top: 16,
@@ -1387,28 +1381,112 @@ class _StandardAddCopySheetState extends State<_StandardAddCopySheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              widget.existingCopy == null ? 'Add Copy' : 'Edit Copy',
-              style: Theme.of(context).textTheme.headlineSmall,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    TranslationService.translate(context, 'cancel') ?? 'Cancel',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary, // Ensure visibility
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                Text(
+                  widget.existingCopy == null
+                      ? TranslationService.translate(context, 'add_copy_title') ??
+                          'Add Copy'
+                      : TranslationService.translate(context, 'edit_copy_title') ??
+                          'Edit Copy',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Return map of data
+                    Navigator.pop(context, {
+                      'acquisition_date': _dateController.text.isEmpty
+                          ? null
+                          : _dateController.text,
+                      'notes': _notesController.text.isEmpty
+                          ? null
+                          : _notesController.text,
+                      'status': _selectedStatus,
+                      'is_temporary': _isTemporary,
+                    });
+                  },
+                  child: Text(
+                    widget.existingCopy == null
+                        ? TranslationService.translate(context, 'save') ??
+                            'Save'
+                        : TranslationService.translate(context, 'save') ??
+                            'Save',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.primary, // Check if primary is visible on scaffold background
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             DropdownButtonFormField<String>(
-              initialValue: _selectedStatus,
-              decoration: const InputDecoration(labelText: 'Status'),
-              items: const [
-                DropdownMenuItem(value: 'available', child: Text('Available')),
-                DropdownMenuItem(value: 'borrowed', child: Text('Borrowed')),
-                DropdownMenuItem(value: 'lost', child: Text('Lost')),
-                DropdownMenuItem(value: 'damaged', child: Text('Damaged')),
+              value: _selectedStatus,
+              decoration: InputDecoration(
+                labelText:
+                    TranslationService.translate(context, 'copy_status') ??
+                    'Status',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: 'available',
+                  child: Text(
+                    TranslationService.translate(context, 'status_available') ??
+                        'Available',
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'borrowed',
+                  child: Text(
+                    TranslationService.translate(context, 'status_borrowed') ??
+                        'Borrowed',
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'lost',
+                  child: Text(
+                    TranslationService.translate(context, 'status_lost') ??
+                        'Lost',
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'damaged',
+                  child: Text(
+                    TranslationService.translate(context, 'status_damaged') ??
+                        'Damaged',
+                  ),
+                ),
               ],
               onChanged: (v) => setState(() => _selectedStatus = v!),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _dateController,
-              decoration: const InputDecoration(
-                labelText: 'Acquisition Date',
-                suffixIcon: Icon(Icons.calendar_today),
+              decoration: InputDecoration(
+                labelText:
+                    TranslationService.translate(context, 'acquisition_date') ??
+                    'Acquisition Date',
+                suffixIcon: const Icon(Icons.calendar_today),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               readOnly: true,
               onTap: () async {
@@ -1425,37 +1503,37 @@ class _StandardAddCopySheetState extends State<_StandardAddCopySheet> {
               },
             ),
             const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Temporary Copy'),
-              value: _isTemporary,
-              onChanged: (v) => setState(() => _isTemporary = v),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.5)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SwitchListTile(
+                title: Text(
+                  TranslationService.translate(context, 'is_temporary_copy') ??
+                      'Temporary Copy',
+                ),
+                value: _isTemporary,
+                onChanged: (v) => setState(() => _isTemporary = v),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Notes'),
+              decoration: InputDecoration(
+                labelText:
+                    TranslationService.translate(context, 'notes_label') ??
+                    'Notes',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               maxLines: 3,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                // Return map of data
-                Navigator.pop(context, {
-                  'acquisition_date': _dateController.text.isEmpty
-                      ? null
-                      : _dateController.text,
-                  'notes': _notesController.text.isEmpty
-                      ? null
-                      : _notesController.text,
-                  'status': _selectedStatus,
-                  'is_temporary': _isTemporary,
-                });
-              },
-              child: Text(
-                widget.existingCopy == null ? 'Add Copy' : 'Save Changes',
-              ),
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),

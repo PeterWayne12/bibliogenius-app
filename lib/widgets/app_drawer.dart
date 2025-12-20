@@ -76,6 +76,7 @@ class AppDrawer extends StatelessWidget {
               context.go('/network');
             },
           ),
+          /*
           if (AppConstants.enableP2PFeatures)
             ListTile(
               leading: const Icon(Icons.swap_horiz),
@@ -87,6 +88,7 @@ class AppDrawer extends StatelessWidget {
                 context.go('/requests');
               },
             ),
+          */
           // P2P Connect removed from drawer to simplify UX. Accessed via Network > Add.
           const Divider(),
           ListTile(

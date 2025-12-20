@@ -159,6 +159,8 @@ class FfiService {
         phone: contact.phone,
         address: contact.address,
         notes: contact.notes,
+        userId: contact.userId,
+        libraryOwnerId: contact.libraryOwnerId,
         isActive: contact.isActive,
       );
 
@@ -182,6 +184,8 @@ class FfiService {
         phone: contact.phone,
         address: contact.address,
         notes: contact.notes,
+        userId: contact.userId,
+        libraryOwnerId: contact.libraryOwnerId,
         isActive: contact.isActive,
       );
 
@@ -189,6 +193,16 @@ class FfiService {
       return _frbContactToContact(updated);
     } catch (e) {
       debugPrint('FFI updateContact error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a contact
+  Future<void> deleteContact(int id) async {
+    try {
+      await frb.deleteContact(id: id);
+    } catch (e) {
+      debugPrint('FFI deleteContact error: $e');
       rethrow;
     }
   }
@@ -276,7 +290,8 @@ class FfiService {
       address: fc.address,
       notes: fc.notes,
       isActive: fc.isActive,
-      libraryOwnerId: 1, // Default to library 1 for FFI mode
+      userId: fc.userId,
+      libraryOwnerId: fc.libraryOwnerId ?? 1,
     );
   }
 

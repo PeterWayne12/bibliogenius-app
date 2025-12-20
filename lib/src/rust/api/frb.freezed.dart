@@ -316,7 +316,7 @@ as bool,
 /// @nodoc
 mixin _$FrbContact {
 
- int? get id; String get contactType; String get name; String? get firstName; String? get email; String? get phone; String? get address; String? get streetAddress; String? get postalCode; String? get city; String? get country; double? get latitude; double? get longitude; String? get notes; bool get isActive;
+ int? get id; String get contactType; String get name; String? get firstName; String? get email; String? get phone; String? get address; String? get streetAddress; String? get postalCode; String? get city; String? get country; double? get latitude; double? get longitude; String? get notes; int? get userId; int? get libraryOwnerId; bool get isActive;
 /// Create a copy of FrbContact
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -327,16 +327,16 @@ $FrbContactCopyWith<FrbContact> get copyWith => _$FrbContactCopyWithImpl<FrbCont
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FrbContact&&(identical(other.id, id) || other.id == id)&&(identical(other.contactType, contactType) || other.contactType == contactType)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.streetAddress, streetAddress) || other.streetAddress == streetAddress)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FrbContact&&(identical(other.id, id) || other.id == id)&&(identical(other.contactType, contactType) || other.contactType == contactType)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.streetAddress, streetAddress) || other.streetAddress == streetAddress)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryOwnerId, libraryOwnerId) || other.libraryOwnerId == libraryOwnerId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,contactType,name,firstName,email,phone,address,streetAddress,postalCode,city,country,latitude,longitude,notes,isActive);
+int get hashCode => Object.hash(runtimeType,id,contactType,name,firstName,email,phone,address,streetAddress,postalCode,city,country,latitude,longitude,notes,userId,libraryOwnerId,isActive);
 
 @override
 String toString() {
-  return 'FrbContact(id: $id, contactType: $contactType, name: $name, firstName: $firstName, email: $email, phone: $phone, address: $address, streetAddress: $streetAddress, postalCode: $postalCode, city: $city, country: $country, latitude: $latitude, longitude: $longitude, notes: $notes, isActive: $isActive)';
+  return 'FrbContact(id: $id, contactType: $contactType, name: $name, firstName: $firstName, email: $email, phone: $phone, address: $address, streetAddress: $streetAddress, postalCode: $postalCode, city: $city, country: $country, latitude: $latitude, longitude: $longitude, notes: $notes, userId: $userId, libraryOwnerId: $libraryOwnerId, isActive: $isActive)';
 }
 
 
@@ -347,7 +347,7 @@ abstract mixin class $FrbContactCopyWith<$Res>  {
   factory $FrbContactCopyWith(FrbContact value, $Res Function(FrbContact) _then) = _$FrbContactCopyWithImpl;
 @useResult
 $Res call({
- int? id, String contactType, String name, String? firstName, String? email, String? phone, String? address, String? streetAddress, String? postalCode, String? city, String? country, double? latitude, double? longitude, String? notes, bool isActive
+ int? id, String contactType, String name, String? firstName, String? email, String? phone, String? address, String? streetAddress, String? postalCode, String? city, String? country, double? latitude, double? longitude, String? notes, int? userId, int? libraryOwnerId, bool isActive
 });
 
 
@@ -364,7 +364,7 @@ class _$FrbContactCopyWithImpl<$Res>
 
 /// Create a copy of FrbContact
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? contactType = null,Object? name = null,Object? firstName = freezed,Object? email = freezed,Object? phone = freezed,Object? address = freezed,Object? streetAddress = freezed,Object? postalCode = freezed,Object? city = freezed,Object? country = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? notes = freezed,Object? isActive = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? contactType = null,Object? name = null,Object? firstName = freezed,Object? email = freezed,Object? phone = freezed,Object? address = freezed,Object? streetAddress = freezed,Object? postalCode = freezed,Object? city = freezed,Object? country = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? notes = freezed,Object? userId = freezed,Object? libraryOwnerId = freezed,Object? isActive = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,contactType: null == contactType ? _self.contactType : contactType // ignore: cast_nullable_to_non_nullable
@@ -380,7 +380,9 @@ as String?,country: freezed == country ? _self.country : country // ignore: cast
 as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as String?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as int?,libraryOwnerId: freezed == libraryOwnerId ? _self.libraryOwnerId : libraryOwnerId // ignore: cast_nullable_to_non_nullable
+as int?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -463,10 +465,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String contactType,  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  String contactType,  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes,  int? userId,  int? libraryOwnerId,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FrbContact() when $default != null:
-return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.email,_that.phone,_that.address,_that.streetAddress,_that.postalCode,_that.city,_that.country,_that.latitude,_that.longitude,_that.notes,_that.isActive);case _:
+return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.email,_that.phone,_that.address,_that.streetAddress,_that.postalCode,_that.city,_that.country,_that.latitude,_that.longitude,_that.notes,_that.userId,_that.libraryOwnerId,_that.isActive);case _:
   return orElse();
 
 }
@@ -484,10 +486,10 @@ return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.emai
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String contactType,  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes,  bool isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  String contactType,  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes,  int? userId,  int? libraryOwnerId,  bool isActive)  $default,) {final _that = this;
 switch (_that) {
 case _FrbContact():
-return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.email,_that.phone,_that.address,_that.streetAddress,_that.postalCode,_that.city,_that.country,_that.latitude,_that.longitude,_that.notes,_that.isActive);}
+return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.email,_that.phone,_that.address,_that.streetAddress,_that.postalCode,_that.city,_that.country,_that.latitude,_that.longitude,_that.notes,_that.userId,_that.libraryOwnerId,_that.isActive);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -501,10 +503,10 @@ return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.emai
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String contactType,  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes,  bool isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  String contactType,  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes,  int? userId,  int? libraryOwnerId,  bool isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _FrbContact() when $default != null:
-return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.email,_that.phone,_that.address,_that.streetAddress,_that.postalCode,_that.city,_that.country,_that.latitude,_that.longitude,_that.notes,_that.isActive);case _:
+return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.email,_that.phone,_that.address,_that.streetAddress,_that.postalCode,_that.city,_that.country,_that.latitude,_that.longitude,_that.notes,_that.userId,_that.libraryOwnerId,_that.isActive);case _:
   return null;
 
 }
@@ -516,7 +518,7 @@ return $default(_that.id,_that.contactType,_that.name,_that.firstName,_that.emai
 
 
 class _FrbContact implements FrbContact {
-  const _FrbContact({this.id, required this.contactType, required this.name, this.firstName, this.email, this.phone, this.address, this.streetAddress, this.postalCode, this.city, this.country, this.latitude, this.longitude, this.notes, required this.isActive});
+  const _FrbContact({this.id, required this.contactType, required this.name, this.firstName, this.email, this.phone, this.address, this.streetAddress, this.postalCode, this.city, this.country, this.latitude, this.longitude, this.notes, this.userId, this.libraryOwnerId, required this.isActive});
   
 
 @override final  int? id;
@@ -533,6 +535,8 @@ class _FrbContact implements FrbContact {
 @override final  double? latitude;
 @override final  double? longitude;
 @override final  String? notes;
+@override final  int? userId;
+@override final  int? libraryOwnerId;
 @override final  bool isActive;
 
 /// Create a copy of FrbContact
@@ -545,16 +549,16 @@ _$FrbContactCopyWith<_FrbContact> get copyWith => __$FrbContactCopyWithImpl<_Frb
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FrbContact&&(identical(other.id, id) || other.id == id)&&(identical(other.contactType, contactType) || other.contactType == contactType)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.streetAddress, streetAddress) || other.streetAddress == streetAddress)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FrbContact&&(identical(other.id, id) || other.id == id)&&(identical(other.contactType, contactType) || other.contactType == contactType)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.address, address) || other.address == address)&&(identical(other.streetAddress, streetAddress) || other.streetAddress == streetAddress)&&(identical(other.postalCode, postalCode) || other.postalCode == postalCode)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.libraryOwnerId, libraryOwnerId) || other.libraryOwnerId == libraryOwnerId)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,contactType,name,firstName,email,phone,address,streetAddress,postalCode,city,country,latitude,longitude,notes,isActive);
+int get hashCode => Object.hash(runtimeType,id,contactType,name,firstName,email,phone,address,streetAddress,postalCode,city,country,latitude,longitude,notes,userId,libraryOwnerId,isActive);
 
 @override
 String toString() {
-  return 'FrbContact(id: $id, contactType: $contactType, name: $name, firstName: $firstName, email: $email, phone: $phone, address: $address, streetAddress: $streetAddress, postalCode: $postalCode, city: $city, country: $country, latitude: $latitude, longitude: $longitude, notes: $notes, isActive: $isActive)';
+  return 'FrbContact(id: $id, contactType: $contactType, name: $name, firstName: $firstName, email: $email, phone: $phone, address: $address, streetAddress: $streetAddress, postalCode: $postalCode, city: $city, country: $country, latitude: $latitude, longitude: $longitude, notes: $notes, userId: $userId, libraryOwnerId: $libraryOwnerId, isActive: $isActive)';
 }
 
 
@@ -565,7 +569,7 @@ abstract mixin class _$FrbContactCopyWith<$Res> implements $FrbContactCopyWith<$
   factory _$FrbContactCopyWith(_FrbContact value, $Res Function(_FrbContact) _then) = __$FrbContactCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, String contactType, String name, String? firstName, String? email, String? phone, String? address, String? streetAddress, String? postalCode, String? city, String? country, double? latitude, double? longitude, String? notes, bool isActive
+ int? id, String contactType, String name, String? firstName, String? email, String? phone, String? address, String? streetAddress, String? postalCode, String? city, String? country, double? latitude, double? longitude, String? notes, int? userId, int? libraryOwnerId, bool isActive
 });
 
 
@@ -582,7 +586,7 @@ class __$FrbContactCopyWithImpl<$Res>
 
 /// Create a copy of FrbContact
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? contactType = null,Object? name = null,Object? firstName = freezed,Object? email = freezed,Object? phone = freezed,Object? address = freezed,Object? streetAddress = freezed,Object? postalCode = freezed,Object? city = freezed,Object? country = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? notes = freezed,Object? isActive = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? contactType = null,Object? name = null,Object? firstName = freezed,Object? email = freezed,Object? phone = freezed,Object? address = freezed,Object? streetAddress = freezed,Object? postalCode = freezed,Object? city = freezed,Object? country = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? notes = freezed,Object? userId = freezed,Object? libraryOwnerId = freezed,Object? isActive = null,}) {
   return _then(_FrbContact(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,contactType: null == contactType ? _self.contactType : contactType // ignore: cast_nullable_to_non_nullable
@@ -598,7 +602,9 @@ as String?,country: freezed == country ? _self.country : country // ignore: cast
 as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as String?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as int?,libraryOwnerId: freezed == libraryOwnerId ? _self.libraryOwnerId : libraryOwnerId // ignore: cast_nullable_to_non_nullable
+as int?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

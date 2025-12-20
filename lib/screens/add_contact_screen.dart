@@ -85,7 +85,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
       final authService = Provider.of<AuthService>(context, listen: false);
       final apiService = Provider.of<ApiService>(context, listen: false);
       final libraryId = await authService.getLibraryId() ?? 1;
-      final userId = await authService.getUserId() ?? 1;
+      final userId = await authService.getUserId();
 
       final contactData = {
         'type': _type,
@@ -186,9 +186,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
                                   'save_contact',
                                 ) ??
                                 'Save'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white, // Use AppBar foreground color
                       ),
                     ),
                   ),

@@ -211,6 +211,8 @@ sealed class FrbContact with _$FrbContact {
     double? latitude,
     double? longitude,
     String? notes,
+    int? userId,
+    int? libraryOwnerId,
     required bool isActive,
   }) = _FrbContact;
 }

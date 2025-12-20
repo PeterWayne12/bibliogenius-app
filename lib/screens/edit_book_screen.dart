@@ -32,9 +32,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
   late TextEditingController _tagsController; // Add this
   late Book _book;
   List<String> _selectedTags = []; // Add this
+  List<String> _authors = []; // Multiple authors support
   String _readingStatus = 'to_read';
-  String?
-  _originalReadingStatus; // Track original status to detect changes to 'read'
+  String? _originalReadingStatus; // Track original status to detect changes to 'read'
+  
   String? _coverUrl;
   bool _isEditing = true; // Always start in edit mode
   bool _isSaving = false;
@@ -51,6 +52,12 @@ class _EditBookScreenState extends State<EditBookScreen> {
     super.initState();
     _titleController = TextEditingController(text: widget.book.title);
     _authorController = TextEditingController(text: widget.book.author ?? '');
+    
+    // Initialize authors list
+    if (widget.book.author != null && widget.book.author!.isNotEmpty) {
+       _authors = widget.book.author!.split(RegExp(r',\s*')).where((s) => s.isNotEmpty).toList();
+    }
+    
     _isbnController = TextEditingController(text: widget.book.isbn ?? '');
     _publisherController = TextEditingController(
       text: widget.book.publisher ?? '',
@@ -93,7 +100,18 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _isbnController.addListener(_onIsbnChanged);
   }
 
+  // ... (keeping _loadCopyStatus and _fetchBookDetails methods as is, assuming they are outside the range or I will include them if needed, see strict ReplacementContent)
+  // Actually, I need to update _fetchBookDetails too to populate _authors!
+  // But wait, the previous tool call viewed lines 1-800.
+  // The ReplacementBlock spans lines 34-276 roughly. 
+  
+  // Let's do the initialization first, and I'll do _fetchBookDetails in a separate chunk to be safe or verify line numbers.
+  // Wait, I can do multiple chunks if they are non-contiguous, but I should use multi_replace for that.
+  // Here I'm using replace_file_content.
+  // Let's just focus on Init and Save logic first.
+
   Future<void> _loadCopyStatus() async {
+    // ... existing implementation
     if (widget.book.id == null) return;
     try {
       final api = Provider.of<ApiService>(context, listen: false);
@@ -131,6 +149,15 @@ class _EditBookScreenState extends State<EditBookScreen> {
         setState(() {
           if (_titleController.text.isEmpty)
             _titleController.text = bookData['title'] ?? '';
+            
+          // Handle authors in fetch details
+          if (bookData['authors'] != null && bookData['authors'] is List) {
+             _authors = List<String>.from(bookData['authors']);
+          } else if (bookData['author'] != null) {
+             _authors = [bookData['author']];
+          }
+          _authorController.text = _authors.join(', ');
+
           if (_publisherController.text.isEmpty)
             _publisherController.text = bookData['publisher'] ?? '';
           if (_yearController.text.isEmpty)
@@ -161,13 +188,14 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _publisherController.dispose();
     _yearController.dispose();
     _isbnController.dispose();
-    _isbnController.dispose();
+    // _isbnController.dispose(); // Removing duplicate
     _summaryController.dispose();
     _startedDateController.dispose();
     _finishedDateController.dispose();
     super.dispose();
   }
 
+  // ... keeping _selectDate, _formatDateForDisplay ... 
   Future<void> _selectDate(
     BuildContext context,
     TextEditingController controller,
@@ -191,8 +219,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
       });
     }
   }
-
-  // Format date for display (human-readable)
+  
   String _formatDateForDisplay(String? isoDate) {
     if (isoDate == null || isoDate.isEmpty) return '';
     final date = DateTime.tryParse(isoDate);
@@ -211,12 +238,26 @@ class _EditBookScreenState extends State<EditBookScreen> {
         });
       }
     }
+    
+    // Check for pending author
+    if (_authorController.text.trim().isNotEmpty) {
+       // Only add if explicit add wasn't clicked but text remains
+       // Avoid duplicating the joined string if it matches
+       if (_authorController.text != _authors.join(', ')) {
+         final pending = _authorController.text.trim();
+         if (!_authors.contains(pending)) {
+            setState(() => _authors.add(pending));
+         }
+       }
+    }
 
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
     final apiService = Provider.of<ApiService>(context, listen: false);
+    
+    // Construct book data map manually for update
     final bookData = {
       'title': _titleController.text,
       'publisher': _publisherController.text,
@@ -225,6 +266,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
       'summary': _summaryController.text,
       'reading_status': _readingStatus,
       'cover_url': _coverUrl,
+      'author': _authors.isNotEmpty ? _authors.join(', ') : _authorController.text, // Use joined authors
       'started_reading_at': _startedDateController.text.isNotEmpty
           ? DateTime.parse(_startedDateController.text).toIso8601String()
           : null,
@@ -236,6 +278,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
     };
 
     try {
+      if (widget.book.id == null) {
+         throw Exception("Book ID is missing");
+      }
       await apiService.updateBook(widget.book.id!, bookData);
 
       // Also update copy status if changed
@@ -256,13 +301,13 @@ class _EditBookScreenState extends State<EditBookScreen> {
           DateTime? finishedAt = _finishedDateController.text.isNotEmpty
               ? DateTime.tryParse(_finishedDateController.text)
               : null;
+              
+          final authorString = _authors.isNotEmpty ? _authors.join(', ') : _authorController.text;
 
           _book = Book(
             id: widget.book.id,
             title: _titleController.text,
-            author: _authorController.text.isNotEmpty
-                ? _authorController.text
-                : widget.book.author,
+            author: authorString.isNotEmpty ? authorString : widget.book.author,
             isbn: _isbnController.text,
             publisher: _publisherController.text,
             publicationYear: int.tryParse(_yearController.text),
@@ -426,7 +471,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
                     ),
                   )
                 : TextButton(
@@ -437,7 +482,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
                       ),
                     ),
                   ),
@@ -490,7 +535,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         option.title,
                     onSelected: (OpenLibraryBook selection) {
                       setState(() {
+                        // Update authors list
+                        _authors = [selection.author];
                         _authorController.text = selection.author;
+                        
                         if (selection.isbn != null)
                           _isbnController.text = selection.isbn!;
                         if (selection.publisher != null)
@@ -568,13 +616,72 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 TranslationService.translate(context, 'author_label') ??
                     'Author',
               ),
-              TextFormField(
-                controller: _authorController,
-                decoration: _buildInputDecoration(
-                  hint:
-                      TranslationService.translate(context, 'enter_author') ??
-                      'Enter author name',
-                ),
+              Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  return const Iterable<String>.empty();
+                },
+                fieldViewBuilder: (
+                  context,
+                  textEditingController,
+                  focusNode,
+                  onFieldSubmitted,
+                ) {
+                  if (_authorController != textEditingController) {
+                     // Sync logic if needed, but usually we just let Autocomplete handle its internal controller
+                     // or we could assign it. But existing logic uses _authorController.
+                     // Let's just use the one passed here.
+                  }
+                   return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    decoration: _buildInputDecoration(
+                      hint: TranslationService.translate(context, 'enter_author') ??
+                          'Enter author name',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                           if (textEditingController.text.trim().isNotEmpty) {
+                             setState(() {
+                               final val = textEditingController.text.trim();
+                               if (!_authors.contains(val)) {
+                                 _authors.add(val);
+                               }
+                               textEditingController.clear();
+                             });
+                           }
+                        },
+                      ),
+                    ),
+                    onFieldSubmitted: (String value) {
+                      final trimmed = value.trim();
+                      if (trimmed.isNotEmpty) {
+                        setState(() {
+                           if (!_authors.contains(trimmed)) {
+                             _authors.add(trimmed);
+                           }
+                           textEditingController.clear();
+                        });
+                        focusNode.requestFocus();
+                      }
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _authors.map((author) {
+                  return Chip(
+                    label: Text(author),
+                    deleteIcon: const Icon(Icons.close, size: 18),
+                    onDeleted: () {
+                      setState(() {
+                        _authors.remove(author);
+                      });
+                    },
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 24),
 

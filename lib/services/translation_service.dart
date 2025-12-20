@@ -299,6 +299,10 @@ class TranslationService {
       'copies_explanation':
           'Copies let you track multiple physical copies of the same book. Useful for libraries with several copies that can be loaned to different people.',
       'add_copy_title': 'Add Copy',
+      'edit_copy_title': 'Edit Copy',
+      'delete_copy_title': 'Delete Copy',
+      'delete_copy_confirm': 'Are you sure you want to delete this copy?',
+      'delete_copy_btn': 'Delete',
       'is_temporary_copy': 'Temporary copy',
       'copy_status': 'Status',
       'acquisition_date': 'Acquisition Date',
@@ -1052,6 +1056,10 @@ class TranslationService {
       'copies_explanation':
           'Les exemplaires permettent de gérer plusieurs copies physiques du même livre. Utile pour les bibliothèques qui prêtent plusieurs copies à différents emprunteurs.',
       'add_copy_title': 'Ajouter un exemplaire',
+      'edit_copy_title': 'Modifier l\'exemplaire',
+      'delete_copy_title': 'Supprimer l\'exemplaire',
+      'delete_copy_confirm': 'Êtes-vous sûr de vouloir supprimer cet exemplaire ?',
+      'delete_copy_btn': 'Supprimer',
       'is_temporary_copy': 'Exemplaire temporaire',
       'copy_status': 'Statut',
       'acquisition_date': 'Date d\'acquisition',
@@ -1738,6 +1746,10 @@ class TranslationService {
       'copies_explanation':
           'Las copias permiten rastrear múltiples ejemplares físicos del mismo libro. Útil para bibliotecas con varias copias que se prestan a diferentes personas.',
       'add_copy_title': 'Añadir copia',
+      'edit_copy_title': 'Editar copia',
+      'delete_copy_title': 'Eliminar copia',
+      'delete_copy_confirm': '¿Estás seguro de que quieres eliminar esta copia?',
+      'delete_copy_btn': 'Eliminar',
       'is_temporary_copy': 'Copia temporal',
       'copy_status': 'Estado',
       'acquisition_date': 'Fecha de adquisición',
@@ -2263,6 +2275,11 @@ class TranslationService {
       'copies_explanation':
           'Exemplare ermöglichen die Verfolgung mehrerer physischer Kopien desselben Buches. Nützlich für Bibliotheken mit mehreren Exemplaren, die an verschiedene Personen verliehen werden.',
       'add_copy_title': 'Exemplar hinzufügen',
+      'edit_copy_title': 'Exemplar bearbeiten',
+      'delete_copy_title': 'Exemplar löschen',
+      'delete_copy_confirm':
+          'Sind Sie sicher, dass Sie dieses Exemplar löschen möchten?',
+      'delete_copy_btn': 'Löschen',
       'is_temporary_copy': 'Temporäres Exemplar',
       'copy_status': 'Status',
       'acquisition_date': 'Erwerbsdatum',

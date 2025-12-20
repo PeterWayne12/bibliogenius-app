@@ -539,7 +539,7 @@ class ApiService {
           latitude: (contactData['latitude'] as num?)?.toDouble(),
           longitude: (contactData['longitude'] as num?)?.toDouble(),
           notes: contactData['notes'],
-          userId: contactData['user_id'] ?? 1,
+          userId: contactData['user_id'],
           libraryOwnerId: contactData['library_owner_id'] ?? 1,
           isActive: contactData['is_active'] ?? true,
         );
@@ -587,7 +587,7 @@ class ApiService {
           latitude: (contactData['latitude'] as num?)?.toDouble(),
           longitude: (contactData['longitude'] as num?)?.toDouble(),
           notes: contactData['notes'],
-          userId: contactData['user_id'] ?? 1,
+          userId: contactData['user_id'],
           libraryOwnerId: contactData['library_owner_id'] ?? 1,
           isActive: contactData['is_active'] ?? true,
         );
@@ -614,13 +614,21 @@ class ApiService {
   }
 
   Future<Response> deleteContact(int id) async {
-    // Contacts require network or Rust FFI support (not yet implemented)
     if (useFfi) {
-      return Response(
-        requestOptions: RequestOptions(path: '/api/contacts/$id'),
-        statusCode: 501,
-        statusMessage: 'Contacts not available in offline mode',
-      );
+      try {
+        await FfiService().deleteContact(id);
+        return Response(
+          requestOptions: RequestOptions(path: '/api/contacts/$id'),
+          statusCode: 200,
+          data: {'message': 'Contact deleted successfully'},
+        );
+      } catch (e) {
+        return Response(
+          requestOptions: RequestOptions(path: '/api/contacts/$id'),
+          statusCode: 500,
+          statusMessage: 'Error deleting contact: $e',
+        );
+      }
     }
     return await _dio.delete('/api/contacts/$id');
   }
@@ -1577,7 +1585,7 @@ class ApiService {
         final localDio = Dio(
           BaseOptions(baseUrl: 'http://localhost:$httpPort'),
         );
-        return await localDio.post(
+        final response = await localDio.post(
           '/api/setup',
           data: {
             'library_name': libraryName,
@@ -1589,23 +1597,46 @@ class ApiService {
             'share_location': shareLocation,
           },
         );
+
+        if (response.statusCode == 200 && response.data['success'] == true) {
+           final data = response.data;
+           if (data['user_id'] != null) {
+              await _authService.saveUserId(data['user_id']);
+           }
+           if (data['library_id'] != null) {
+              await _authService.saveLibraryId(data['library_id']);
+           }
+        }
+        return response;
       } catch (e) {
         debugPrint('❌ setup error: $e');
         rethrow;
       }
     }
-    return await _dio.post(
-      '/api/setup',
-      data: {
-        'library_name': libraryName,
-        'library_description': libraryDescription,
-        'profile_type': profileType,
-        'theme': theme,
-        'latitude': latitude,
-        'longitude': longitude,
-        'share_location': shareLocation,
-      },
-    );
+      final response = await _dio.post(
+        '/api/setup',
+        data: {
+          'library_name': libraryName,
+          'library_description': libraryDescription,
+          'profile_type': profileType,
+          'theme': theme,
+          'latitude': latitude,
+          'longitude': longitude,
+          'share_location': shareLocation,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        // Save returned user_id and library_id to secure storage
+        final data = response.data;
+        if (data['user_id'] != null) {
+          await _authService.saveUserId(data['user_id']);
+        }
+        if (data['library_id'] != null) {
+          await _authService.saveLibraryId(data['library_id']);
+        }
+      }
+      return response;
   }
 
   Future<Response> resetApp() async {

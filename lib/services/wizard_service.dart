@@ -48,57 +48,76 @@ class WizardService {
   }) {
     final theme = Theme.of(context);
 
-    List<TargetFocus> targets = [
-      TargetFocus(
-        identify: "menu_key",
-        keyTarget: menuKey,
-        alignSkip: Alignment.bottomRight,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) {
-              return _buildWizardContent(
-                context,
-                TranslationService.translate(context, 'wizard_menu_title'),
-                TranslationService.translate(context, 'wizard_menu_desc'),
-              );
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: "add_key",
-        keyTarget: addKey,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) {
-              return _buildWizardContent(
-                context,
-                TranslationService.translate(context, 'wizard_add_title'),
-                TranslationService.translate(context, 'wizard_add_desc'),
-              );
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: "search_key",
-        keyTarget: searchKey,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) {
-              return _buildWizardContent(
-                context,
-                TranslationService.translate(context, 'wizard_search_title'),
-                TranslationService.translate(context, 'wizard_search_desc'),
-              );
-            },
-          ),
-        ],
-      ),
-    ];
+    List<TargetFocus> targets = [];
+
+    if (menuKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "menu_key",
+          keyTarget: menuKey,
+          alignSkip: Alignment.bottomRight,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return _buildWizardContent(
+                  context,
+                  TranslationService.translate(context, 'wizard_menu_title'),
+                  TranslationService.translate(context, 'wizard_menu_desc'),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (addKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "add_key",
+          keyTarget: addKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return _buildWizardContent(
+                  context,
+                  TranslationService.translate(context, 'wizard_add_title'),
+                  TranslationService.translate(context, 'wizard_add_desc'),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (searchKey.currentContext != null) {
+      targets.add(
+        TargetFocus(
+          identify: "search_key",
+          keyTarget: searchKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return _buildWizardContent(
+                  context,
+                  TranslationService.translate(context, 'wizard_search_title'),
+                  TranslationService.translate(context, 'wizard_search_desc'),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (targets.isEmpty) {
+      onFinish();
+      return;
+    }
 
     TutorialCoachMark(
       targets: targets,
