@@ -917,8 +917,8 @@ class _BookListScreenState extends State<BookListScreen> {
         _isReordering = false;
         _isLoading = false;
       });
-      // Optionally refresh
-      _fetchBooks();
+      // Don't call _fetchBooks() here - it would reload with global order
+      // and lose the tag-filtered order we just saved
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Shelf order saved!')));
