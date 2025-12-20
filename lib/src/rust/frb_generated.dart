@@ -7,1308 +7,1864 @@ import 'api/frb.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
-import 'frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'frb_generated.io.dart'
+    if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+/// Main entrypoint of the Rust API
+class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+  @internal
+  static final instance = RustLib._();
 
-                /// Main entrypoint of the Rust API
-                class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
-                  @internal
-                  static final instance = RustLib._();
+  RustLib._();
 
-                  RustLib._();
+  /// Initialize flutter_rust_bridge
+  static Future<void> init({
+    RustLibApi? api,
+    BaseHandler? handler,
+    ExternalLibrary? externalLibrary,
+    bool forceSameCodegenVersion = true,
+  }) async {
+    await instance.initImpl(
+      api: api,
+      handler: handler,
+      externalLibrary: externalLibrary,
+      forceSameCodegenVersion: forceSameCodegenVersion,
+    );
+  }
 
-                  /// Initialize flutter_rust_bridge
-                  static Future<void> init({
-                    RustLibApi? api,
-                    BaseHandler? handler,
-                    ExternalLibrary? externalLibrary,
-                    bool forceSameCodegenVersion = true,
-                  }) async {
-                    await instance.initImpl(
-                      api: api,
-                      handler: handler,
-                      externalLibrary: externalLibrary,
-                      forceSameCodegenVersion: forceSameCodegenVersion,
-                    );
-                  }
+  /// Initialize flutter_rust_bridge in mock mode.
+  /// No libraries for FFI are loaded.
+  static void initMock({required RustLibApi api}) {
+    instance.initMockImpl(api: api);
+  }
 
-                  /// Initialize flutter_rust_bridge in mock mode.
-                  /// No libraries for FFI are loaded.
-                  static void initMock({
-                    required RustLibApi api,
-                  }) {
-                    instance.initMockImpl(
-                      api: api,
-                    );
-                  }
+  /// Dispose flutter_rust_bridge
+  ///
+  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
+  /// is automatically disposed when the app stops.
+  static void dispose() => instance.disposeImpl();
 
-                  /// Dispose flutter_rust_bridge
-                  ///
-                  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
-                  /// is automatically disposed when the app stops.
-                  static void dispose() => instance.disposeImpl();
+  @override
+  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
+      RustLibApiImpl.new;
 
-                  @override
-                  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor => RustLibApiImpl.new;
+  @override
+  WireConstructor<RustLibWire> get wireConstructor =>
+      RustLibWire.fromExternalLibrary;
 
-                  @override
-                  WireConstructor<RustLibWire> get wireConstructor => RustLibWire.fromExternalLibrary;
+  @override
+  Future<void> executeRustInitializers() async {}
 
-                  @override
-                  Future<void> executeRustInitializers() async {
-                    
-                  }
+  @override
+  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig =>
+      kDefaultExternalLibraryLoaderConfig;
 
-                  @override
-                  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig => kDefaultExternalLibraryLoaderConfig;
+  @override
+  String get codegenVersion => '2.11.1';
 
-                  @override
-                  String get codegenVersion => '2.11.1';
+  @override
+  int get rustContentHash => 1589577116;
 
-                  @override
-                  int get rustContentHash => 192549621;
+  static const kDefaultExternalLibraryLoaderConfig =
+      ExternalLibraryLoaderConfig(
+        stem: 'bibliogenius',
+        ioDirectory: '../bibliogenius/target/release/',
+        webPrefix: 'pkg/',
+      );
+}
 
-                  static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
-                    stem: 'bibliogenius',
-                    ioDirectory: '../bibliogenius/target/release/',
-                    webPrefix: 'pkg/',
-                  );
-                }
-                
+abstract class RustLibApi extends BaseApi {
+  Future<PlatformInt64> crateApiFrbCountActiveLoans();
 
-                abstract class RustLibApi extends BaseApi {
-                  Future<PlatformInt64> crateApiFrbCountActiveLoans();
+  Future<PlatformInt64> crateApiFrbCountBooks();
 
-Future<PlatformInt64> crateApiFrbCountBooks();
+  Future<PlatformInt64> crateApiFrbCountContacts();
 
-Future<PlatformInt64> crateApiFrbCountContacts();
+  Future<FrbBook> crateApiFrbCreateBook({required FrbBook book});
 
-Future<FrbBook> crateApiFrbCreateBook({required FrbBook book });
+  Future<FrbContact> crateApiFrbCreateContact({required FrbContact contact});
 
-Future<FrbContact> crateApiFrbCreateContact({required FrbContact contact });
+  Future<int> crateApiFrbCreateLoan({
+    required int copyId,
+    required int contactId,
+    required int libraryId,
+    required String loanDate,
+    required String dueDate,
+    String? notes,
+  });
 
-Future<int> crateApiFrbCreateLoan({required int copyId , required int contactId , required int libraryId , required String loanDate , required String dueDate , String? notes });
+  Future<void> crateApiFrbDeleteBook({required int id});
 
-Future<void> crateApiFrbDeleteBook({required int id });
+  Future<void> crateApiFrbDeleteContact({required int id});
 
-Future<List<FrbBook>> crateApiFrbGetAllBooks({String? status , String? title , String? tag });
+  Future<List<FrbBook>> crateApiFrbGetAllBooks({
+    String? status,
+    String? title,
+    String? tag,
+  });
 
-Future<List<FrbContact>> crateApiFrbGetAllContacts({int? libraryId , String? contactType });
+  Future<List<FrbContact>> crateApiFrbGetAllContacts({
+    int? libraryId,
+    String? contactType,
+  });
 
-Future<List<FrbLoan>> crateApiFrbGetAllLoans({int? libraryId , String? status , int? contactId });
+  Future<List<FrbLoan>> crateApiFrbGetAllLoans({
+    int? libraryId,
+    String? status,
+    int? contactId,
+  });
 
-Future<List<(String,PlatformInt64)>> crateApiFrbGetAllTags();
+  Future<List<(String, PlatformInt64)>> crateApiFrbGetAllTags();
 
-Future<FrbBook> crateApiFrbGetBookById({required int id });
+  Future<FrbBook> crateApiFrbGetBookById({required int id});
 
-Future<FrbContact> crateApiFrbGetContactById({required int id });
+  Future<FrbContact> crateApiFrbGetContactById({required int id});
 
-Future<List<FrbDiscoveredPeer>> crateApiFrbGetLocalPeersFfi();
+  Future<List<FrbDiscoveredPeer>> crateApiFrbGetLocalPeersFfi();
 
-String crateApiFrbGetMdnsServiceType();
+  String crateApiFrbGetMdnsServiceType();
 
-String crateApiFrbGetVersion();
+  String crateApiFrbGetVersion();
 
-String crateApiFrbGreet({required String name });
+  String crateApiFrbGreet({required String name});
 
-String crateApiFrbHealthCheck();
+  String crateApiFrbHealthCheck();
 
-Future<String> crateApiFrbInitBackend({required String dbPath });
+  Future<String> crateApiFrbInitBackend({required String dbPath});
 
-Future<String> crateApiFrbInitMdnsFfi({required String libraryName , required int port , String? libraryId });
+  Future<String> crateApiFrbInitMdnsFfi({
+    required String libraryName,
+    required int port,
+    String? libraryId,
+  });
 
-bool crateApiFrbIsMdnsAvailable();
+  bool crateApiFrbIsMdnsAvailable();
 
-Future<String> crateApiFrbResetApp();
+  Future<void> crateApiFrbReorderBooks({required List<int> bookIds});
 
-Future<String> crateApiFrbReturnLoan({required int id });
+  Future<String> crateApiFrbResetApp();
 
-Future<int> crateApiFrbStartServer({required int port });
+  Future<String> crateApiFrbReturnLoan({required int id});
 
-Future<String> crateApiFrbStopMdnsFfi();
+  Future<int> crateApiFrbStartServer({required int port});
 
-Future<FrbBook> crateApiFrbUpdateBook({required int id , required FrbBook book });
+  Future<String> crateApiFrbStopMdnsFfi();
 
-Future<FrbContact> crateApiFrbUpdateContact({required FrbContact contact });
+  Future<FrbBook> crateApiFrbUpdateBook({
+    required int id,
+    required FrbBook book,
+  });
 
+  Future<FrbContact> crateApiFrbUpdateContact({required FrbContact contact});
+}
 
-                }
-                
+class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
+  RustLibApiImpl({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
-                class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-                  RustLibApiImpl({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
-
-                  @override Future<PlatformInt64> crateApiFrbCountActiveLoans()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<PlatformInt64> crateApiFrbCountActiveLoans() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 1,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbCountActiveLoansConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbCountActiveLoansConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbCountActiveLoansConstMeta =>
+      const TaskConstMeta(debugName: "count_active_loans", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbCountActiveLoansConstMeta => const TaskConstMeta(
-            debugName: "count_active_loans",
-            argNames: [],
-        );
-        
-
-@override Future<PlatformInt64> crateApiFrbCountBooks()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<PlatformInt64> crateApiFrbCountBooks() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbCountBooksConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbCountBooksConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbCountBooksConstMeta =>
+      const TaskConstMeta(debugName: "count_books", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbCountBooksConstMeta => const TaskConstMeta(
-            debugName: "count_books",
-            argNames: [],
-        );
-        
-
-@override Future<PlatformInt64> crateApiFrbCountContacts()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<PlatformInt64> crateApiFrbCountContacts() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbCountContactsConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbCountContactsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbCountContactsConstMeta =>
+      const TaskConstMeta(debugName: "count_contacts", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbCountContactsConstMeta => const TaskConstMeta(
-            debugName: "count_contacts",
-            argNames: [],
-        );
-        
-
-@override Future<FrbBook> crateApiFrbCreateBook({required FrbBook book })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_box_autoadd_frb_book(book, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<FrbBook> crateApiFrbCreateBook({required FrbBook book}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_frb_book(book, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_frb_book,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbCreateBookConstMeta,
-            argValues: [book],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbCreateBookConstMeta,
+        argValues: [book],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbCreateBookConstMeta =>
+      const TaskConstMeta(debugName: "create_book", argNames: ["book"]);
 
-        TaskConstMeta get kCrateApiFrbCreateBookConstMeta => const TaskConstMeta(
-            debugName: "create_book",
-            argNames: ["book"],
-        );
-        
-
-@override Future<FrbContact> crateApiFrbCreateContact({required FrbContact contact })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_box_autoadd_frb_contact(contact, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<FrbContact> crateApiFrbCreateContact({required FrbContact contact}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_frb_contact(contact, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_frb_contact,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbCreateContactConstMeta,
-            argValues: [contact],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbCreateContactConstMeta,
+        argValues: [contact],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbCreateContactConstMeta =>
+      const TaskConstMeta(debugName: "create_contact", argNames: ["contact"]);
 
-        TaskConstMeta get kCrateApiFrbCreateContactConstMeta => const TaskConstMeta(
-            debugName: "create_contact",
-            argNames: ["contact"],
-        );
-        
-
-@override Future<int> crateApiFrbCreateLoan({required int copyId , required int contactId , required int libraryId , required String loanDate , required String dueDate , String? notes })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_i_32(copyId, serializer);
-sse_encode_i_32(contactId, serializer);
-sse_encode_i_32(libraryId, serializer);
-sse_encode_String(loanDate, serializer);
-sse_encode_String(dueDate, serializer);
-sse_encode_opt_String(notes, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<int> crateApiFrbCreateLoan({
+    required int copyId,
+    required int contactId,
+    required int libraryId,
+    required String loanDate,
+    required String dueDate,
+    String? notes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(copyId, serializer);
+          sse_encode_i_32(contactId, serializer);
+          sse_encode_i_32(libraryId, serializer);
+          sse_encode_String(loanDate, serializer);
+          sse_encode_String(dueDate, serializer);
+          sse_encode_opt_String(notes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_i_32,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbCreateLoanConstMeta,
-            argValues: [copyId, contactId, libraryId, loanDate, dueDate, notes],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbCreateLoanConstMeta,
+        argValues: [copyId, contactId, libraryId, loanDate, dueDate, notes],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbCreateLoanConstMeta => const TaskConstMeta(
+    debugName: "create_loan",
+    argNames: [
+      "copyId",
+      "contactId",
+      "libraryId",
+      "loanDate",
+      "dueDate",
+      "notes",
+    ],
+  );
 
-        TaskConstMeta get kCrateApiFrbCreateLoanConstMeta => const TaskConstMeta(
-            debugName: "create_loan",
-            argNames: ["copyId", "contactId", "libraryId", "loanDate", "dueDate", "notes"],
-        );
-        
-
-@override Future<void> crateApiFrbDeleteBook({required int id })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_i_32(id, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<void> crateApiFrbDeleteBook({required int id}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbDeleteBookConstMeta,
-            argValues: [id],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbDeleteBookConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbDeleteBookConstMeta =>
+      const TaskConstMeta(debugName: "delete_book", argNames: ["id"]);
 
-        TaskConstMeta get kCrateApiFrbDeleteBookConstMeta => const TaskConstMeta(
-            debugName: "delete_book",
-            argNames: ["id"],
-        );
-        
+  @override
+  Future<void> crateApiFrbDeleteContact({required int id}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbDeleteContactConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
 
-@override Future<List<FrbBook>> crateApiFrbGetAllBooks({String? status , String? title , String? tag })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_opt_String(status, serializer);
-sse_encode_opt_String(title, serializer);
-sse_encode_opt_String(tag, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  TaskConstMeta get kCrateApiFrbDeleteContactConstMeta =>
+      const TaskConstMeta(debugName: "delete_contact", argNames: ["id"]);
+
+  @override
+  Future<List<FrbBook>> crateApiFrbGetAllBooks({
+    String? status,
+    String? title,
+    String? tag,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_String(status, serializer);
+          sse_encode_opt_String(title, serializer);
+          sse_encode_opt_String(tag, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_list_frb_book,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetAllBooksConstMeta,
-            argValues: [status, title, tag],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetAllBooksConstMeta,
+        argValues: [status, title, tag],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetAllBooksConstMeta => const TaskConstMeta(
+    debugName: "get_all_books",
+    argNames: ["status", "title", "tag"],
+  );
 
-        TaskConstMeta get kCrateApiFrbGetAllBooksConstMeta => const TaskConstMeta(
-            debugName: "get_all_books",
-            argNames: ["status", "title", "tag"],
-        );
-        
-
-@override Future<List<FrbContact>> crateApiFrbGetAllContacts({int? libraryId , String? contactType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_opt_box_autoadd_i_32(libraryId, serializer);
-sse_encode_opt_String(contactType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<List<FrbContact>> crateApiFrbGetAllContacts({
+    int? libraryId,
+    String? contactType,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_box_autoadd_i_32(libraryId, serializer);
+          sse_encode_opt_String(contactType, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_list_frb_contact,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetAllContactsConstMeta,
-            argValues: [libraryId, contactType],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetAllContactsConstMeta,
+        argValues: [libraryId, contactType],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetAllContactsConstMeta => const TaskConstMeta(
+    debugName: "get_all_contacts",
+    argNames: ["libraryId", "contactType"],
+  );
 
-        TaskConstMeta get kCrateApiFrbGetAllContactsConstMeta => const TaskConstMeta(
-            debugName: "get_all_contacts",
-            argNames: ["libraryId", "contactType"],
-        );
-        
-
-@override Future<List<FrbLoan>> crateApiFrbGetAllLoans({int? libraryId , String? status , int? contactId })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_opt_box_autoadd_i_32(libraryId, serializer);
-sse_encode_opt_String(status, serializer);
-sse_encode_opt_box_autoadd_i_32(contactId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<List<FrbLoan>> crateApiFrbGetAllLoans({
+    int? libraryId,
+    String? status,
+    int? contactId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_box_autoadd_i_32(libraryId, serializer);
+          sse_encode_opt_String(status, serializer);
+          sse_encode_opt_box_autoadd_i_32(contactId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_list_frb_loan,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetAllLoansConstMeta,
-            argValues: [libraryId, status, contactId],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetAllLoansConstMeta,
+        argValues: [libraryId, status, contactId],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetAllLoansConstMeta => const TaskConstMeta(
+    debugName: "get_all_loans",
+    argNames: ["libraryId", "status", "contactId"],
+  );
 
-        TaskConstMeta get kCrateApiFrbGetAllLoansConstMeta => const TaskConstMeta(
-            debugName: "get_all_loans",
-            argNames: ["libraryId", "status", "contactId"],
-        );
-        
-
-@override Future<List<(String,PlatformInt64)>> crateApiFrbGetAllTags()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<List<(String, PlatformInt64)>> crateApiFrbGetAllTags() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_list_record_string_i_64,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetAllTagsConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetAllTagsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetAllTagsConstMeta =>
+      const TaskConstMeta(debugName: "get_all_tags", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbGetAllTagsConstMeta => const TaskConstMeta(
-            debugName: "get_all_tags",
-            argNames: [],
-        );
-        
-
-@override Future<FrbBook> crateApiFrbGetBookById({required int id })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_i_32(id, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<FrbBook> crateApiFrbGetBookById({required int id}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_frb_book,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetBookByIdConstMeta,
-            argValues: [id],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetBookByIdConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetBookByIdConstMeta =>
+      const TaskConstMeta(debugName: "get_book_by_id", argNames: ["id"]);
 
-        TaskConstMeta get kCrateApiFrbGetBookByIdConstMeta => const TaskConstMeta(
-            debugName: "get_book_by_id",
-            argNames: ["id"],
-        );
-        
-
-@override Future<FrbContact> crateApiFrbGetContactById({required int id })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_i_32(id, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<FrbContact> crateApiFrbGetContactById({required int id}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_frb_contact,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetContactByIdConstMeta,
-            argValues: [id],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetContactByIdConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetContactByIdConstMeta =>
+      const TaskConstMeta(debugName: "get_contact_by_id", argNames: ["id"]);
 
-        TaskConstMeta get kCrateApiFrbGetContactByIdConstMeta => const TaskConstMeta(
-            debugName: "get_contact_by_id",
-            argNames: ["id"],
-        );
-        
-
-@override Future<List<FrbDiscoveredPeer>> crateApiFrbGetLocalPeersFfi()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<List<FrbDiscoveredPeer>> crateApiFrbGetLocalPeersFfi() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_list_frb_discovered_peer,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbGetLocalPeersFfiConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetLocalPeersFfiConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetLocalPeersFfiConstMeta =>
+      const TaskConstMeta(debugName: "get_local_peers_ffi", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbGetLocalPeersFfiConstMeta => const TaskConstMeta(
-            debugName: "get_local_peers_ffi",
-            argNames: [],
-        );
-        
-
-@override String crateApiFrbGetMdnsServiceType()  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  String crateApiFrbGetMdnsServiceType() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiFrbGetMdnsServiceTypeConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetMdnsServiceTypeConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetMdnsServiceTypeConstMeta =>
+      const TaskConstMeta(debugName: "get_mdns_service_type", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbGetMdnsServiceTypeConstMeta => const TaskConstMeta(
-            debugName: "get_mdns_service_type",
-            argNames: [],
-        );
-        
-
-@override String crateApiFrbGetVersion()  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  String crateApiFrbGetVersion() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiFrbGetVersionConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGetVersionConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGetVersionConstMeta =>
+      const TaskConstMeta(debugName: "get_version", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbGetVersionConstMeta => const TaskConstMeta(
-            debugName: "get_version",
-            argNames: [],
-        );
-        
-
-@override String crateApiFrbGreet({required String name })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(name, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  String crateApiFrbGreet({required String name}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiFrbGreetConstMeta,
-            argValues: [name],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbGreetConstMeta,
+        argValues: [name],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbGreetConstMeta =>
+      const TaskConstMeta(debugName: "greet", argNames: ["name"]);
 
-        TaskConstMeta get kCrateApiFrbGreetConstMeta => const TaskConstMeta(
-            debugName: "greet",
-            argNames: ["name"],
-        );
-        
-
-@override String crateApiFrbHealthCheck()  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  String crateApiFrbHealthCheck() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiFrbHealthCheckConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbHealthCheckConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbHealthCheckConstMeta =>
+      const TaskConstMeta(debugName: "health_check", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbHealthCheckConstMeta => const TaskConstMeta(
-            debugName: "health_check",
-            argNames: [],
-        );
-        
-
-@override Future<String> crateApiFrbInitBackend({required String dbPath })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(dbPath, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<String> crateApiFrbInitBackend({required String dbPath}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(dbPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbInitBackendConstMeta,
-            argValues: [dbPath],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbInitBackendConstMeta,
+        argValues: [dbPath],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbInitBackendConstMeta =>
+      const TaskConstMeta(debugName: "init_backend", argNames: ["dbPath"]);
 
-        TaskConstMeta get kCrateApiFrbInitBackendConstMeta => const TaskConstMeta(
-            debugName: "init_backend",
-            argNames: ["dbPath"],
-        );
-        
-
-@override Future<String> crateApiFrbInitMdnsFfi({required String libraryName , required int port , String? libraryId })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(libraryName, serializer);
-sse_encode_u_16(port, serializer);
-sse_encode_opt_String(libraryId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<String> crateApiFrbInitMdnsFfi({
+    required String libraryName,
+    required int port,
+    String? libraryId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(libraryName, serializer);
+          sse_encode_u_16(port, serializer);
+          sse_encode_opt_String(libraryId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 21,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbInitMdnsFfiConstMeta,
-            argValues: [libraryName, port, libraryId],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbInitMdnsFfiConstMeta,
+        argValues: [libraryName, port, libraryId],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbInitMdnsFfiConstMeta => const TaskConstMeta(
+    debugName: "init_mdns_ffi",
+    argNames: ["libraryName", "port", "libraryId"],
+  );
 
-        TaskConstMeta get kCrateApiFrbInitMdnsFfiConstMeta => const TaskConstMeta(
-            debugName: "init_mdns_ffi",
-            argNames: ["libraryName", "port", "libraryId"],
-        );
-        
-
-@override bool crateApiFrbIsMdnsAvailable()  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  bool crateApiFrbIsMdnsAvailable() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
           decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiFrbIsMdnsAvailableConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbIsMdnsAvailableConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbIsMdnsAvailableConstMeta =>
+      const TaskConstMeta(debugName: "is_mdns_available", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbIsMdnsAvailableConstMeta => const TaskConstMeta(
-            debugName: "is_mdns_available",
-            argNames: [],
-        );
-        
+  @override
+  Future<void> crateApiFrbReorderBooks({required List<int> bookIds}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_i_32_loose(bookIds, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbReorderBooksConstMeta,
+        argValues: [bookIds],
+        apiImpl: this,
+      ),
+    );
+  }
 
-@override Future<String> crateApiFrbResetApp()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  TaskConstMeta get kCrateApiFrbReorderBooksConstMeta =>
+      const TaskConstMeta(debugName: "reorder_books", argNames: ["bookIds"]);
+
+  @override
+  Future<String> crateApiFrbResetApp() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 24,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbResetAppConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbResetAppConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbResetAppConstMeta =>
+      const TaskConstMeta(debugName: "reset_app", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbResetAppConstMeta => const TaskConstMeta(
-            debugName: "reset_app",
-            argNames: [],
-        );
-        
-
-@override Future<String> crateApiFrbReturnLoan({required int id })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_i_32(id, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<String> crateApiFrbReturnLoan({required int id}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 25,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbReturnLoanConstMeta,
-            argValues: [id],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbReturnLoanConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbReturnLoanConstMeta =>
+      const TaskConstMeta(debugName: "return_loan", argNames: ["id"]);
 
-        TaskConstMeta get kCrateApiFrbReturnLoanConstMeta => const TaskConstMeta(
-            debugName: "return_loan",
-            argNames: ["id"],
-        );
-        
-
-@override Future<int> crateApiFrbStartServer({required int port })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_u_16(port, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<int> crateApiFrbStartServer({required int port}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_u_16(port, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 26,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_u_16,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbStartServerConstMeta,
-            argValues: [port],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbStartServerConstMeta,
+        argValues: [port],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbStartServerConstMeta =>
+      const TaskConstMeta(debugName: "start_server", argNames: ["port"]);
 
-        TaskConstMeta get kCrateApiFrbStartServerConstMeta => const TaskConstMeta(
-            debugName: "start_server",
-            argNames: ["port"],
-        );
-        
-
-@override Future<String> crateApiFrbStopMdnsFfi()  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<String> crateApiFrbStopMdnsFfi() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbStopMdnsFfiConstMeta,
-            argValues: [],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbStopMdnsFfiConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbStopMdnsFfiConstMeta =>
+      const TaskConstMeta(debugName: "stop_mdns_ffi", argNames: []);
 
-        TaskConstMeta get kCrateApiFrbStopMdnsFfiConstMeta => const TaskConstMeta(
-            debugName: "stop_mdns_ffi",
-            argNames: [],
-        );
-        
-
-@override Future<FrbBook> crateApiFrbUpdateBook({required int id , required FrbBook book })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_i_32(id, serializer);
-sse_encode_box_autoadd_frb_book(book, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<FrbBook> crateApiFrbUpdateBook({
+    required int id,
+    required FrbBook book,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(id, serializer);
+          sse_encode_box_autoadd_frb_book(book, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 28,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_frb_book,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbUpdateBookConstMeta,
-            argValues: [id, book],
-            apiImpl: this,
-        )); }
+        ),
+        constMeta: kCrateApiFrbUpdateBookConstMeta,
+        argValues: [id, book],
+        apiImpl: this,
+      ),
+    );
+  }
 
+  TaskConstMeta get kCrateApiFrbUpdateBookConstMeta =>
+      const TaskConstMeta(debugName: "update_book", argNames: ["id", "book"]);
 
-        TaskConstMeta get kCrateApiFrbUpdateBookConstMeta => const TaskConstMeta(
-            debugName: "update_book",
-            argNames: ["id", "book"],
-        );
-        
-
-@override Future<FrbContact> crateApiFrbUpdateContact({required FrbContact contact })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_box_autoadd_frb_contact(contact, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
+  @override
+  Future<FrbContact> crateApiFrbUpdateContact({required FrbContact contact}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_frb_contact(contact, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 29,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
           decodeSuccessData: sse_decode_frb_contact,
           decodeErrorData: sse_decode_String,
-        )
-        ,
-            constMeta: kCrateApiFrbUpdateContactConstMeta,
-            argValues: [contact],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiFrbUpdateContactConstMeta => const TaskConstMeta(
-            debugName: "update_contact",
-            argNames: ["contact"],
-        );
-        
-
-
-
-                  @protected String dco_decode_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as String; }
-
-@protected bool dco_decode_bool(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as bool; }
-
-@protected double dco_decode_box_autoadd_f_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as double; }
-
-@protected FrbBook dco_decode_box_autoadd_frb_book(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_frb_book(raw); }
-
-@protected FrbContact dco_decode_box_autoadd_frb_contact(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_frb_contact(raw); }
-
-@protected int dco_decode_box_autoadd_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected double dco_decode_f_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as double; }
-
-@protected FrbBook dco_decode_frb_book(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 18) throw Exception('unexpected arr length: expect 18 but see ${arr.length}');
-                return FrbBook(id: dco_decode_opt_box_autoadd_i_32(arr[0]),
-title: dco_decode_String(arr[1]),
-author: dco_decode_opt_String(arr[2]),
-isbn: dco_decode_opt_String(arr[3]),
-summary: dco_decode_opt_String(arr[4]),
-publisher: dco_decode_opt_String(arr[5]),
-publicationYear: dco_decode_opt_box_autoadd_i_32(arr[6]),
-coverUrl: dco_decode_opt_String(arr[7]),
-largeCoverUrl: dco_decode_opt_String(arr[8]),
-readingStatus: dco_decode_opt_String(arr[9]),
-shelfPosition: dco_decode_opt_box_autoadd_i_32(arr[10]),
-userRating: dco_decode_opt_box_autoadd_i_32(arr[11]),
-subjects: dco_decode_opt_String(arr[12]),
-createdAt: dco_decode_opt_String(arr[13]),
-updatedAt: dco_decode_opt_String(arr[14]),
-finishedReadingAt: dco_decode_opt_String(arr[15]),
-startedReadingAt: dco_decode_opt_String(arr[16]),
-owned: dco_decode_bool(arr[17]),); }
-
-@protected FrbContact dco_decode_frb_contact(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 15) throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
-                return FrbContact(id: dco_decode_opt_box_autoadd_i_32(arr[0]),
-contactType: dco_decode_String(arr[1]),
-name: dco_decode_String(arr[2]),
-firstName: dco_decode_opt_String(arr[3]),
-email: dco_decode_opt_String(arr[4]),
-phone: dco_decode_opt_String(arr[5]),
-address: dco_decode_opt_String(arr[6]),
-streetAddress: dco_decode_opt_String(arr[7]),
-postalCode: dco_decode_opt_String(arr[8]),
-city: dco_decode_opt_String(arr[9]),
-country: dco_decode_opt_String(arr[10]),
-latitude: dco_decode_opt_box_autoadd_f_64(arr[11]),
-longitude: dco_decode_opt_box_autoadd_f_64(arr[12]),
-notes: dco_decode_opt_String(arr[13]),
-isActive: dco_decode_bool(arr[14]),); }
-
-@protected FrbDiscoveredPeer dco_decode_frb_discovered_peer(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 6) throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-                return FrbDiscoveredPeer(name: dco_decode_String(arr[0]),
-host: dco_decode_String(arr[1]),
-port: dco_decode_u_16(arr[2]),
-addresses: dco_decode_list_String(arr[3]),
-libraryId: dco_decode_opt_String(arr[4]),
-discoveredAt: dco_decode_String(arr[5]),); }
-
-@protected FrbLoan dco_decode_frb_loan(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 11) throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
-                return FrbLoan(id: dco_decode_i_32(arr[0]),
-copyId: dco_decode_i_32(arr[1]),
-contactId: dco_decode_i_32(arr[2]),
-libraryId: dco_decode_i_32(arr[3]),
-loanDate: dco_decode_String(arr[4]),
-dueDate: dco_decode_String(arr[5]),
-returnDate: dco_decode_opt_String(arr[6]),
-status: dco_decode_String(arr[7]),
-notes: dco_decode_opt_String(arr[8]),
-contactName: dco_decode_String(arr[9]),
-bookTitle: dco_decode_String(arr[10]),); }
-
-@protected int dco_decode_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected PlatformInt64 dco_decode_i_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dcoDecodeI64(raw); }
-
-@protected List<String> dco_decode_list_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_String).toList(); }
-
-@protected List<FrbBook> dco_decode_list_frb_book(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_frb_book).toList(); }
-
-@protected List<FrbContact> dco_decode_list_frb_contact(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_frb_contact).toList(); }
-
-@protected List<FrbDiscoveredPeer> dco_decode_list_frb_discovered_peer(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_frb_discovered_peer).toList(); }
-
-@protected List<FrbLoan> dco_decode_list_frb_loan(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_frb_loan).toList(); }
-
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as Uint8List; }
-
-@protected List<(String,PlatformInt64)> dco_decode_list_record_string_i_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_record_string_i_64).toList(); }
-
-@protected String? dco_decode_opt_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_String(raw); }
-
-@protected double? dco_decode_opt_box_autoadd_f_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_f_64(raw); }
-
-@protected int? dco_decode_opt_box_autoadd_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_i_32(raw); }
-
-@protected (String,PlatformInt64) dco_decode_record_string_i_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-            if (arr.length != 2) {
-                throw Exception('Expected 2 elements, got ${arr.length}');
-            }
-            return (dco_decode_String(arr[0]),dco_decode_i_64(arr[1]),); }
-
-@protected int dco_decode_u_16(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected int dco_decode_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected void dco_decode_unit(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return; }
-
-@protected String sse_decode_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_list_prim_u_8_strict(deserializer);
-        return utf8.decoder.convert(inner); }
-
-@protected bool sse_decode_bool(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint8() != 0; }
-
-@protected double sse_decode_box_autoadd_f_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_f_64(deserializer)); }
-
-@protected FrbBook sse_decode_box_autoadd_frb_book(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_frb_book(deserializer)); }
-
-@protected FrbContact sse_decode_box_autoadd_frb_contact(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_frb_contact(deserializer)); }
-
-@protected int sse_decode_box_autoadd_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_i_32(deserializer)); }
-
-@protected double sse_decode_f_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getFloat64(); }
-
-@protected FrbBook sse_decode_frb_book(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_title = sse_decode_String(deserializer);
-var var_author = sse_decode_opt_String(deserializer);
-var var_isbn = sse_decode_opt_String(deserializer);
-var var_summary = sse_decode_opt_String(deserializer);
-var var_publisher = sse_decode_opt_String(deserializer);
-var var_publicationYear = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_coverUrl = sse_decode_opt_String(deserializer);
-var var_largeCoverUrl = sse_decode_opt_String(deserializer);
-var var_readingStatus = sse_decode_opt_String(deserializer);
-var var_shelfPosition = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_userRating = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_subjects = sse_decode_opt_String(deserializer);
-var var_createdAt = sse_decode_opt_String(deserializer);
-var var_updatedAt = sse_decode_opt_String(deserializer);
-var var_finishedReadingAt = sse_decode_opt_String(deserializer);
-var var_startedReadingAt = sse_decode_opt_String(deserializer);
-var var_owned = sse_decode_bool(deserializer);
-return FrbBook(id: var_id, title: var_title, author: var_author, isbn: var_isbn, summary: var_summary, publisher: var_publisher, publicationYear: var_publicationYear, coverUrl: var_coverUrl, largeCoverUrl: var_largeCoverUrl, readingStatus: var_readingStatus, shelfPosition: var_shelfPosition, userRating: var_userRating, subjects: var_subjects, createdAt: var_createdAt, updatedAt: var_updatedAt, finishedReadingAt: var_finishedReadingAt, startedReadingAt: var_startedReadingAt, owned: var_owned); }
-
-@protected FrbContact sse_decode_frb_contact(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_contactType = sse_decode_String(deserializer);
-var var_name = sse_decode_String(deserializer);
-var var_firstName = sse_decode_opt_String(deserializer);
-var var_email = sse_decode_opt_String(deserializer);
-var var_phone = sse_decode_opt_String(deserializer);
-var var_address = sse_decode_opt_String(deserializer);
-var var_streetAddress = sse_decode_opt_String(deserializer);
-var var_postalCode = sse_decode_opt_String(deserializer);
-var var_city = sse_decode_opt_String(deserializer);
-var var_country = sse_decode_opt_String(deserializer);
-var var_latitude = sse_decode_opt_box_autoadd_f_64(deserializer);
-var var_longitude = sse_decode_opt_box_autoadd_f_64(deserializer);
-var var_notes = sse_decode_opt_String(deserializer);
-var var_isActive = sse_decode_bool(deserializer);
-return FrbContact(id: var_id, contactType: var_contactType, name: var_name, firstName: var_firstName, email: var_email, phone: var_phone, address: var_address, streetAddress: var_streetAddress, postalCode: var_postalCode, city: var_city, country: var_country, latitude: var_latitude, longitude: var_longitude, notes: var_notes, isActive: var_isActive); }
-
-@protected FrbDiscoveredPeer sse_decode_frb_discovered_peer(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_name = sse_decode_String(deserializer);
-var var_host = sse_decode_String(deserializer);
-var var_port = sse_decode_u_16(deserializer);
-var var_addresses = sse_decode_list_String(deserializer);
-var var_libraryId = sse_decode_opt_String(deserializer);
-var var_discoveredAt = sse_decode_String(deserializer);
-return FrbDiscoveredPeer(name: var_name, host: var_host, port: var_port, addresses: var_addresses, libraryId: var_libraryId, discoveredAt: var_discoveredAt); }
-
-@protected FrbLoan sse_decode_frb_loan(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_id = sse_decode_i_32(deserializer);
-var var_copyId = sse_decode_i_32(deserializer);
-var var_contactId = sse_decode_i_32(deserializer);
-var var_libraryId = sse_decode_i_32(deserializer);
-var var_loanDate = sse_decode_String(deserializer);
-var var_dueDate = sse_decode_String(deserializer);
-var var_returnDate = sse_decode_opt_String(deserializer);
-var var_status = sse_decode_String(deserializer);
-var var_notes = sse_decode_opt_String(deserializer);
-var var_contactName = sse_decode_String(deserializer);
-var var_bookTitle = sse_decode_String(deserializer);
-return FrbLoan(id: var_id, copyId: var_copyId, contactId: var_contactId, libraryId: var_libraryId, loanDate: var_loanDate, dueDate: var_dueDate, returnDate: var_returnDate, status: var_status, notes: var_notes, contactName: var_contactName, bookTitle: var_bookTitle); }
-
-@protected int sse_decode_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getInt32(); }
-
-@protected PlatformInt64 sse_decode_i_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getPlatformInt64(); }
-
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <String>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_String(deserializer)); }
-        return ans_;
-         }
-
-@protected List<FrbBook> sse_decode_list_frb_book(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <FrbBook>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_frb_book(deserializer)); }
-        return ans_;
-         }
-
-@protected List<FrbContact> sse_decode_list_frb_contact(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <FrbContact>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_frb_contact(deserializer)); }
-        return ans_;
-         }
-
-@protected List<FrbDiscoveredPeer> sse_decode_list_frb_discovered_peer(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <FrbDiscoveredPeer>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_frb_discovered_peer(deserializer)); }
-        return ans_;
-         }
-
-@protected List<FrbLoan> sse_decode_list_frb_loan(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <FrbLoan>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_frb_loan(deserializer)); }
-        return ans_;
-         }
-
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var len_ = sse_decode_i_32(deserializer);
-                return deserializer.buffer.getUint8List(len_); }
-
-@protected List<(String,PlatformInt64)> sse_decode_list_record_string_i_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <(String,PlatformInt64)>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_record_string_i_64(deserializer)); }
-        return ans_;
-         }
-
-@protected String? sse_decode_opt_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_String(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_f_64(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_i_32(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected (String,PlatformInt64) sse_decode_record_string_i_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_field0 = sse_decode_String(deserializer);
-var var_field1 = sse_decode_i_64(deserializer);
-return (var_field0, var_field1); }
-
-@protected int sse_decode_u_16(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint16(); }
-
-@protected int sse_decode_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint8(); }
-
-@protected void sse_decode_unit(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
- }
-
-@protected void sse_encode_String(String self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer); }
-
-@protected void sse_encode_bool(bool self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint8(self ? 1 : 0); }
-
-@protected void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_f_64(self, serializer); }
-
-@protected void sse_encode_box_autoadd_frb_book(FrbBook self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_frb_book(self, serializer); }
-
-@protected void sse_encode_box_autoadd_frb_contact(FrbContact self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_frb_contact(self, serializer); }
-
-@protected void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self, serializer); }
-
-@protected void sse_encode_f_64(double self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putFloat64(self); }
-
-@protected void sse_encode_frb_book(FrbBook self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_opt_box_autoadd_i_32(self.id, serializer);
-sse_encode_String(self.title, serializer);
-sse_encode_opt_String(self.author, serializer);
-sse_encode_opt_String(self.isbn, serializer);
-sse_encode_opt_String(self.summary, serializer);
-sse_encode_opt_String(self.publisher, serializer);
-sse_encode_opt_box_autoadd_i_32(self.publicationYear, serializer);
-sse_encode_opt_String(self.coverUrl, serializer);
-sse_encode_opt_String(self.largeCoverUrl, serializer);
-sse_encode_opt_String(self.readingStatus, serializer);
-sse_encode_opt_box_autoadd_i_32(self.shelfPosition, serializer);
-sse_encode_opt_box_autoadd_i_32(self.userRating, serializer);
-sse_encode_opt_String(self.subjects, serializer);
-sse_encode_opt_String(self.createdAt, serializer);
-sse_encode_opt_String(self.updatedAt, serializer);
-sse_encode_opt_String(self.finishedReadingAt, serializer);
-sse_encode_opt_String(self.startedReadingAt, serializer);
-sse_encode_bool(self.owned, serializer);
- }
-
-@protected void sse_encode_frb_contact(FrbContact self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_opt_box_autoadd_i_32(self.id, serializer);
-sse_encode_String(self.contactType, serializer);
-sse_encode_String(self.name, serializer);
-sse_encode_opt_String(self.firstName, serializer);
-sse_encode_opt_String(self.email, serializer);
-sse_encode_opt_String(self.phone, serializer);
-sse_encode_opt_String(self.address, serializer);
-sse_encode_opt_String(self.streetAddress, serializer);
-sse_encode_opt_String(self.postalCode, serializer);
-sse_encode_opt_String(self.city, serializer);
-sse_encode_opt_String(self.country, serializer);
-sse_encode_opt_box_autoadd_f_64(self.latitude, serializer);
-sse_encode_opt_box_autoadd_f_64(self.longitude, serializer);
-sse_encode_opt_String(self.notes, serializer);
-sse_encode_bool(self.isActive, serializer);
- }
-
-@protected void sse_encode_frb_discovered_peer(FrbDiscoveredPeer self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.name, serializer);
-sse_encode_String(self.host, serializer);
-sse_encode_u_16(self.port, serializer);
-sse_encode_list_String(self.addresses, serializer);
-sse_encode_opt_String(self.libraryId, serializer);
-sse_encode_String(self.discoveredAt, serializer);
- }
-
-@protected void sse_encode_frb_loan(FrbLoan self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.id, serializer);
-sse_encode_i_32(self.copyId, serializer);
-sse_encode_i_32(self.contactId, serializer);
-sse_encode_i_32(self.libraryId, serializer);
-sse_encode_String(self.loanDate, serializer);
-sse_encode_String(self.dueDate, serializer);
-sse_encode_opt_String(self.returnDate, serializer);
-sse_encode_String(self.status, serializer);
-sse_encode_opt_String(self.notes, serializer);
-sse_encode_String(self.contactName, serializer);
-sse_encode_String(self.bookTitle, serializer);
- }
-
-@protected void sse_encode_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putInt32(self); }
-
-@protected void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putPlatformInt64(self); }
-
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_String(item, serializer); } }
-
-@protected void sse_encode_list_frb_book(List<FrbBook> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_frb_book(item, serializer); } }
-
-@protected void sse_encode_list_frb_contact(List<FrbContact> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_frb_contact(item, serializer); } }
-
-@protected void sse_encode_list_frb_discovered_peer(List<FrbDiscoveredPeer> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_frb_discovered_peer(item, serializer); } }
-
-@protected void sse_encode_list_frb_loan(List<FrbLoan> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_frb_loan(item, serializer); } }
-
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-                    serializer.buffer.putUint8List(self); }
-
-@protected void sse_encode_list_record_string_i_64(List<(String,PlatformInt64)> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_record_string_i_64(item, serializer); } }
-
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_String(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_f_64(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_i_32(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_record_string_i_64((String,PlatformInt64) self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.$1, serializer);
-sse_encode_i_64(self.$2, serializer);
- }
-
-@protected void sse_encode_u_16(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint16(self); }
-
-@protected void sse_encode_u_8(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint8(self); }
-
-@protected void sse_encode_unit(void self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
- }
-                }
-                
+        ),
+        constMeta: kCrateApiFrbUpdateContactConstMeta,
+        argValues: [contact],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbUpdateContactConstMeta =>
+      const TaskConstMeta(debugName: "update_contact", argNames: ["contact"]);
+
+  @protected
+  String dco_decode_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as String;
+  }
+
+  @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
+  FrbBook dco_decode_box_autoadd_frb_book(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_frb_book(raw);
+  }
+
+  @protected
+  FrbContact dco_decode_box_autoadd_frb_contact(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_frb_contact(raw);
+  }
+
+  @protected
+  int dco_decode_box_autoadd_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  double dco_decode_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
+  FrbBook dco_decode_frb_book(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 18)
+      throw Exception('unexpected arr length: expect 18 but see ${arr.length}');
+    return FrbBook(
+      id: dco_decode_opt_box_autoadd_i_32(arr[0]),
+      title: dco_decode_String(arr[1]),
+      author: dco_decode_opt_String(arr[2]),
+      isbn: dco_decode_opt_String(arr[3]),
+      summary: dco_decode_opt_String(arr[4]),
+      publisher: dco_decode_opt_String(arr[5]),
+      publicationYear: dco_decode_opt_box_autoadd_i_32(arr[6]),
+      coverUrl: dco_decode_opt_String(arr[7]),
+      largeCoverUrl: dco_decode_opt_String(arr[8]),
+      readingStatus: dco_decode_opt_String(arr[9]),
+      shelfPosition: dco_decode_opt_box_autoadd_i_32(arr[10]),
+      userRating: dco_decode_opt_box_autoadd_i_32(arr[11]),
+      subjects: dco_decode_opt_String(arr[12]),
+      createdAt: dco_decode_opt_String(arr[13]),
+      updatedAt: dco_decode_opt_String(arr[14]),
+      finishedReadingAt: dco_decode_opt_String(arr[15]),
+      startedReadingAt: dco_decode_opt_String(arr[16]),
+      owned: dco_decode_bool(arr[17]),
+    );
+  }
+
+  @protected
+  FrbContact dco_decode_frb_contact(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 15)
+      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
+    return FrbContact(
+      id: dco_decode_opt_box_autoadd_i_32(arr[0]),
+      contactType: dco_decode_String(arr[1]),
+      name: dco_decode_String(arr[2]),
+      firstName: dco_decode_opt_String(arr[3]),
+      email: dco_decode_opt_String(arr[4]),
+      phone: dco_decode_opt_String(arr[5]),
+      address: dco_decode_opt_String(arr[6]),
+      streetAddress: dco_decode_opt_String(arr[7]),
+      postalCode: dco_decode_opt_String(arr[8]),
+      city: dco_decode_opt_String(arr[9]),
+      country: dco_decode_opt_String(arr[10]),
+      latitude: dco_decode_opt_box_autoadd_f_64(arr[11]),
+      longitude: dco_decode_opt_box_autoadd_f_64(arr[12]),
+      notes: dco_decode_opt_String(arr[13]),
+      isActive: dco_decode_bool(arr[14]),
+    );
+  }
+
+  @protected
+  FrbDiscoveredPeer dco_decode_frb_discovered_peer(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return FrbDiscoveredPeer(
+      name: dco_decode_String(arr[0]),
+      host: dco_decode_String(arr[1]),
+      port: dco_decode_u_16(arr[2]),
+      addresses: dco_decode_list_String(arr[3]),
+      libraryId: dco_decode_opt_String(arr[4]),
+      discoveredAt: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  FrbLoan dco_decode_frb_loan(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return FrbLoan(
+      id: dco_decode_i_32(arr[0]),
+      copyId: dco_decode_i_32(arr[1]),
+      contactId: dco_decode_i_32(arr[2]),
+      libraryId: dco_decode_i_32(arr[3]),
+      loanDate: dco_decode_String(arr[4]),
+      dueDate: dco_decode_String(arr[5]),
+      returnDate: dco_decode_opt_String(arr[6]),
+      status: dco_decode_String(arr[7]),
+      notes: dco_decode_opt_String(arr[8]),
+      contactName: dco_decode_String(arr[9]),
+      bookTitle: dco_decode_String(arr[10]),
+    );
+  }
+
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeI64(raw);
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<FrbBook> dco_decode_list_frb_book(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_frb_book).toList();
+  }
+
+  @protected
+  List<FrbContact> dco_decode_list_frb_contact(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_frb_contact).toList();
+  }
+
+  @protected
+  List<FrbDiscoveredPeer> dco_decode_list_frb_discovered_peer(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_frb_discovered_peer).toList();
+  }
+
+  @protected
+  List<FrbLoan> dco_decode_list_frb_loan(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_frb_loan).toList();
+  }
+
+  @protected
+  List<int> dco_decode_list_prim_i_32_loose(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as List<int>;
+  }
+
+  @protected
+  Int32List dco_decode_list_prim_i_32_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Int32List;
+  }
+
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Uint8List;
+  }
+
+  @protected
+  List<(String, PlatformInt64)> dco_decode_list_record_string_i_64(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_record_string_i_64).toList();
+  }
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_f_64(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_i_32(raw);
+  }
+
+  @protected
+  (String, PlatformInt64) dco_decode_record_string_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2) {
+      throw Exception('Expected 2 elements, got ${arr.length}');
+    }
+    return (dco_decode_String(arr[0]), dco_decode_i_64(arr[1]));
+  }
+
+  @protected
+  int dco_decode_u_16(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  int dco_decode_u_8(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  void dco_decode_unit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return;
+  }
+
+  @protected
+  String sse_decode_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_list_prim_u_8_strict(deserializer);
+    return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_f_64(deserializer));
+  }
+
+  @protected
+  FrbBook sse_decode_box_autoadd_frb_book(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_frb_book(deserializer));
+  }
+
+  @protected
+  FrbContact sse_decode_box_autoadd_frb_contact(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_frb_contact(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat64();
+  }
+
+  @protected
+  FrbBook sse_decode_frb_book(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_author = sse_decode_opt_String(deserializer);
+    var var_isbn = sse_decode_opt_String(deserializer);
+    var var_summary = sse_decode_opt_String(deserializer);
+    var var_publisher = sse_decode_opt_String(deserializer);
+    var var_publicationYear = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_coverUrl = sse_decode_opt_String(deserializer);
+    var var_largeCoverUrl = sse_decode_opt_String(deserializer);
+    var var_readingStatus = sse_decode_opt_String(deserializer);
+    var var_shelfPosition = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_userRating = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_subjects = sse_decode_opt_String(deserializer);
+    var var_createdAt = sse_decode_opt_String(deserializer);
+    var var_updatedAt = sse_decode_opt_String(deserializer);
+    var var_finishedReadingAt = sse_decode_opt_String(deserializer);
+    var var_startedReadingAt = sse_decode_opt_String(deserializer);
+    var var_owned = sse_decode_bool(deserializer);
+    return FrbBook(
+      id: var_id,
+      title: var_title,
+      author: var_author,
+      isbn: var_isbn,
+      summary: var_summary,
+      publisher: var_publisher,
+      publicationYear: var_publicationYear,
+      coverUrl: var_coverUrl,
+      largeCoverUrl: var_largeCoverUrl,
+      readingStatus: var_readingStatus,
+      shelfPosition: var_shelfPosition,
+      userRating: var_userRating,
+      subjects: var_subjects,
+      createdAt: var_createdAt,
+      updatedAt: var_updatedAt,
+      finishedReadingAt: var_finishedReadingAt,
+      startedReadingAt: var_startedReadingAt,
+      owned: var_owned,
+    );
+  }
+
+  @protected
+  FrbContact sse_decode_frb_contact(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_contactType = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_firstName = sse_decode_opt_String(deserializer);
+    var var_email = sse_decode_opt_String(deserializer);
+    var var_phone = sse_decode_opt_String(deserializer);
+    var var_address = sse_decode_opt_String(deserializer);
+    var var_streetAddress = sse_decode_opt_String(deserializer);
+    var var_postalCode = sse_decode_opt_String(deserializer);
+    var var_city = sse_decode_opt_String(deserializer);
+    var var_country = sse_decode_opt_String(deserializer);
+    var var_latitude = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_longitude = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_notes = sse_decode_opt_String(deserializer);
+    var var_isActive = sse_decode_bool(deserializer);
+    return FrbContact(
+      id: var_id,
+      contactType: var_contactType,
+      name: var_name,
+      firstName: var_firstName,
+      email: var_email,
+      phone: var_phone,
+      address: var_address,
+      streetAddress: var_streetAddress,
+      postalCode: var_postalCode,
+      city: var_city,
+      country: var_country,
+      latitude: var_latitude,
+      longitude: var_longitude,
+      notes: var_notes,
+      isActive: var_isActive,
+    );
+  }
+
+  @protected
+  FrbDiscoveredPeer sse_decode_frb_discovered_peer(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_String(deserializer);
+    var var_host = sse_decode_String(deserializer);
+    var var_port = sse_decode_u_16(deserializer);
+    var var_addresses = sse_decode_list_String(deserializer);
+    var var_libraryId = sse_decode_opt_String(deserializer);
+    var var_discoveredAt = sse_decode_String(deserializer);
+    return FrbDiscoveredPeer(
+      name: var_name,
+      host: var_host,
+      port: var_port,
+      addresses: var_addresses,
+      libraryId: var_libraryId,
+      discoveredAt: var_discoveredAt,
+    );
+  }
+
+  @protected
+  FrbLoan sse_decode_frb_loan(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_i_32(deserializer);
+    var var_copyId = sse_decode_i_32(deserializer);
+    var var_contactId = sse_decode_i_32(deserializer);
+    var var_libraryId = sse_decode_i_32(deserializer);
+    var var_loanDate = sse_decode_String(deserializer);
+    var var_dueDate = sse_decode_String(deserializer);
+    var var_returnDate = sse_decode_opt_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    var var_notes = sse_decode_opt_String(deserializer);
+    var var_contactName = sse_decode_String(deserializer);
+    var var_bookTitle = sse_decode_String(deserializer);
+    return FrbLoan(
+      id: var_id,
+      copyId: var_copyId,
+      contactId: var_contactId,
+      libraryId: var_libraryId,
+      loanDate: var_loanDate,
+      dueDate: var_dueDate,
+      returnDate: var_returnDate,
+      status: var_status,
+      notes: var_notes,
+      contactName: var_contactName,
+      bookTitle: var_bookTitle,
+    );
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<FrbBook> sse_decode_list_frb_book(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <FrbBook>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_frb_book(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<FrbContact> sse_decode_list_frb_contact(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <FrbContact>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_frb_contact(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<FrbDiscoveredPeer> sse_decode_list_frb_discovered_peer(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <FrbDiscoveredPeer>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_frb_discovered_peer(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<FrbLoan> sse_decode_list_frb_loan(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <FrbLoan>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_frb_loan(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<int> sse_decode_list_prim_i_32_loose(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getInt32List(len_);
+  }
+
+  @protected
+  Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getInt32List(len_);
+  }
+
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<(String, PlatformInt64)> sse_decode_list_record_string_i_64(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <(String, PlatformInt64)>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_record_string_i_64(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_f_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_i_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  (String, PlatformInt64) sse_decode_record_string_i_64(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_field0 = sse_decode_String(deserializer);
+    var var_field1 = sse_decode_i_64(deserializer);
+    return (var_field0, var_field1);
+  }
+
+  @protected
+  int sse_decode_u_16(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint16();
+  }
+
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8();
+  }
+
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_frb_book(FrbBook self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_frb_book(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_frb_contact(
+    FrbContact self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_frb_contact(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat64(self);
+  }
+
+  @protected
+  void sse_encode_frb_book(FrbBook self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_i_32(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_opt_String(self.author, serializer);
+    sse_encode_opt_String(self.isbn, serializer);
+    sse_encode_opt_String(self.summary, serializer);
+    sse_encode_opt_String(self.publisher, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.publicationYear, serializer);
+    sse_encode_opt_String(self.coverUrl, serializer);
+    sse_encode_opt_String(self.largeCoverUrl, serializer);
+    sse_encode_opt_String(self.readingStatus, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.shelfPosition, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.userRating, serializer);
+    sse_encode_opt_String(self.subjects, serializer);
+    sse_encode_opt_String(self.createdAt, serializer);
+    sse_encode_opt_String(self.updatedAt, serializer);
+    sse_encode_opt_String(self.finishedReadingAt, serializer);
+    sse_encode_opt_String(self.startedReadingAt, serializer);
+    sse_encode_bool(self.owned, serializer);
+  }
+
+  @protected
+  void sse_encode_frb_contact(FrbContact self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_i_32(self.id, serializer);
+    sse_encode_String(self.contactType, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_opt_String(self.firstName, serializer);
+    sse_encode_opt_String(self.email, serializer);
+    sse_encode_opt_String(self.phone, serializer);
+    sse_encode_opt_String(self.address, serializer);
+    sse_encode_opt_String(self.streetAddress, serializer);
+    sse_encode_opt_String(self.postalCode, serializer);
+    sse_encode_opt_String(self.city, serializer);
+    sse_encode_opt_String(self.country, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.latitude, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.longitude, serializer);
+    sse_encode_opt_String(self.notes, serializer);
+    sse_encode_bool(self.isActive, serializer);
+  }
+
+  @protected
+  void sse_encode_frb_discovered_peer(
+    FrbDiscoveredPeer self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.host, serializer);
+    sse_encode_u_16(self.port, serializer);
+    sse_encode_list_String(self.addresses, serializer);
+    sse_encode_opt_String(self.libraryId, serializer);
+    sse_encode_String(self.discoveredAt, serializer);
+  }
+
+  @protected
+  void sse_encode_frb_loan(FrbLoan self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.id, serializer);
+    sse_encode_i_32(self.copyId, serializer);
+    sse_encode_i_32(self.contactId, serializer);
+    sse_encode_i_32(self.libraryId, serializer);
+    sse_encode_String(self.loanDate, serializer);
+    sse_encode_String(self.dueDate, serializer);
+    sse_encode_opt_String(self.returnDate, serializer);
+    sse_encode_String(self.status, serializer);
+    sse_encode_opt_String(self.notes, serializer);
+    sse_encode_String(self.contactName, serializer);
+    sse_encode_String(self.bookTitle, serializer);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
+  }
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_frb_book(List<FrbBook> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_frb_book(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_frb_contact(
+    List<FrbContact> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_frb_contact(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_frb_discovered_peer(
+    List<FrbDiscoveredPeer> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_frb_discovered_peer(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_frb_loan(List<FrbLoan> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_frb_loan(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_prim_i_32_loose(
+    List<int> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putInt32List(
+      self is Int32List ? self : Int32List.fromList(self),
+    );
+  }
+
+  @protected
+  void sse_encode_list_prim_i_32_strict(
+    Int32List self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putInt32List(self);
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+    Uint8List self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_list_record_string_i_64(
+    List<(String, PlatformInt64)> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_record_string_i_64(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_f_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_i_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_record_string_i_64(
+    (String, PlatformInt64) self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.$1, serializer);
+    sse_encode_i_64(self.$2, serializer);
+  }
+
+  @protected
+  void sse_encode_u_16(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint16(self);
+  }
+
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self);
+  }
+
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+}

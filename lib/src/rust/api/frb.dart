@@ -8,135 +8,240 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'frb.freezed.dart';
 
-            // These functions are ignored because they are not marked as `pub`: `db`, `install_panic_hook`, `runtime`
+// These functions are ignored because they are not marked as `pub`: `db`, `install_panic_hook`, `runtime`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`, `from`, `from`, `from`, `from`
 
-
-            /// Initialize the FFI backend with database at the given path
+/// Initialize the FFI backend with database at the given path
 /// Must be called before any other FFI functions
-Future<String>  initBackend({required String dbPath }) => RustLib.instance.api.crateApiFrbInitBackend(dbPath: dbPath);
+Future<String> initBackend({required String dbPath}) =>
+    RustLib.instance.api.crateApiFrbInitBackend(dbPath: dbPath);
 
 /// Check if the FFI backend is healthy
-String  healthCheck() => RustLib.instance.api.crateApiFrbHealthCheck();
+String healthCheck() => RustLib.instance.api.crateApiFrbHealthCheck();
 
 /// Get the FFI backend version
-String  getVersion() => RustLib.instance.api.crateApiFrbGetVersion();
+String getVersion() => RustLib.instance.api.crateApiFrbGetVersion();
 
 /// Simple greeting function to test the bridge
-String  greet({required String name }) => RustLib.instance.api.crateApiFrbGreet(name: name);
+String greet({required String name}) =>
+    RustLib.instance.api.crateApiFrbGreet(name: name);
 
 /// Check if mDNS discovery service is currently active
 /// This is a sync function that can be called to check status
-bool  isMdnsAvailable() => RustLib.instance.api.crateApiFrbIsMdnsAvailable();
+bool isMdnsAvailable() => RustLib.instance.api.crateApiFrbIsMdnsAvailable();
 
 /// Get the mDNS service type used for discovery
-String  getMdnsServiceType() => RustLib.instance.api.crateApiFrbGetMdnsServiceType();
+String getMdnsServiceType() =>
+    RustLib.instance.api.crateApiFrbGetMdnsServiceType();
 
 /// Get locally discovered peers via mDNS
 /// This returns peers that have been found on the local network
-Future<List<FrbDiscoveredPeer>>  getLocalPeersFfi() => RustLib.instance.api.crateApiFrbGetLocalPeersFfi();
+Future<List<FrbDiscoveredPeer>> getLocalPeersFfi() =>
+    RustLib.instance.api.crateApiFrbGetLocalPeersFfi();
 
 /// Initialize mDNS service for discovery
 /// Must be called to start announcing and discovering peers
-Future<String>  initMdnsFfi({required String libraryName , required int port , String? libraryId }) => RustLib.instance.api.crateApiFrbInitMdnsFfi(libraryName: libraryName, port: port, libraryId: libraryId);
+Future<String> initMdnsFfi({
+  required String libraryName,
+  required int port,
+  String? libraryId,
+}) => RustLib.instance.api.crateApiFrbInitMdnsFfi(
+  libraryName: libraryName,
+  port: port,
+  libraryId: libraryId,
+);
 
 /// Stop mDNS service
-Future<String>  stopMdnsFfi() => RustLib.instance.api.crateApiFrbStopMdnsFfi();
+Future<String> stopMdnsFfi() => RustLib.instance.api.crateApiFrbStopMdnsFfi();
 
 /// Create a new book
-Future<FrbBook>  createBook({required FrbBook book }) => RustLib.instance.api.crateApiFrbCreateBook(book: book);
+Future<FrbBook> createBook({required FrbBook book}) =>
+    RustLib.instance.api.crateApiFrbCreateBook(book: book);
 
 /// Get all books with optional filters
-Future<List<FrbBook>>  getAllBooks({String? status , String? title , String? tag }) => RustLib.instance.api.crateApiFrbGetAllBooks(status: status, title: title, tag: tag);
+Future<List<FrbBook>> getAllBooks({
+  String? status,
+  String? title,
+  String? tag,
+}) => RustLib.instance.api.crateApiFrbGetAllBooks(
+  status: status,
+  title: title,
+  tag: tag,
+);
 
 /// Get a single book by ID
-Future<FrbBook>  getBookById({required int id }) => RustLib.instance.api.crateApiFrbGetBookById(id: id);
+Future<FrbBook> getBookById({required int id}) =>
+    RustLib.instance.api.crateApiFrbGetBookById(id: id);
 
 /// Update an existing book
-Future<FrbBook>  updateBook({required int id , required FrbBook book }) => RustLib.instance.api.crateApiFrbUpdateBook(id: id, book: book);
+Future<FrbBook> updateBook({required int id, required FrbBook book}) =>
+    RustLib.instance.api.crateApiFrbUpdateBook(id: id, book: book);
 
 /// Delete a book
-Future<void>  deleteBook({required int id }) => RustLib.instance.api.crateApiFrbDeleteBook(id: id);
+Future<void> deleteBook({required int id}) =>
+    RustLib.instance.api.crateApiFrbDeleteBook(id: id);
 
 /// Count total books
-Future<PlatformInt64>  countBooks() => RustLib.instance.api.crateApiFrbCountBooks();
+Future<PlatformInt64> countBooks() =>
+    RustLib.instance.api.crateApiFrbCountBooks();
 
 /// Get all unique tags with counts
-Future<List<(String,PlatformInt64)>>  getAllTags() => RustLib.instance.api.crateApiFrbGetAllTags();
+Future<List<(String, PlatformInt64)>> getAllTags() =>
+    RustLib.instance.api.crateApiFrbGetAllTags();
+
+/// Reorder books by updating shelf positions
+Future<void> reorderBooks({required List<int> bookIds}) =>
+    RustLib.instance.api.crateApiFrbReorderBooks(bookIds: bookIds);
 
 /// Get all contacts with optional filters
-Future<List<FrbContact>>  getAllContacts({int? libraryId , String? contactType }) => RustLib.instance.api.crateApiFrbGetAllContacts(libraryId: libraryId, contactType: contactType);
+Future<List<FrbContact>> getAllContacts({
+  int? libraryId,
+  String? contactType,
+}) => RustLib.instance.api.crateApiFrbGetAllContacts(
+  libraryId: libraryId,
+  contactType: contactType,
+);
 
 /// Get a single contact by ID
-Future<FrbContact>  getContactById({required int id }) => RustLib.instance.api.crateApiFrbGetContactById(id: id);
+Future<FrbContact> getContactById({required int id}) =>
+    RustLib.instance.api.crateApiFrbGetContactById(id: id);
 
 /// Count total contacts
-Future<PlatformInt64>  countContacts() => RustLib.instance.api.crateApiFrbCountContacts();
+Future<PlatformInt64> countContacts() =>
+    RustLib.instance.api.crateApiFrbCountContacts();
 
 /// Create a new contact
-Future<FrbContact>  createContact({required FrbContact contact }) => RustLib.instance.api.crateApiFrbCreateContact(contact: contact);
+Future<FrbContact> createContact({required FrbContact contact}) =>
+    RustLib.instance.api.crateApiFrbCreateContact(contact: contact);
 
 /// Update an existing contact
-Future<FrbContact>  updateContact({required FrbContact contact }) => RustLib.instance.api.crateApiFrbUpdateContact(contact: contact);
+Future<FrbContact> updateContact({required FrbContact contact}) =>
+    RustLib.instance.api.crateApiFrbUpdateContact(contact: contact);
+
+/// Delete a contact by ID (soft delete)
+Future<void> deleteContact({required int id}) =>
+    RustLib.instance.api.crateApiFrbDeleteContact(id: id);
 
 /// Get all loans with optional filters
-Future<List<FrbLoan>>  getAllLoans({int? libraryId , String? status , int? contactId }) => RustLib.instance.api.crateApiFrbGetAllLoans(libraryId: libraryId, status: status, contactId: contactId);
+Future<List<FrbLoan>> getAllLoans({
+  int? libraryId,
+  String? status,
+  int? contactId,
+}) => RustLib.instance.api.crateApiFrbGetAllLoans(
+  libraryId: libraryId,
+  status: status,
+  contactId: contactId,
+);
 
 /// Count active loans
-Future<PlatformInt64>  countActiveLoans() => RustLib.instance.api.crateApiFrbCountActiveLoans();
+Future<PlatformInt64> countActiveLoans() =>
+    RustLib.instance.api.crateApiFrbCountActiveLoans();
 
 /// Create a new loan
-Future<int>  createLoan({required int copyId , required int contactId , required int libraryId , required String loanDate , required String dueDate , String? notes }) => RustLib.instance.api.crateApiFrbCreateLoan(copyId: copyId, contactId: contactId, libraryId: libraryId, loanDate: loanDate, dueDate: dueDate, notes: notes);
+Future<int> createLoan({
+  required int copyId,
+  required int contactId,
+  required int libraryId,
+  required String loanDate,
+  required String dueDate,
+  String? notes,
+}) => RustLib.instance.api.crateApiFrbCreateLoan(
+  copyId: copyId,
+  contactId: contactId,
+  libraryId: libraryId,
+  loanDate: loanDate,
+  dueDate: dueDate,
+  notes: notes,
+);
 
 /// Return a loan
-Future<String>  returnLoan({required int id }) => RustLib.instance.api.crateApiFrbReturnLoan(id: id);
+Future<String> returnLoan({required int id}) =>
+    RustLib.instance.api.crateApiFrbReturnLoan(id: id);
 
 /// Reset the entire application - deletes all data from all tables
 /// This is irreversible and should be used with caution
-Future<String>  resetApp() => RustLib.instance.api.crateApiFrbResetApp();
+Future<String> resetApp() => RustLib.instance.api.crateApiFrbResetApp();
 
 /// Start the HTTP server on the specified port (FFI)
 /// This is required for P2P functionality in standalone mode
 /// If the specified port is occupied, tries the next 10 ports automatically
-Future<int>  startServer({required int port }) => RustLib.instance.api.crateApiFrbStartServer(port: port);
+Future<int> startServer({required int port}) =>
+    RustLib.instance.api.crateApiFrbStartServer(port: port);
 
-            /// Simplified book structure for FFI
+/// Simplified book structure for FFI
 @freezed
-sealed class FrbBook with _$FrbBook  {
-                
-                const factory FrbBook({  int? id, required  String title,  String? author,  String? isbn,  String? summary,  String? publisher,  int? publicationYear,  String? coverUrl,  String? largeCoverUrl,  String? readingStatus,  int? shelfPosition,  int? userRating,  String? subjects,  String? createdAt,  String? updatedAt,  String? finishedReadingAt,  String? startedReadingAt, required  bool owned,}) = _FrbBook;
-                
-                
-                
-            }
+sealed class FrbBook with _$FrbBook {
+  const factory FrbBook({
+    int? id,
+    required String title,
+    String? author,
+    String? isbn,
+    String? summary,
+    String? publisher,
+    int? publicationYear,
+    String? coverUrl,
+    String? largeCoverUrl,
+    String? readingStatus,
+    int? shelfPosition,
+    int? userRating,
+    String? subjects,
+    String? createdAt,
+    String? updatedAt,
+    String? finishedReadingAt,
+    String? startedReadingAt,
+    required bool owned,
+  }) = _FrbBook;
+}
 
 /// Simplified contact structure for FFI
 @freezed
-sealed class FrbContact with _$FrbContact  {
-                
-                const factory FrbContact({  int? id, required  String contactType, required  String name,  String? firstName,  String? email,  String? phone,  String? address,  String? streetAddress,  String? postalCode,  String? city,  String? country,  double? latitude,  double? longitude,  String? notes, required  bool isActive,}) = _FrbContact;
-                
-                
-                
-            }
+sealed class FrbContact with _$FrbContact {
+  const factory FrbContact({
+    int? id,
+    required String contactType,
+    required String name,
+    String? firstName,
+    String? email,
+    String? phone,
+    String? address,
+    String? streetAddress,
+    String? postalCode,
+    String? city,
+    String? country,
+    double? latitude,
+    double? longitude,
+    String? notes,
+    required bool isActive,
+  }) = _FrbContact;
+}
 
 /// Discovered peer on local network (FFI-compatible)
 @freezed
-sealed class FrbDiscoveredPeer with _$FrbDiscoveredPeer  {
-                
-                const factory FrbDiscoveredPeer({ required  String name, required  String host, required  int port, required  List<String> addresses,  String? libraryId, required  String discoveredAt,}) = _FrbDiscoveredPeer;
-                
-                
-                
-            }
+sealed class FrbDiscoveredPeer with _$FrbDiscoveredPeer {
+  const factory FrbDiscoveredPeer({
+    required String name,
+    required String host,
+    required int port,
+    required List<String> addresses,
+    String? libraryId,
+    required String discoveredAt,
+  }) = _FrbDiscoveredPeer;
+}
 
 /// Simplified loan structure for FFI
 @freezed
-sealed class FrbLoan with _$FrbLoan  {
-                
-                const factory FrbLoan({ required  int id, required  int copyId, required  int contactId, required  int libraryId, required  String loanDate, required  String dueDate,  String? returnDate, required  String status,  String? notes, required  String contactName, required  String bookTitle,}) = _FrbLoan;
-                
-                
-                
-            }
-            
+sealed class FrbLoan with _$FrbLoan {
+  const factory FrbLoan({
+    required int id,
+    required int copyId,
+    required int contactId,
+    required int libraryId,
+    required String loanDate,
+    required String dueDate,
+    String? returnDate,
+    required String status,
+    String? notes,
+    required String contactName,
+    required String bookTitle,
+  }) = _FrbLoan;
+}

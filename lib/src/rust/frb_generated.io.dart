@@ -10,200 +10,322 @@ import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
+abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+  RustLibApiImplPlatform({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
+  @protected
+  String dco_decode_String(dynamic raw);
 
+  @protected
+  bool dco_decode_bool(dynamic raw);
 
-                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-                  RustLibApiImplPlatform({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
+  @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw);
 
-                  
+  @protected
+  FrbBook dco_decode_box_autoadd_frb_book(dynamic raw);
 
-                  @protected String dco_decode_String(dynamic raw);
+  @protected
+  FrbContact dco_decode_box_autoadd_frb_contact(dynamic raw);
 
-@protected bool dco_decode_bool(dynamic raw);
+  @protected
+  int dco_decode_box_autoadd_i_32(dynamic raw);
 
-@protected double dco_decode_box_autoadd_f_64(dynamic raw);
+  @protected
+  double dco_decode_f_64(dynamic raw);
 
-@protected FrbBook dco_decode_box_autoadd_frb_book(dynamic raw);
+  @protected
+  FrbBook dco_decode_frb_book(dynamic raw);
 
-@protected FrbContact dco_decode_box_autoadd_frb_contact(dynamic raw);
+  @protected
+  FrbContact dco_decode_frb_contact(dynamic raw);
 
-@protected int dco_decode_box_autoadd_i_32(dynamic raw);
+  @protected
+  FrbDiscoveredPeer dco_decode_frb_discovered_peer(dynamic raw);
 
-@protected double dco_decode_f_64(dynamic raw);
+  @protected
+  FrbLoan dco_decode_frb_loan(dynamic raw);
 
-@protected FrbBook dco_decode_frb_book(dynamic raw);
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
-@protected FrbContact dco_decode_frb_contact(dynamic raw);
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
 
-@protected FrbDiscoveredPeer dco_decode_frb_discovered_peer(dynamic raw);
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
 
-@protected FrbLoan dco_decode_frb_loan(dynamic raw);
+  @protected
+  List<FrbBook> dco_decode_list_frb_book(dynamic raw);
 
-@protected int dco_decode_i_32(dynamic raw);
+  @protected
+  List<FrbContact> dco_decode_list_frb_contact(dynamic raw);
 
-@protected PlatformInt64 dco_decode_i_64(dynamic raw);
+  @protected
+  List<FrbDiscoveredPeer> dco_decode_list_frb_discovered_peer(dynamic raw);
 
-@protected List<String> dco_decode_list_String(dynamic raw);
+  @protected
+  List<FrbLoan> dco_decode_list_frb_loan(dynamic raw);
 
-@protected List<FrbBook> dco_decode_list_frb_book(dynamic raw);
+  @protected
+  List<int> dco_decode_list_prim_i_32_loose(dynamic raw);
 
-@protected List<FrbContact> dco_decode_list_frb_contact(dynamic raw);
+  @protected
+  Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
 
-@protected List<FrbDiscoveredPeer> dco_decode_list_frb_discovered_peer(dynamic raw);
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-@protected List<FrbLoan> dco_decode_list_frb_loan(dynamic raw);
+  @protected
+  List<(String, PlatformInt64)> dco_decode_list_record_string_i_64(dynamic raw);
 
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
 
-@protected List<(String,PlatformInt64)> dco_decode_list_record_string_i_64(dynamic raw);
+  @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
-@protected String? dco_decode_opt_String(dynamic raw);
+  @protected
+  int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
 
-@protected double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
+  @protected
+  (String, PlatformInt64) dco_decode_record_string_i_64(dynamic raw);
 
-@protected int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
+  @protected
+  int dco_decode_u_16(dynamic raw);
 
-@protected (String,PlatformInt64) dco_decode_record_string_i_64(dynamic raw);
+  @protected
+  int dco_decode_u_8(dynamic raw);
 
-@protected int dco_decode_u_16(dynamic raw);
+  @protected
+  void dco_decode_unit(dynamic raw);
 
-@protected int dco_decode_u_8(dynamic raw);
+  @protected
+  String sse_decode_String(SseDeserializer deserializer);
 
-@protected void dco_decode_unit(dynamic raw);
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
 
-@protected String sse_decode_String(SseDeserializer deserializer);
+  @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
-@protected bool sse_decode_bool(SseDeserializer deserializer);
+  @protected
+  FrbBook sse_decode_box_autoadd_frb_book(SseDeserializer deserializer);
 
-@protected double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
+  @protected
+  FrbContact sse_decode_box_autoadd_frb_contact(SseDeserializer deserializer);
 
-@protected FrbBook sse_decode_box_autoadd_frb_book(SseDeserializer deserializer);
+  @protected
+  int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
 
-@protected FrbContact sse_decode_box_autoadd_frb_contact(SseDeserializer deserializer);
+  @protected
+  double sse_decode_f_64(SseDeserializer deserializer);
 
-@protected int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
+  @protected
+  FrbBook sse_decode_frb_book(SseDeserializer deserializer);
 
-@protected double sse_decode_f_64(SseDeserializer deserializer);
+  @protected
+  FrbContact sse_decode_frb_contact(SseDeserializer deserializer);
 
-@protected FrbBook sse_decode_frb_book(SseDeserializer deserializer);
+  @protected
+  FrbDiscoveredPeer sse_decode_frb_discovered_peer(
+    SseDeserializer deserializer,
+  );
 
-@protected FrbContact sse_decode_frb_contact(SseDeserializer deserializer);
+  @protected
+  FrbLoan sse_decode_frb_loan(SseDeserializer deserializer);
 
-@protected FrbDiscoveredPeer sse_decode_frb_discovered_peer(SseDeserializer deserializer);
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
-@protected FrbLoan sse_decode_frb_loan(SseDeserializer deserializer);
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
-@protected int sse_decode_i_32(SseDeserializer deserializer);
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-@protected PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+  @protected
+  List<FrbBook> sse_decode_list_frb_book(SseDeserializer deserializer);
 
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
+  @protected
+  List<FrbContact> sse_decode_list_frb_contact(SseDeserializer deserializer);
 
-@protected List<FrbBook> sse_decode_list_frb_book(SseDeserializer deserializer);
+  @protected
+  List<FrbDiscoveredPeer> sse_decode_list_frb_discovered_peer(
+    SseDeserializer deserializer,
+  );
 
-@protected List<FrbContact> sse_decode_list_frb_contact(SseDeserializer deserializer);
+  @protected
+  List<FrbLoan> sse_decode_list_frb_loan(SseDeserializer deserializer);
 
-@protected List<FrbDiscoveredPeer> sse_decode_list_frb_discovered_peer(SseDeserializer deserializer);
+  @protected
+  List<int> sse_decode_list_prim_i_32_loose(SseDeserializer deserializer);
 
-@protected List<FrbLoan> sse_decode_list_frb_loan(SseDeserializer deserializer);
+  @protected
+  Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
 
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-@protected List<(String,PlatformInt64)> sse_decode_list_record_string_i_64(SseDeserializer deserializer);
+  @protected
+  List<(String, PlatformInt64)> sse_decode_list_record_string_i_64(
+    SseDeserializer deserializer,
+  );
 
-@protected String? sse_decode_opt_String(SseDeserializer deserializer);
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
 
-@protected double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
+  @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
-@protected int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
+  @protected
+  int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
 
-@protected (String,PlatformInt64) sse_decode_record_string_i_64(SseDeserializer deserializer);
+  @protected
+  (String, PlatformInt64) sse_decode_record_string_i_64(
+    SseDeserializer deserializer,
+  );
 
-@protected int sse_decode_u_16(SseDeserializer deserializer);
+  @protected
+  int sse_decode_u_16(SseDeserializer deserializer);
 
-@protected int sse_decode_u_8(SseDeserializer deserializer);
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer);
 
-@protected void sse_decode_unit(SseDeserializer deserializer);
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer);
 
-@protected void sse_encode_String(String self, SseSerializer serializer);
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer);
 
-@protected void sse_encode_bool(bool self, SseSerializer serializer);
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_frb_book(FrbBook self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_frb_book(FrbBook self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_frb_contact(FrbContact self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_frb_contact(
+    FrbContact self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_f_64(double self, SseSerializer serializer);
+  @protected
+  void sse_encode_f_64(double self, SseSerializer serializer);
 
-@protected void sse_encode_frb_book(FrbBook self, SseSerializer serializer);
+  @protected
+  void sse_encode_frb_book(FrbBook self, SseSerializer serializer);
 
-@protected void sse_encode_frb_contact(FrbContact self, SseSerializer serializer);
+  @protected
+  void sse_encode_frb_contact(FrbContact self, SseSerializer serializer);
 
-@protected void sse_encode_frb_discovered_peer(FrbDiscoveredPeer self, SseSerializer serializer);
+  @protected
+  void sse_encode_frb_discovered_peer(
+    FrbDiscoveredPeer self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_frb_loan(FrbLoan self, SseSerializer serializer);
+  @protected
+  void sse_encode_frb_loan(FrbLoan self, SseSerializer serializer);
 
-@protected void sse_encode_i_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
-@protected void sse_encode_list_frb_book(List<FrbBook> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_frb_book(List<FrbBook> self, SseSerializer serializer);
 
-@protected void sse_encode_list_frb_contact(List<FrbContact> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_frb_contact(
+    List<FrbContact> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_list_frb_discovered_peer(List<FrbDiscoveredPeer> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_frb_discovered_peer(
+    List<FrbDiscoveredPeer> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_list_frb_loan(List<FrbLoan> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_frb_loan(List<FrbLoan> self, SseSerializer serializer);
 
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_i_32_loose(
+    List<int> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_list_record_string_i_64(List<(String,PlatformInt64)> self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_i_32_strict(
+    Int32List self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_record_string_i_64(
+    List<(String, PlatformInt64)> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
 
-@protected void sse_encode_record_string_i_64((String,PlatformInt64) self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
 
-@protected void sse_encode_u_16(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
 
-@protected void sse_encode_u_8(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_record_string_i_64(
+    (String, PlatformInt64) self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_unit(void self, SseSerializer serializer);
-                }
-                
+  @protected
+  void sse_encode_u_16(int self, SseSerializer serializer);
 
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer);
+}
 
 // Section: wire_class
 
+class RustLibWire implements BaseWire {
+  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
+      RustLibWire(lib.ffiDynamicLibrary);
 
-        class RustLibWire implements BaseWire {
+  /// Holds the symbol lookup function.
+  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
+  _lookup;
 
-            factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-              RustLibWire(lib.ffiDynamicLibrary);
-        
-            /// Holds the symbol lookup function.
-            final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-                _lookup;
-  
-            /// The symbols are looked up in [dynamicLibrary].
-            RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-                : _lookup = dynamicLibrary.lookup;
-
-            
-        }
-        
+  /// The symbols are looked up in [dynamicLibrary].
+  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
+    : _lookup = dynamicLibrary.lookup;
+}
