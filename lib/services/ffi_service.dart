@@ -275,6 +275,7 @@ class FfiService {
       readingStatus: fb.readingStatus ?? 'to_read',
       userRating: fb.userRating,
       subjects: fb.subjects != null ? _parseSubjects(fb.subjects!) : null,
+      owned: fb.owned,
     );
   }
 
