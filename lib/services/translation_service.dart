@@ -781,6 +781,7 @@ class TranslationService {
       'feedback_error_opening': 'Could not open GitHub',
       // Security / MFA
       'security_settings': 'Security Settings',
+      'security': 'Security',
       'two_factor_auth': 'Two-Factor Authentication',
       'mfa_disabled': 'Disabled',
       'mfa_enabled': 'Enabled',
@@ -809,6 +810,7 @@ class TranslationService {
       'set_password': 'Set Password',
       'no_password_set': 'No password set',
       'first_time_password': 'Set a password to protect your data',
+      'manage_login_credentials': 'Manage your login credentials',
       // Integrations / MCP
       'integrations': 'Integrations',
       'mcp_integration': 'AI Assistants (MCP)',
@@ -855,6 +857,7 @@ class TranslationService {
       'professional': 'Professionnel',
       // Security / MFA
       'security_settings': 'Paramètres de sécurité',
+      'security': 'Sécurité',
       'two_factor_auth': 'Authentification à deux facteurs',
       'mfa_disabled': 'Désactivée',
       'mfa_enabled': 'Activée',
@@ -1618,6 +1621,21 @@ class TranslationService {
       'status_inactive': 'Inactif',
       // Login Screen
       'login_subtitle': 'Connectez-vous pour accéder à votre bibliothèque',
+      // Password Management
+      'change_password': 'Changer le mot de passe',
+      'current_password': 'Mot de passe actuel',
+      'new_password': 'Nouveau mot de passe',
+      'confirm_password': 'Confirmer le mot de passe',
+      'password_required': 'Mot de passe requis',
+      'password_incorrect': 'Mot de passe incorrect',
+      'passwords_dont_match': 'Les mots de passe ne correspondent pas',
+      'password_changed_success': 'Mot de passe changé avec succès',
+      'password_too_short': 'Le mot de passe doit contenir au moins 4 caractères',
+      'enter_password_to_reset': 'Entrez votre mot de passe pour confirmer la réinitialisation',
+      'set_password': 'Définir un mot de passe',
+      'no_password_set': 'Aucun mot de passe défini',
+      'first_time_password': 'Définissez un mot de passe pour protéger vos données',
+      'manage_login_credentials': 'Gérer vos informations de connexion',
       'username': 'Nom d\'utilisateur',
       'password': 'Mot de passe',
       'code_label': 'Code',
