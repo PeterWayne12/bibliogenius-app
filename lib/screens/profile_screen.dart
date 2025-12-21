@@ -173,8 +173,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _setupMfa() async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    
+    // Check if we're in FFI/local mode where MFA is not supported
+    if (apiService.useFfi) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                TranslationService.translate(context, 'two_factor_auth') ??
+                    'Two-Factor Authentication',
+              ),
+            ],
+          ),
+          content: Text(
+            TranslationService.translate(context, 'mfa_requires_server') ??
+                'Two-factor authentication is only available when connected to a remote BiblioGenius server. In local mode, your data is already secured on your device.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(TranslationService.translate(context, 'ok') ?? 'OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    
     try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.setup2Fa();
       final data = response.data;
       final secret = data['secret'];
@@ -285,10 +317,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error initializing MFA: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_initializing_mfa') ?? 'Error initializing MFA'}: $e',
+            ),
+          ),
+        );
+      }
     }
+  }
+
+  Future<void> _showChangePasswordDialog() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final hasPassword = await authService.hasPasswordSet();
+    
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    String? errorText;
+    
+    if (!mounted) return;
+    
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(
+            hasPassword 
+                ? (TranslationService.translate(context, 'change_password') ?? 'Change Password')
+                : (TranslationService.translate(context, 'set_password') ?? 'Set Password'),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!hasPassword)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      TranslationService.translate(context, 'first_time_password') ??
+                          'Set a password to protect your data',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                if (hasPassword)
+                  TextField(
+                    controller: currentPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: TranslationService.translate(context, 'current_password') ?? 
+                          'Current Password',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                if (hasPassword) const SizedBox(height: 16),
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: TranslationService.translate(context, 'new_password') ?? 
+                        'New Password',
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: TranslationService.translate(context, 'confirm_password') ?? 
+                        'Confirm Password',
+                    errorText: errorText,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(TranslationService.translate(context, 'cancel') ?? 'Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Validate
+                if (newPasswordController.text.length < 4) {
+                  setState(() => errorText = TranslationService.translate(context, 'password_too_short') ?? 
+                      'Password must be at least 4 characters');
+                  return;
+                }
+                if (newPasswordController.text != confirmPasswordController.text) {
+                  setState(() => errorText = TranslationService.translate(context, 'passwords_dont_match') ?? 
+                      'Passwords do not match');
+                  return;
+                }
+                
+                if (hasPassword) {
+                  // Verify old password first
+                  final isValid = await authService.verifyPassword(currentPasswordController.text);
+                  if (!isValid) {
+                    setState(() => errorText = TranslationService.translate(context, 'password_incorrect') ?? 
+                        'Incorrect password');
+                    return;
+                  }
+                  // Change password
+                  await authService.changePassword(
+                    currentPasswordController.text, 
+                    newPasswordController.text,
+                  );
+                } else {
+                  // First time setting password
+                  await authService.savePassword(newPasswordController.text);
+                }
+                
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        TranslationService.translate(context, 'password_changed_success') ?? 
+                            'Password changed successfully',
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: Text(TranslationService.translate(context, 'save') ?? 'Save'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildBody() {
@@ -723,6 +885,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                 ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.password),
+                  title: Text(
+                    TranslationService.translate(context, 'change_password') ??
+                        'Change Password',
+                  ),
+                  trailing: ElevatedButton(
+                    onPressed: _showChangePasswordDialog,
+                    child: Text(
+                      TranslationService.translate(context, 'change_password') ??
+                          'Change',
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -794,7 +971,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Successfully imported $imported books!',
+                            '${TranslationService.translate(context, 'import_success')} $imported ${TranslationService.translate(context, 'books')}',
                           ),
                           backgroundColor: Colors.green,
                         ),
@@ -843,16 +1020,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.download),
-                  title: const Text(
-                    'Import Demo Data',
-                  ), // TODO: Add translation
+                  title: Text(
+                    TranslationService.translate(context, 'import_demo_data'),
+                  ),
                   onTap: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Import Demo Data?'),
-                        content: const Text(
-                          'This will add sample books to your library.',
+                        title: Text(
+                          TranslationService.translate(context, 'import_demo_data_title'),
+                        ),
+                        content: Text(
+                          TranslationService.translate(context, 'import_demo_data_desc'),
                         ),
                         actions: [
                           TextButton(
@@ -863,7 +1042,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Import'),
+                            child: Text(
+                              TranslationService.translate(context, 'import'),
+                            ),
                           ),
                         ],
                       ),
@@ -873,7 +1054,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       await DemoService.importDemoBooks(context);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Demo data imported!')),
+                          SnackBar(
+                            content: Text(
+                              TranslationService.translate(context, 'demo_data_imported'),
+                            ),
+                          ),
                         );
                       }
                     }
@@ -897,39 +1082,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                   onTap: () async {
+                    final authService = Provider.of<AuthService>(context, listen: false);
+                    final hasPassword = await authService.hasPasswordSet();
+                    
+                    if (!mounted) return;
+                    
+                    // Password entry controller
+                    final passwordController = TextEditingController();
+                    String? errorText;
+                    
                     final confirmed = await showDialog<bool>(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(
-                          TranslationService.translate(
-                            context,
-                            'reset_app_title',
+                      builder: (dialogContext) => StatefulBuilder(
+                        builder: (context, setState) => AlertDialog(
+                          title: Text(
+                            TranslationService.translate(context, 'reset_app_title'),
                           ),
-                        ),
-                        content: Text(
-                          TranslationService.translate(
-                            context,
-                            'reset_app_confirmation',
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text(
-                              TranslationService.translate(context, 'cancel'),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text(
-                              TranslationService.translate(
-                                context,
-                                'reset_confirm',
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                TranslationService.translate(context, 'reset_app_confirmation'),
                               ),
-                              style: const TextStyle(color: Colors.red),
-                            ),
+                              if (hasPassword) ...[
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: passwordController,
+                                  obscureText: true,
+                                  decoration: InputDecoration(
+                                    labelText: TranslationService.translate(context, 'enter_password_to_reset') ??
+                                        'Enter your password to confirm',
+                                    errorText: errorText,
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                        ],
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text(
+                                TranslationService.translate(context, 'cancel'),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                if (hasPassword) {
+                                  final isValid = await authService.verifyPassword(passwordController.text);
+                                  if (!isValid) {
+                                    setState(() => errorText = TranslationService.translate(context, 'password_incorrect') ?? 
+                                        'Incorrect password');
+                                    return;
+                                  }
+                                }
+                                Navigator.pop(context, true);
+                              },
+                              child: Text(
+                                TranslationService.translate(context, 'reset_confirm'),
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
 
@@ -1662,22 +1878,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final libraryNameController = TextEditingController(
       text: _config?['library_name'] ?? _config?['name'] ?? '',
     );
+    
+    // Capture providers BEFORE showing dialog to avoid context issues
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final outerContext = context; // Keep reference to outer context
+    
+    // Use local state to defer changes until Save
+    String selectedLocale = themeProvider.locale.languageCode;
+    String selectedTheme = themeProvider.themeStyle;
+    String selectedProfileType = themeProvider.profileType;
 
     showDialog(
       context: context,
-      builder: (context) {
-        return Consumer<ThemeProvider>(
-          builder: (context, themeProvider, _) {
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (builderContext, setDialogState) {
             return AlertDialog(
               title: Text(
-                TranslationService.translate(context, 'edit_settings'),
+                TranslationService.translate(builderContext, 'edit_settings'),
               ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(TranslationService.translate(context, 'library_name')),
+                    Text(TranslationService.translate(builderContext, 'library_name')),
                     TextField(
                       controller: libraryNameController,
                       decoration: InputDecoration(
@@ -1689,51 +1915,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      TranslationService.translate(context, 'lang_title') ??
+                      TranslationService.translate(builderContext, 'lang_title') ??
                           'Language',
                     ),
                     DropdownButton<String>(
-                      value: themeProvider.locale.languageCode,
+                      value: selectedLocale,
                       isExpanded: true,
                       items: [
                         DropdownMenuItem(
                           value: 'en',
                           child: Text(
-                            TranslationService.translate(context, 'lang_en'),
+                            TranslationService.translate(builderContext, 'lang_en'),
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'fr',
                           child: Text(
-                            TranslationService.translate(context, 'lang_fr'),
+                            TranslationService.translate(builderContext, 'lang_fr'),
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'es',
                           child: Text(
-                            TranslationService.translate(context, 'lang_es'),
+                            TranslationService.translate(builderContext, 'lang_es'),
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'de',
                           child: Text(
-                            TranslationService.translate(context, 'lang_de'),
+                            TranslationService.translate(builderContext, 'lang_de'),
                           ),
                         ),
                       ],
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          themeProvider.setLocale(Locale(newValue));
+                          setDialogState(() => selectedLocale = newValue);
                         }
                       },
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      TranslationService.translate(context, 'theme_title') ??
+                      TranslationService.translate(builderContext, 'theme_title') ??
                           'Theme',
                     ),
                     DropdownButton<String>(
-                      value: themeProvider.themeStyle,
+                      value: selectedTheme,
                       isExpanded: true,
                       items: ThemeRegistry.all.map((theme) {
                         return DropdownMenuItem(
@@ -1764,21 +1990,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          themeProvider.setThemeStyle(newValue);
+                          setDialogState(() => selectedTheme = newValue);
                         }
                       },
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      TranslationService.translate(
-                            context,
-                            Provider.of<ThemeProvider>(context).profileType,
-                          ) ??
-                          (Provider.of<ThemeProvider>(context).profileType ==
-                                  'individual'
+                      TranslationService.translate(builderContext, selectedProfileType) ??
+                          (selectedProfileType == 'individual'
                               ? 'Particulier'
                               : 'Bibliothèque'),
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: Theme.of(builderContext).textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 24),
                     ListTile(
@@ -1790,100 +2012,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ) ??
                             'Type de profil',
                       ),
-                      trailing: Builder(
-                        builder: (context) {
-                          // Normalize profile type to match dropdown items
-                          String normalizedType = Provider.of<ThemeProvider>(
-                            context,
-                          ).profileType;
-                          if (normalizedType == 'individual_reader') {
-                            normalizedType = 'individual';
-                          } else if (normalizedType == 'professional' ||
-                              normalizedType == 'library') {
-                            normalizedType = 'librarian';
-                          }
-                          // Ensure value is one of the valid options
-                          if (![
-                            'individual',
-                            'librarian',
-                            'kid',
-                          ].contains(normalizedType)) {
-                            normalizedType = 'individual';
-                          }
-
-                          return SizedBox(
-                            width: 130,
-                            child: DropdownButton<String>(
-                              value: normalizedType,
-                              isExpanded: true,
-                              underline: const SizedBox(),
-                              items: [
-                                DropdownMenuItem(
-                                  value: 'individual',
-                                  child: Text(
-                                    TranslationService.translate(
-                                      context,
-                                      'profile_individual',
-                                    ),
-                                  ),
+                      trailing: SizedBox(
+                        width: 130,
+                        child: DropdownButton<String>(
+                          value: selectedProfileType,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'individual',
+                              child: Text(
+                                TranslationService.translate(
+                                  context,
+                                  'profile_individual',
                                 ),
-                                DropdownMenuItem(
-                                  value: 'librarian',
-                                  child: Text(
-                                    TranslationService.translate(
-                                      context,
-                                      'profile_librarian',
-                                    ),
-                                  ),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'kid',
-                                  child: Text(
-                                    TranslationService.translate(
-                                      context,
-                                      'profile_kid',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              onChanged: (value) async {
-                                if (value != null) {
-                                  final themeProvider =
-                                      Provider.of<ThemeProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  final apiService = Provider.of<ApiService>(
-                                    context,
-                                    listen: false,
-                                  );
-
-                                  // Update user profile and local provider state
-                                  await themeProvider.setProfileType(
-                                    value,
-                                    apiService: apiService,
-                                  );
-
-                                  // Also update library config to ensure persistence and consistency
-                                  // This handles the ffi_profile_type in FFI mode
-                                  try {
-                                    await apiService.updateLibraryConfig(
-                                      name:
-                                          _config?['name'] ?? 'Ma Bibliothèque',
-                                      profileType: value,
-                                    );
-                                  } catch (e) {
-                                    debugPrint(
-                                      'Error syncing library config profile type: $e',
-                                    );
-                                  }
-
-                                  _fetchStatus();
-                                }
-                              },
+                              ),
                             ),
-                          );
-                        },
+                            DropdownMenuItem(
+                              value: 'librarian',
+                              child: Text(
+                                TranslationService.translate(
+                                  context,
+                                  'profile_librarian',
+                                ),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'kid',
+                              child: Text(
+                                TranslationService.translate(
+                                  context,
+                                  'profile_kid',
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setDialogState(() => selectedProfileType = value);
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -1891,25 +2060,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(TranslationService.translate(context, 'cancel')),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(TranslationService.translate(builderContext, 'cancel')),
                 ),
                 TextButton(
                   onPressed: () async {
-                    Navigator.pop(context);
-                    // Save library name
-                    if (libraryNameController.text.isNotEmpty &&
-                        libraryNameController.text !=
-                            (_config?['library_name'] ?? _config?['name'])) {
+                    // Capture values before closing dialog
+                    final newTheme = selectedTheme;
+                    final newLocale = selectedLocale;
+                    final newProfileType = selectedProfileType;
+                    final libName = libraryNameController.text;
+                    
+                    // Close dialog FIRST
+                    Navigator.pop(dialogContext);
+                    
+                    // Wait for dialog animation to FULLY complete (default duration ~300ms)
+                    await Future.delayed(const Duration(milliseconds: 350));
+                    
+                    // Now safe to apply theme changes
+                    if (newTheme != themeProvider.themeStyle) {
+                      themeProvider.setThemeStyle(newTheme);
+                    }
+                    if (newLocale != themeProvider.locale.languageCode) {
+                      themeProvider.setLocale(Locale(newLocale));
+                    }
+                    if (newProfileType != themeProvider.profileType) {
+                      await themeProvider.setProfileType(
+                        newProfileType,
+                        apiService: apiService,
+                      );
+                    }
+                    
+                    // Save library name if changed
+                    if (libName.isNotEmpty &&
+                        libName != (_config?['library_name'] ?? _config?['name'])) {
                       try {
-                        final api = Provider.of<ApiService>(
-                          context,
-                          listen: false,
-                        );
-                        await api.updateLibraryConfig(
-                          name: libraryNameController.text,
+                        await apiService.updateLibraryConfig(
+                          name: libName,
                           description: _config?['description'],
-                          profileType: _config?['profile_type'],
+                          profileType: newProfileType,
                           tags: _config?['tags'] != null
                               ? List<String>.from(_config!['tags'])
                               : [],
@@ -1918,34 +2107,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           showBorrowedBooks: _config?['show_borrowed_books'],
                           shareLocation: _config?['share_location'],
                         );
-                        // Navigate to profile to refresh
-                        if (mounted) {
-                          context.go('/profile');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                TranslationService.translate(
-                                  context,
-                                  'library_updated',
-                                ),
-                              ),
-                            ),
-                          );
-                        }
                       } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${TranslationService.translate(context, 'error_updating_library')}: $e',
-                              ),
-                            ),
-                          );
-                        }
+                        debugPrint('Error updating library config: $e');
                       }
                     }
+                    
+                    // Refresh status
+                    _fetchStatus();
+                    
+                    // Show confirmation using outer context (still valid)
+                    if (mounted) {
+                      ScaffoldMessenger.of(outerContext).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            TranslationService.translate(
+                              outerContext,
+                              'settings_saved',
+                            ) ?? 'Settings saved',
+                          ),
+                        ),
+                      );
+                    }
                   },
-                  child: Text(TranslationService.translate(context, 'save')),
+                  child: Text(TranslationService.translate(builderContext, 'save')),
                 ),
               ],
             );

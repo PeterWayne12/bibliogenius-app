@@ -163,17 +163,21 @@ class _AddContactScreenState extends State<AddContactScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: _isSaving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors
-                          .teal, // Use a contrasting color or theme primary
+                      color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
                     ),
                   )
                 : TextButton(
                     onPressed: _saveContact,
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      foregroundColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
                     child: Text(
                       widget.contact != null
                           ? (TranslationService.translate(
@@ -186,10 +190,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
                                   'save_contact',
                                 ) ??
                                 'Save'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white, // Use AppBar foreground color
                       ),
                     ),
                   ),

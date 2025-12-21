@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/translation_service.dart';
 import '../models/gamification_status.dart';
 import '../models/book.dart';
+import '../models/contact.dart';
 import '../widgets/genie_app_bar.dart';
 import '../theme/app_design.dart';
 import '../widgets/gamification_widgets.dart';
@@ -21,6 +22,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     with TickerProviderStateMixin {
   List<Book> _books = [];
   List<dynamic> _loans = [];
+  Map<int, Contact> _contactsMap = {};
   GamificationStatus? _userStatus;
   bool _isLoading = true;
   late AnimationController _animController;
@@ -77,10 +79,28 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         debugPrint('Error fetching gamification stats: $e');
       }
 
+      // Fetch contacts for names
+      Map<int, Contact> contactsMap = {};
+      try {
+        final contactsRes = await api.getContacts();
+        if (contactsRes.statusCode == 200) {
+          final List<dynamic> list = contactsRes.data['contacts'] ?? [];
+          for (var json in list) {
+            final c = Contact.fromJson(json);
+            if (c.id != null) {
+              contactsMap[c.id!] = c;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching contacts for stats: $e');
+      }
+
       if (mounted) {
         setState(() {
           _books = books;
           _loans = loans;
+          _contactsMap = contactsMap;
           _userStatus = status;
           _isLoading = false;
         });
@@ -250,7 +270,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final totalBooks = _books.length;
     final readBooks = _books.where((b) => b.readingStatus == 'read').length;
     final borrowedBooks = _books
-        .where((b) => b.readingStatus == 'borrowed')
+        .where((b) => !b.owned)
         .length;
 
     final uniqueAuthors = _books
@@ -982,8 +1002,17 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     // Top borrowers (contacts)
     final borrowerCounts = <String, int>{};
     for (var loan in _loans) {
-      final contactName =
-          loan['contact_name'] ?? loan['contact']?['name'] ?? 'Unknown';
+      String contactName = 'Unknown';
+      final contactId = loan['contact_id'];
+
+      if (contactId != null && _contactsMap.containsKey(contactId)) {
+        final contact = _contactsMap[contactId]!;
+        contactName = contact.fullName;
+      } else {
+        contactName =
+            loan['contact_name'] ?? loan['contact']?['name'] ?? 'Unknown';
+      }
+
       borrowerCounts[contactName] = (borrowerCounts[contactName] ?? 0) + 1;
     }
     var topBorrowers = borrowerCounts.entries.toList()
@@ -1193,7 +1222,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   Widget _buildBorrowedStatisticsSection() {
     // Get borrowed books from library
     final borrowedBooks = _books
-        .where((b) => b.readingStatus == 'borrowed')
+        .where((b) => !b.owned)
         .toList();
     final totalBorrowed = borrowedBooks.length;
 

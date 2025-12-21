@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/theme_provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
@@ -438,15 +437,17 @@ class _SetupScreenState extends State<SetupScreen> {
                                           border: Border.all(color: Colors.grey.shade300),
                                         ),
                                       ),
-                                      Text(
-                                        TranslationService.translate(
-                                              context,
-                                              'theme_${theme.id}',
-                                            ) ??
-                                            theme.displayName,
+                                      Expanded(
+                                        child: Text(
+                                          TranslationService.translate(
+                                                context,
+                                                'theme_${theme.id}',
+                                              ) ??
+                                              theme.displayName,
+                                        ),
                                       ),
                                       if (theme.id == validTheme) ...[
-                                        const Spacer(),
+                                        const SizedBox(width: 8),
                                         Icon(
                                           Icons.check,
                                           color: Theme.of(context).primaryColor,
@@ -460,13 +461,14 @@ class _SetupScreenState extends State<SetupScreen> {
                           },
                         );
 
-                        if (selected != null) {
-                           // Wait for dialog close animation to complete before triggering a global theme rebuild
-                           // This prevents RenderBox/layout errors during the transition
-                           await Future.delayed(const Duration(milliseconds: 300));
-                           if (context.mounted) {
-                              themeProvider.setThemeStyle(selected);
-                           }
+                        if (selected != null && context.mounted) {
+                           // Use post-frame callback to ensure layout is stable before theme rebuild
+                           // This prevents "Cannot hit test a render box with no size" errors
+                           WidgetsBinding.instance.addPostFrameCallback((_) {
+                             if (context.mounted) {
+                               themeProvider.setThemeStyle(selected);
+                             }
+                           });
                         }
                       },
                       child: Container(
@@ -568,7 +570,17 @@ class _SetupScreenState extends State<SetupScreen> {
       }
 
       if (context.mounted) {
+        // Close loading dialog FIRST to avoid build scope conflicts
+        Navigator.of(context).pop();
+        
+        // Wait for dialog animation to finish and frame to settle
+        await Future.delayed(const Duration(milliseconds: 350));
+        
+        // Only proceed if still mounted after delay
+        if (!context.mounted) return;
+        
         // Use batch method to apply all settings with single notification
+        // This is done AFTER dialog is fully closed to prevent dirty widget errors
         await themeProvider.completeSetupWithSettings(
           profileType: themeProvider.setupProfileType,
           avatarConfig: themeProvider.setupAvatarConfig,
@@ -576,16 +588,10 @@ class _SetupScreenState extends State<SetupScreen> {
           apiService: apiService,
         );
 
+        if (!context.mounted) return;
+        
         final authService = Provider.of<AuthService>(context, listen: false);
         await authService.saveUsername('admin');
-
-        // Close loading dialog BEFORE triggering router redirection
-        if (context.mounted) {
-          Navigator.of(context).pop();
-        }
-
-        // Wait for dialog animation to finish and frame to settle
-        await Future.delayed(const Duration(milliseconds: 300));
         
         // GoRouter will detect isSetupComplete=true and redirect to /login automatically
       }
@@ -621,7 +627,7 @@ class _SetupScreenState extends State<SetupScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.white,
+          color: isSelected ? Colors.blue.withValues(alpha: 0.1) : Colors.white,
           border: Border.all(
             color: isSelected ? Colors.blue : Colors.grey.shade300,
             width: isSelected ? 2 : 1,

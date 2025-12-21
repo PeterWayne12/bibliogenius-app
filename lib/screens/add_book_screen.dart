@@ -242,13 +242,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 : TextButton(
                     onPressed: _saveBook,
                     key: const Key('saveBookButton'),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
                     child: Text(
                       TranslationService.translate(context, 'save_book') ??
                           'Save',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Theme.of(context).appBarTheme.foregroundColor,
                       ),
                     ),
                   ),
@@ -273,7 +277,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   TranslationService.translate(context, 'add_new_book'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
                   ),
                 ),
               ],
@@ -833,10 +836,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 14,
-          color: Colors.black87,
+          color: Theme.of(context).textTheme.bodyLarge?.color,
         ),
       ),
     );
@@ -847,6 +850,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     Widget? suffixIcon,
     Widget? prefixIcon,
   }) {
+    final borderColor = Theme.of(context).colorScheme.outline;
     return InputDecoration(
       hintText: hint,
       suffixIcon: suffixIcon,
@@ -854,11 +858,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/book.dart';
 import '../services/translation_service.dart';
 import 'package:flutter/material.dart';
@@ -210,17 +211,11 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                                 // Image on top
                                 if (widget.book.coverUrl != null &&
                                     widget.book.coverUrl!.isNotEmpty)
-                                  Image.network(
-                                    widget.book.coverUrl!,
+                                  CachedNetworkImage(
+                                    imageUrl: widget.book.coverUrl!,
                                     fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child; // Image loaded
-                                          return const SizedBox.shrink(); // Show fallback while loading
-                                        },
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const SizedBox.shrink(), // Show fallback on error
+                                    placeholder: (context, url) => const SizedBox.shrink(),
+                                    errorWidget: (context, url, error) => const SizedBox.shrink(),
                                   ),
                               ],
                             ),
@@ -367,16 +362,11 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                           _buildFallbackCover(context),
                           if (widget.book.coverUrl != null &&
                               widget.book.coverUrl!.isNotEmpty)
-                            Image.network(
-                              widget.book.coverUrl!,
+                            CachedNetworkImage(
+                              imageUrl: widget.book.coverUrl!,
                               fit: BoxFit.cover,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const SizedBox.shrink();
-                                  },
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const SizedBox.shrink(),
+                              placeholder: (context, url) => const SizedBox.shrink(),
+                              errorWidget: (context, url, error) => const SizedBox.shrink(),
                             ),
                         ],
                       ),

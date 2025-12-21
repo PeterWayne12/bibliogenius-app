@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../widgets/genie_app_bar.dart';
 import 'package:provider/provider.dart';
@@ -518,11 +519,11 @@ class _BookListScreenState extends State<BookListScreen> {
                       onTap: () => onSelected(option),
                       child: ListTile(
                         leading: option.coverUrl != null
-                            ? Image.network(
-                                option.coverUrl!,
+                            ? CachedNetworkImage(
+                                imageUrl: option.coverUrl!,
                                 width: 30,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorWidget: (_, __, ___) =>
                                     const Icon(Icons.book, size: 30),
                               )
                             : const Icon(
@@ -667,6 +668,7 @@ class _BookListScreenState extends State<BookListScreen> {
 
   Widget _buildViewModeToggle(IconData icon, ViewMode mode) {
     final bool isSelected = _viewMode == mode;
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     return ScaleOnTap(
       onTap: () {
         setState(() {
@@ -683,7 +685,9 @@ class _BookListScreenState extends State<BookListScreen> {
         ),
         child: Icon(
           icon,
-          color: isSelected ? Colors.white : Colors.black54,
+          color: isSelected 
+              ? Colors.white 
+              : isDarkTheme ? Colors.white70 : Colors.black54,
           size: 20,
         ),
       ),
@@ -873,11 +877,11 @@ class _BookListScreenState extends State<BookListScreen> {
             child: ListTile(
               contentPadding: const EdgeInsets.all(8),
               leading: book.coverUrl != null
-                  ? Image.network(
-                      book.coverUrl!,
+                  ? CachedNetworkImage(
+                      imageUrl: book.coverUrl!,
                       width: 40,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.book),
+                      errorWidget: (_, __, ___) => const Icon(Icons.book),
                     )
                   : const Icon(Icons.book, size: 40, color: Colors.grey),
               title: Text(book.title),

@@ -209,6 +209,16 @@ class FfiService {
 
   // ============ Loans ============
 
+  /// Get all loans
+  Future<List<frb.FrbLoan>> getAllLoans() async {
+    try {
+      return await frb.getAllLoans();
+    } catch (e) {
+      debugPrint('FFI getAllLoans error: $e');
+      return [];
+    }
+  }
+
   /// Count active loans
   Future<int> countActiveLoans() async {
     try {

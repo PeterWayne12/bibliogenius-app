@@ -391,7 +391,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           Text(
             book.author!,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1163,7 +1163,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${TranslationService.translate(context, 'book_lent_to') ?? 'Book lent to'} ${selectedContact.displayName}',
+              '${TranslationService.translate(context, 'book_lent_to') ?? 'Book lent to'} ${selectedContact.fullName}',
             ),
           ),
         );
@@ -1316,14 +1316,14 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         'library_id': 1,
         'status': 'borrowed',
         'is_temporary': false,
-        'notes': '$borrowedFromLabel ${selectedContact.displayName}',
+        'notes': '$borrowedFromLabel ${selectedContact.fullName}',
       });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${TranslationService.translate(context, 'book_borrowed_from') ?? 'Borrowed from'} ${selectedContact.displayName}',
+              '${TranslationService.translate(context, 'book_borrowed_from') ?? 'Borrowed from'} ${selectedContact.fullName}',
             ),
           ),
         );

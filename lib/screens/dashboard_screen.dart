@@ -131,7 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _stats['total_books'] = books.length;
             _stats['borrowed_count'] = books
-                .where((b) => b.readingStatus == 'borrowed')
+                .where((b) => !b.owned)
                 .length;
 
             final readingListCandidates = books
@@ -446,7 +446,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                       Icons.search,
                                       Colors.blue,
-                                      () => context.push('/books/add'),
+                                      () => context.push('/search/external'),
                                       key: const Key('addBookButton'),
                                     ),
                                   ),

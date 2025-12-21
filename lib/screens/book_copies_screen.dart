@@ -252,7 +252,7 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
               ),
             ),
             title: Text(
-              'Copy #${copy.id}', // Fixed: libraryId is int, using valid string
+              '${TranslationService.translate(context, 'copy_label')} #${copy.id}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
@@ -289,23 +289,26 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
-                      Icon(Icons.edit, size: 20),
-                      SizedBox(width: 8),
-                      Text('Edit'),
+                      const Icon(Icons.edit, size: 20),
+                      const SizedBox(width: 8),
+                      Text(TranslationService.translate(context, 'edit') ?? 'Edit'),
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, color: Colors.red, size: 20),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.red)),
+                      const Icon(Icons.delete, color: Colors.red, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        TranslationService.translate(context, 'delete') ?? 'Delete',
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ],
                   ),
                 ),
@@ -328,14 +331,14 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
         ),
         const SizedBox(height: 16),
         Text(
-          'No copies found',
+          TranslationService.translate(context, 'no_copies_found') ?? 'No copies found',
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(color: Colors.grey),
         ),
         const SizedBox(height: 8),
         Text(
-          'Add a copy to start tracking this book',
+          TranslationService.translate(context, 'add_copy_hint') ?? 'Add a copy to start tracking this book',
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: Colors.grey),

@@ -478,13 +478,17 @@ class _EditBookScreenState extends State<EditBookScreen> {
                   )
                 : TextButton(
                     onPressed: _saveBook,
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      foregroundColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
                     child: Text(
                       TranslationService.translate(context, 'save_changes') ??
                           'Save',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
                       ),
                     ),
                   ),

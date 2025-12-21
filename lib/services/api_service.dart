@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, File;
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -760,6 +760,7 @@ class ApiService {
     if (useFfi) {
       try {
         final books = await FfiService().getBooks();
+        final activeLoans = await FfiService().countActiveLoans();
         final prefs = await SharedPreferences.getInstance();
         final totalBooks = books.length;
         final booksRead = books
@@ -773,6 +774,40 @@ class ApiService {
         final readingGoalYearly = prefs.getInt('ffi_reading_goal_yearly') ?? 12;
         final readingGoalMonthly =
             prefs.getInt('ffi_reading_goal_monthly') ?? 0;
+
+        // Streak Calculation (Daily Logic)
+        final now = DateTime.now();
+        // Format YYYY-MM-DD
+        final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+        final yesterday = now.subtract(const Duration(days: 1));
+        final yesterdayStr = "${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}";
+
+        final lastActiveStr = prefs.getString('ffi_last_active_date');
+        int currentStreak = prefs.getInt('ffi_current_streak') ?? 0;
+        int longestStreak = prefs.getInt('ffi_longest_streak') ?? 0;
+
+        // Only update if not already logged today
+        if (lastActiveStr != todayStr) {
+          if (lastActiveStr == yesterdayStr) {
+            // Continue streak
+            currentStreak++;
+          } else {
+            // Streak broken or first time (start at 1)
+            currentStreak = 1;
+          }
+
+          if (currentStreak > longestStreak) {
+            longestStreak = currentStreak;
+          }
+
+          await prefs.setString('ffi_last_active_date', todayStr);
+          await prefs.setInt('ffi_current_streak', currentStreak);
+          await prefs.setInt('ffi_longest_streak', longestStreak);
+        } else {
+          // Already logged today, ensure at least 1 if somehow 0
+          if (currentStreak == 0) currentStreak = 1;
+          if (longestStreak < currentStreak) longestStreak = currentStreak;
+        }
 
         // Calculate collector progress (thresholds: 10, 50, 100)
         int collectorLevel = 0;
@@ -807,6 +842,29 @@ class ApiService {
             : totalBooks / collectorNext;
         double readerProgress = readerLevel >= 3 ? 1.0 : booksRead / readerNext;
 
+        // Calculate lender progress (thresholds: 5, 20, 50)
+        int totalLoans = 0;
+        try {
+          final allLoans = await FfiService().getAllLoans();
+          totalLoans = allLoans.length;
+        } catch (e) {
+          debugPrint('Error fetching loans for user status: $e');
+        }
+
+        int lenderLevel = 0;
+        int lenderNext = 5;
+        if (totalLoans >= 50) {
+          lenderLevel = 3;
+          lenderNext = 50;
+        } else if (totalLoans >= 20) {
+          lenderLevel = 2;
+          lenderNext = 50;
+        } else if (totalLoans >= 5) {
+          lenderLevel = 1;
+          lenderNext = 20;
+        }
+        double lenderProgress = lenderLevel >= 3 ? 1.0 : totalLoans / lenderNext;
+
         return Response(
           requestOptions: RequestOptions(path: '/api/user/status'),
           statusCode: 200,
@@ -825,10 +883,10 @@ class ApiService {
                 'next_threshold': readerNext,
               },
               'lender': {
-                'level': 0,
-                'progress': 0.0,
-                'current': 0,
-                'next_threshold': 5,
+                'level': lenderLevel,
+                'progress': lenderProgress.clamp(0.0, 1.0),
+                'current': totalLoans,
+                'next_threshold': lenderNext,
               },
               'cataloguer': {
                 'level': 0,
@@ -837,7 +895,7 @@ class ApiService {
                 'next_threshold': 10,
               },
             },
-            'streak': {'current': 0, 'longest': 0},
+            'streak': {'current': currentStreak, 'longest': longestStreak},
             'recent_achievements': [],
             'config': {
               'achievements_style': 'minimal',
@@ -846,7 +904,7 @@ class ApiService {
               'reading_goal_progress': booksRead,
             },
             'level': 'Member',
-            'loans_count': 0,
+            'loans_count': activeLoans,
             'edits_count': 0,
             'next_level_progress': collectorProgress.clamp(0.0, 1.0),
           },
@@ -982,6 +1040,111 @@ class ApiService {
   }
 
   Future<Response> importBooks(dynamic fileSource, {String? filename}) async {
+    // FFI mode: Parse CSV and create books locally
+    if (useFfi) {
+      try {
+        String csvContent;
+        if (fileSource is String) {
+          // Native: Read file from path
+          final file = File(fileSource);
+          csvContent = await file.readAsString();
+        } else if (fileSource is List<int>) {
+          // Web: Convert bytes to string
+          csvContent = utf8.decode(fileSource);
+        } else {
+          throw Exception("Unsupported file source type");
+        }
+        
+        // Parse CSV
+        final lines = csvContent.split('\n').where((l) => l.trim().isNotEmpty).toList();
+        if (lines.isEmpty) {
+          return Response(
+            requestOptions: RequestOptions(path: '/api/import'),
+            statusCode: 400,
+            data: {'error': 'Empty file'},
+          );
+        }
+        
+        // First line is header
+        final header = _parseCsvLine(lines.first);
+        final headerLower = header.map((h) => h.toLowerCase().trim()).toList();
+        
+        // Find column indices - support multiple formats including Goodreads
+        final titleIdx = headerLower.indexWhere((h) => h.contains('title') || h.contains('titre'));
+        final authorIdx = headerLower.indexWhere((h) => h.contains('author') || h.contains('auteur'));
+        // Goodreads uses "ISBN13" column - prefer it over regular ISBN if both exist
+        int isbnIdx = headerLower.indexWhere((h) => h == 'isbn13' || h == 'isbn 13');
+        if (isbnIdx == -1) {
+          isbnIdx = headerLower.indexWhere((h) => h.contains('isbn'));
+        }
+        final publisherIdx = headerLower.indexWhere((h) => h.contains('publisher') || h.contains('editeur') || h.contains('éditeur'));
+        // Goodreads uses "Year Published" or "Original Publication Year"
+        int yearIdx = headerLower.indexWhere((h) => h == 'year published' || h == 'original publication year');
+        if (yearIdx == -1) {
+          yearIdx = headerLower.indexWhere((h) => h.contains('year') || h.contains('année') || h.contains('annee'));
+        }
+        
+        if (titleIdx == -1) {
+          return Response(
+            requestOptions: RequestOptions(path: '/api/import'),
+            statusCode: 400,
+            data: {'error': 'Title column not found. Make sure CSV has a "Title" header.'},
+          );
+        }
+        
+        int imported = 0;
+        for (int i = 1; i < lines.length; i++) {
+          final values = _parseCsvLine(lines[i]);
+          if (values.isEmpty || (titleIdx < values.length && values[titleIdx].trim().isEmpty)) {
+            continue;
+          }
+          
+          try {
+            // Helper to get value or null if empty
+            String? getValueOrNull(int idx) {
+              if (idx < 0 || idx >= values.length) return null;
+              var val = values[idx].trim();
+              // Handle Goodreads-style ="VALUE" format (prevents Excel number conversion)
+              if (val.startsWith('="') && val.endsWith('"')) {
+                val = val.substring(2, val.length - 1);
+              }
+              return val.isEmpty ? null : val;
+            }
+            
+            final book = frb.FrbBook(
+              title: titleIdx < values.length ? values[titleIdx].trim() : 'Unknown',
+              author: getValueOrNull(authorIdx),
+              isbn: getValueOrNull(isbnIdx),
+              publisher: getValueOrNull(publisherIdx),
+              publicationYear: yearIdx >= 0 && yearIdx < values.length 
+                  ? int.tryParse(values[yearIdx].trim()) 
+                  : null,
+              owned: true,
+            );
+            await FfiService().createBook(book);
+            imported++;
+          } catch (e) {
+            debugPrint('Error importing book at line $i: $e');
+            // Continue with next book
+          }
+        }
+        
+        return Response(
+          requestOptions: RequestOptions(path: '/api/import'),
+          statusCode: 200,
+          data: {'imported': imported, 'message': 'Import successful'},
+        );
+      } catch (e) {
+        debugPrint('FFI import error: $e');
+        return Response(
+          requestOptions: RequestOptions(path: '/api/import'),
+          statusCode: 500,
+          data: {'error': 'Import failed: $e'},
+        );
+      }
+    }
+    
+    // HTTP mode
     MultipartFile file;
     if (fileSource is String) {
       final name = filename ?? fileSource.split('/').last;
@@ -997,6 +1160,33 @@ class ApiService {
 
     FormData formData = FormData.fromMap({"file": file});
     return await _dio.post('/api/import/file', data: formData);
+  }
+
+  /// Parse a CSV line handling quoted fields
+  List<String> _parseCsvLine(String line) {
+    final result = <String>[];
+    bool inQuotes = false;
+    StringBuffer current = StringBuffer();
+    
+    for (int i = 0; i < line.length; i++) {
+      final char = line[i];
+      if (char == '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+          // Escaped quote
+          current.write('"');
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char == ',' && !inQuotes) {
+        result.add(current.toString());
+        current = StringBuffer();
+      } else {
+        current.write(char);
+      }
+    }
+    result.add(current.toString());
+    return result;
   }
 
   // P2P Advanced

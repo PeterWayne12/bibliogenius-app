@@ -116,7 +116,6 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
               height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: avatar.themeColor, width: 2),
                 color: avatarConfig?.style == 'genie'
                     ? Color(
                         int.parse(
