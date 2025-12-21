@@ -87,8 +87,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
       final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
       final isLibrarian = themeProvider.isLibrarian;
       setState(() {
-        _readingStatus =
-            widget.book.readingStatus ?? getDefaultStatus(isLibrarian);
+        final status = widget.book.readingStatus ?? getDefaultStatus(isLibrarian);
+        // Sanitize legacy statuses that are no longer in the dropdown
+        _readingStatus = ['lent', 'borrowed'].contains(status) ? 'to_read' : status;
         _originalReadingStatus =
             _readingStatus; // Store original for comparison
         _owned = widget.book.owned; // Initialize owned state
@@ -594,14 +595,16 @@ class _EditBookScreenState extends State<EditBookScreen> {
                               itemBuilder: (BuildContext context, int index) {
                                 final option = options.elementAt(index);
                                 return ListTile(
-                                  leading: option.coverUrl != null
-                                      ? Image.network(
-                                          option.coverUrl!,
-                                          width: 40,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Icon(Icons.book),
-                                        )
-                                      : const Icon(Icons.book),
+                                    leading: option.coverUrl != null
+                                        ? Image.network(
+                                            option.coverUrl!,
+                                            width: 40,
+                                            height: 60,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) =>
+                                                const Icon(Icons.book, size: 40),
+                                          )
+                                        : const Icon(Icons.book, size: 40),
                                   title: Text(option.title),
                                   subtitle: Text(option.author),
                                   onTap: () => onSelected(option),
@@ -862,17 +865,17 @@ class _EditBookScreenState extends State<EditBookScreen> {
                       ),
                     ),
                     DropdownMenuItem(
-                      value: 'loaned',
+                      value: 'lent',
                       child: Row(
                         children: [
-                          Icon(Icons.call_made, size: 20, color: Colors.orange),
+                          const Icon(Icons.call_made, size: 20, color: Colors.orange),
                           const SizedBox(width: 12),
                           Text(
                             TranslationService.translate(
                                   context,
                                   'availability_loaned',
                                 ) ??
-                                'Loaned',
+                                'Lent',
                           ),
                         ],
                       ),
