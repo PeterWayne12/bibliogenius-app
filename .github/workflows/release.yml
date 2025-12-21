@@ -243,6 +243,17 @@ jobs:
       - name: Clone Rust repository
         run: git clone https://github.com/bibliogenius/bibliogenius.git ../bibliogenius
       
+      - name: Debug - Verify directory structure
+        run: |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== Parent directory contents ==="
+          ls -la ../
+          echo "=== Rust repo Cargo.toml exists? ==="
+          ls -la ../bibliogenius/Cargo.toml || echo "NOT FOUND"
+          echo "=== Path from rust_builder/linux ==="
+          ls -la rust_builder/linux/../../../bibliogenius/Cargo.toml || echo "NOT FOUND from rust_builder path"
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
