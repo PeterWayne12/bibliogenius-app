@@ -165,8 +165,11 @@ class OpenLibraryService {
 
   Future<OpenLibraryBook?> lookupByIsbn(String isbn) async {
     try {
-      // Use the precise /isbn/ endpoint for exact ISBN matching
-      final response = await _dio.get('$_baseUrl/isbn/$isbn.json');
+      // 1. Try OpenLibrary first
+      final response = await _dio.get(
+        '$_baseUrl/isbn/${isbn.replaceAll(RegExp(r'[^0-9X]'), '')}.json',
+        options: Options(receiveTimeout: const Duration(seconds: 10)),
+      );
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -186,7 +189,6 @@ class OpenLibraryService {
         // Extract publish date and parse year
         if (data['publish_date'] != null) {
           final publishDate = data['publish_date'] as String;
-          // Try to extract year from various formats like "1995", "January 1995", "Jan 01, 1995"
           final yearMatch = RegExp(r'\d{4}').firstMatch(publishDate);
           if (yearMatch != null) {
             year = int.tryParse(yearMatch.group(0)!);
@@ -199,13 +201,9 @@ class OpenLibraryService {
           coverUrl = 'https://covers.openlibrary.org/b/id/$coverId-L.jpg';
         }
 
-        // Extract author - this is the tricky part
+        // Extract author
         String author = 'Unknown Author';
-
-        // Try to get author from the edition data
         if (data['authors'] != null && (data['authors'] as List).isNotEmpty) {
-          // Authors in /isbn/ endpoint are usually just references like {"key": "/authors/OL1234A"}
-          // We need to fetch the actual author name
           try {
             final authorRef = data['authors'][0];
             if (authorRef is Map && authorRef['key'] != null) {
@@ -213,11 +211,8 @@ class OpenLibraryService {
               final authorResponse = await _dio.get(
                 '$_baseUrl$authorKey.json',
                 options: Options(
-                  validateStatus: (status) =>
-                      status! < 500, // Accept 4xx errors gracefully
-                  receiveTimeout: const Duration(
-                    seconds: 3,
-                  ), // Don't hang on slow requests
+                  validateStatus: (status) => status! < 500,
+                  receiveTimeout: const Duration(seconds: 3),
                 ),
               );
 
@@ -228,11 +223,9 @@ class OpenLibraryService {
             }
           } catch (e) {
             print('Failed to fetch author details: $e');
-            // Keep 'Unknown Author' as fallback
           }
         }
 
-        // Try to get author from 'by_statement' field as last resort
         if (author == 'Unknown Author' && data['by_statement'] != null) {
           author = data['by_statement'] as String;
         }
@@ -245,12 +238,98 @@ class OpenLibraryService {
           year: year,
           coverUrl: coverUrl,
           key: data['key'],
+          summary: data['notes'] is String ? data['notes'] : null,
         );
       }
-      return null;
     } catch (e) {
-      print('Error looking up ISBN in OpenLibrary: $e');
-      return null;
+      print('OpenLibrary lookup failed, trying Google Books: $e');
     }
+
+    // 2. Fallback to Google Books
+    final googleResult = await _lookupGoogleBooksByIsbn(isbn);
+    if (googleResult != null) return googleResult;
+
+    // 3. Last fallback to Inventaire.io
+    return _lookupInventaireByIsbn(isbn);
+  }
+
+  Future<OpenLibraryBook?> _lookupGoogleBooksByIsbn(String isbn) async {
+    try {
+      print('Trying Google Books fallback for ISBN: $isbn');
+      final cleanIsbn = isbn.replaceAll(RegExp(r'[^0-9]'), '');
+      final response = await _dio.get(
+        'https://www.googleapis.com/books/v1/volumes',
+        queryParameters: {'q': 'isbn:$cleanIsbn'},
+        options: Options(receiveTimeout: const Duration(seconds: 8)),
+      );
+
+      if (response.statusCode == 200 &&
+          response.data['items'] != null &&
+          (response.data['items'] as List).isNotEmpty) {
+        final item = response.data['items'][0]['volumeInfo'];
+        final title = item['title'] ?? 'Unknown Title';
+        final authors = (item['authors'] as List?)?.join(', ') ?? 'Unknown Author';
+        final publisher = item['publisher'];
+        final publishedDate = item['publishedDate'] as String?;
+        int? year;
+        if (publishedDate != null) {
+          final match = RegExp(r'\d{4}').firstMatch(publishedDate);
+          if (match != null) year = int.tryParse(match.group(0)!);
+        }
+        final coverUrl = item['imageLinks']?['thumbnail']?.replaceFirst('http:', 'https:');
+
+        return OpenLibraryBook(
+          title: title,
+          author: authors,
+          isbn: isbn,
+          publisher: publisher,
+          year: year,
+          coverUrl: coverUrl,
+          summary: item['description'],
+        );
+      }
+    } catch (e) {
+      print('Google Books lookup failed: $e');
+    }
+    return null;
+  }
+
+  Future<OpenLibraryBook?> _lookupInventaireByIsbn(String isbn) async {
+    try {
+      print('Trying Inventaire.io fallback for ISBN: $isbn');
+      final cleanIsbn = isbn.replaceAll(RegExp(r'[^0-9X]'), '');
+      final response = await _dio.get(
+        'https://inventaire.io/api/entities',
+        queryParameters: {
+          'action': 'by-isbn',
+          'isbn': cleanIsbn,
+        },
+        options: Options(receiveTimeout: const Duration(seconds: 8)),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        // Inventaire returns a map where keys are ISBNs or entity IDs
+        final entities = response.data;
+        if (entities.isEmpty) return null;
+
+        // Find the first entity that looks like a work or edition
+        for (var entity in entities.values) {
+          final label = entity['label'] as String?;
+          if (label == null) continue;
+
+          // For detail, we'd need to fetch Wikidata/Inventaire linked data
+          // but let's take what we can get from the summary entity
+          return OpenLibraryBook(
+            title: label,
+            author: 'Unknown Author', // Hard to get without further fetch
+            isbn: isbn,
+            key: entity['uri'],
+          );
+        }
+      }
+    } catch (e) {
+      print('Inventaire ISBN lookup failed: $e');
+    }
+    return null;
   }
 }
