@@ -865,6 +865,30 @@ class ApiService {
         }
         double lenderProgress = lenderLevel >= 3 ? 1.0 : totalLoans / lenderNext;
 
+        // Calculate cataloguer progress (thresholds: 10, 20, 50) based on shelves (tags)
+        int totalShelves = 0;
+        try {
+          final tags = await FfiService().getTags();
+          totalShelves = tags.length;
+        } catch (e) {
+          debugPrint('Error fetching tags for user status: $e');
+        }
+
+        int cataloguerLevel = 0;
+        int cataloguerNext = 10;
+        if (totalShelves >= 50) {
+          cataloguerLevel = 3;
+          cataloguerNext = 50;
+        } else if (totalShelves >= 20) {
+          cataloguerLevel = 2;
+          cataloguerNext = 50;
+        } else if (totalShelves >= 10) {
+          cataloguerLevel = 1;
+          cataloguerNext = 20;
+        }
+        double cataloguerProgress =
+            cataloguerLevel >= 3 ? 1.0 : totalShelves / cataloguerNext;
+
         return Response(
           requestOptions: RequestOptions(path: '/api/user/status'),
           statusCode: 200,
@@ -889,10 +913,10 @@ class ApiService {
                 'next_threshold': lenderNext,
               },
               'cataloguer': {
-                'level': 0,
-                'progress': 0.0,
-                'current': 0,
-                'next_threshold': 10,
+                'level': cataloguerLevel,
+                'progress': cataloguerProgress.clamp(0.0, 1.0),
+                'current': totalShelves,
+                'next_threshold': cataloguerNext,
               },
             },
             'streak': {'current': currentStreak, 'longest': longestStreak},
