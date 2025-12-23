@@ -8,7 +8,6 @@ import '../models/contact.dart';
 import '../models/tag.dart';
 import '../src/rust/api/frb.dart' as frb;
 import 'dart:convert';
-import 'package:dio/dio.dart';
 
 /// Service that wraps the FFI calls to the Rust backend
 /// This is used on native platforms instead of HTTP
@@ -404,28 +403,9 @@ class FfiService {
   /// Start the HTTP server on the specified port
   /// This is required for P2P functionality in standalone mode
   Future<int?> startServer(int port) async {
-    // Try to cleanup zombie processes on port 8000 (dev mode convenience)
-    if (kDebugMode && port == 8000) {
-      try {
-        final dio = Dio(
-          BaseOptions(connectTimeout: const Duration(seconds: 1)),
-        );
-        debugPrint(
-          '🧹 FfiService: Checking for zombie process on port 8000...',
-        );
-        try {
-          await dio.post('http://localhost:8000/api/admin/shutdown');
-          debugPrint('🧹 FfiService: Sent shutdown command to zombie process');
-          await Future.delayed(
-            const Duration(milliseconds: 1500),
-          ); // Wait for exit
-        } catch (e) {
-          // Ignore connection errors (server not running is good)
-        }
-      } catch (e) {
-        // Ignore Dio setup errors
-      }
-    }
+    // Zombie cleanup disabled - it was killing the app during hot restart
+    // The /api/admin/shutdown endpoint is still available for manual use
+    // if (kDebugMode && port == 8000) { ... }
 
     try {
       final actualPort = await frb.startServer(port: port);

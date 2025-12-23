@@ -14,6 +14,7 @@ import 'services/translation_service.dart';
 import 'services/mdns_service.dart';
 import 'services/ffi_service.dart';
 import 'providers/theme_provider.dart';
+import 'audio/audio_module.dart'; // Audio module (decoupled)
 import 'screens/login_screen.dart';
 import 'screens/book_list_screen.dart';
 import 'screens/add_book_screen.dart';
@@ -223,6 +224,8 @@ class MyApp extends StatelessWidget {
         Provider<AuthService>.value(value: authService),
         Provider<ApiService>.value(value: apiService),
         Provider<SyncService>(create: (_) => SyncService(apiService)),
+        // Audio module (decoupled, can be removed without breaking the app)
+        ChangeNotifierProvider<AudioProvider>(create: (_) => AudioProvider()),
       ],
       child: const AppRouter(),
     );
@@ -337,7 +340,8 @@ class _AppRouterState extends State<AppRouter> {
                 GoRoute(
                   path: ':id',
                   builder: (context, state) {
-                    final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final bookId =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     Book? book;
                     if (state.extra is Book) {
                       book = state.extra as Book;
@@ -361,11 +365,13 @@ class _AppRouterState extends State<AppRouter> {
                        to fetch by ID, similar to BookDetailsScreen. 
                        For now, this remains a risk if navigated to directly without extra. */
                     if (book == null) {
-                       // Fallback or error screen could be returned here ideally
-                       // For now we assume typical navigation flow or let it throw/show error
-                       // But to prevent hard crash let's redirect or show details if possible?
-                       // Actually EditBookScreen constructor requires 'book'.
-                       throw Exception('Direct navigation to edit not fully supported without object properly passed yet. Please go via details.');
+                      // Fallback or error screen could be returned here ideally
+                      // For now we assume typical navigation flow or let it throw/show error
+                      // But to prevent hard crash let's redirect or show details if possible?
+                      // Actually EditBookScreen constructor requires 'book'.
+                      throw Exception(
+                        'Direct navigation to edit not fully supported without object properly passed yet. Please go via details.',
+                      );
                     }
                     return EditBookScreen(book: book);
                   },
@@ -373,7 +379,8 @@ class _AppRouterState extends State<AppRouter> {
                 GoRoute(
                   path: ':id/copies',
                   builder: (context, state) {
-                    final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final bookId =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     final extra = state.extra as Map<String, dynamic>?;
                     final bookTitle = extra?['bookTitle'] as String? ?? '';
                     return BookCopiesScreen(

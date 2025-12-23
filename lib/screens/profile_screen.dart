@@ -24,6 +24,7 @@ import 'package:dio/dio.dart' show Response;
 import 'dart:convert'; // For base64Decode
 import '../themes/base/theme_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../audio/audio_module.dart'; // Audio module (decoupled)
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -148,22 +149,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _showChangePasswordDialog() async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final hasPassword = await authService.hasPasswordSet();
-    
+
     final currentPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
     String? errorText;
-    
+
     if (!mounted) return;
-    
+
     await showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(
-            hasPassword 
-                ? (TranslationService.translate(context, 'change_password') ?? 'Change Password')
-                : (TranslationService.translate(context, 'set_password') ?? 'Set Password'),
+            hasPassword
+                ? (TranslationService.translate(context, 'change_password') ??
+                      'Change Password')
+                : (TranslationService.translate(context, 'set_password') ??
+                      'Set Password'),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -173,7 +176,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Text(
-                      TranslationService.translate(context, 'first_time_password') ??
+                      TranslationService.translate(
+                            context,
+                            'first_time_password',
+                          ) ??
                           'Set a password to protect your data',
                       style: TextStyle(color: Colors.grey[600]),
                     ),
@@ -183,7 +189,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     controller: currentPasswordController,
                     obscureText: true,
                     decoration: InputDecoration(
-                      labelText: TranslationService.translate(context, 'current_password') ?? 
+                      labelText:
+                          TranslationService.translate(
+                            context,
+                            'current_password',
+                          ) ??
                           'Current Password',
                       border: const OutlineInputBorder(),
                     ),
@@ -193,7 +203,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   controller: newPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: TranslationService.translate(context, 'new_password') ?? 
+                    labelText:
+                        TranslationService.translate(context, 'new_password') ??
                         'New Password',
                     border: const OutlineInputBorder(),
                   ),
@@ -203,7 +214,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   controller: confirmPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: TranslationService.translate(context, 'confirm_password') ?? 
+                    labelText:
+                        TranslationService.translate(
+                          context,
+                          'confirm_password',
+                        ) ??
                         'Confirm Password',
                     errorText: errorText,
                     border: const OutlineInputBorder(),
@@ -215,53 +230,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(TranslationService.translate(context, 'cancel') ?? 'Cancel'),
+              child: Text(
+                TranslationService.translate(context, 'cancel') ?? 'Cancel',
+              ),
             ),
             ElevatedButton(
               onPressed: () async {
                 // Validate
                 if (newPasswordController.text.length < 4) {
-                  setState(() => errorText = TranslationService.translate(context, 'password_too_short') ?? 
-                      'Password must be at least 4 characters');
+                  setState(
+                    () => errorText =
+                        TranslationService.translate(
+                          context,
+                          'password_too_short',
+                        ) ??
+                        'Password must be at least 4 characters',
+                  );
                   return;
                 }
-                if (newPasswordController.text != confirmPasswordController.text) {
-                  setState(() => errorText = TranslationService.translate(context, 'passwords_dont_match') ?? 
-                      'Passwords do not match');
+                if (newPasswordController.text !=
+                    confirmPasswordController.text) {
+                  setState(
+                    () => errorText =
+                        TranslationService.translate(
+                          context,
+                          'passwords_dont_match',
+                        ) ??
+                        'Passwords do not match',
+                  );
                   return;
                 }
-                
+
                 if (hasPassword) {
                   // Verify old password first
-                  final isValid = await authService.verifyPassword(currentPasswordController.text);
+                  final isValid = await authService.verifyPassword(
+                    currentPasswordController.text,
+                  );
                   if (!isValid) {
-                    setState(() => errorText = TranslationService.translate(context, 'password_incorrect') ?? 
-                        'Incorrect password');
+                    setState(
+                      () => errorText =
+                          TranslationService.translate(
+                            context,
+                            'password_incorrect',
+                          ) ??
+                          'Incorrect password',
+                    );
                     return;
                   }
                   // Change password
                   await authService.changePassword(
-                    currentPasswordController.text, 
+                    currentPasswordController.text,
                     newPasswordController.text,
                   );
                 } else {
                   // First time setting password
                   await authService.savePassword(newPasswordController.text);
                 }
-                
+
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        TranslationService.translate(context, 'password_changed_success') ?? 
+                        TranslationService.translate(
+                              context,
+                              'password_changed_success',
+                            ) ??
                             'Password changed successfully',
                       ),
                     ),
                   );
                 }
               },
-              child: Text(TranslationService.translate(context, 'save') ?? 'Save'),
+              child: Text(
+                TranslationService.translate(context, 'save') ?? 'Save',
+              ),
             ),
           ],
         ),
@@ -299,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _setupMfa() async {
     final apiService = Provider.of<ApiService>(context, listen: false);
-    
+
     // Check if we're in FFI/local mode where MFA is not supported
     if (apiService.useFfi) {
       if (!mounted) return;
@@ -330,7 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       return;
     }
-    
+
     try {
       final response = await apiService.setup2Fa();
       final data = response.data;
@@ -896,7 +939,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   trailing: ElevatedButton(
                     onPressed: _showChangePasswordDialog,
                     child: Text(
-                      TranslationService.translate(context, 'change_password') ??
+                      TranslationService.translate(
+                            context,
+                            'change_password',
+                          ) ??
                           'Change',
                     ),
                   ),
@@ -904,6 +950,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 32),
+
+          // Audio Module Settings (decoupled - can be removed without breaking the app)
+          const AudioSettingsCard(),
           const SizedBox(height: 32),
 
           // Integrations (MCP for Claude Desktop)
@@ -1029,10 +1079,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: Text(
-                          TranslationService.translate(context, 'import_demo_data_title'),
+                          TranslationService.translate(
+                            context,
+                            'import_demo_data_title',
+                          ),
                         ),
                         content: Text(
-                          TranslationService.translate(context, 'import_demo_data_desc'),
+                          TranslationService.translate(
+                            context,
+                            'import_demo_data_desc',
+                          ),
                         ),
                         actions: [
                           TextButton(
@@ -1057,7 +1113,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              TranslationService.translate(context, 'demo_data_imported'),
+                              TranslationService.translate(
+                                context,
+                                'demo_data_imported',
+                              ),
                             ),
                           ),
                         );
@@ -1083,22 +1142,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                   onTap: () async {
-                    final authService = Provider.of<AuthService>(context, listen: false);
+                    final authService = Provider.of<AuthService>(
+                      context,
+                      listen: false,
+                    );
                     final hasPassword = await authService.hasPasswordSet();
-                    
+
                     if (!mounted) return;
-                    
+
                     // Password entry controller and reset type selection
                     final passwordController = TextEditingController();
                     String? errorText;
-                    bool resetEntirely = false; // false = standard, true = full reset
-                    
+                    bool resetEntirely =
+                        false; // false = standard, true = full reset
+
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (dialogContext) => StatefulBuilder(
                         builder: (context, setState) => AlertDialog(
                           title: Text(
-                            TranslationService.translate(context, 'reset_app_title'),
+                            TranslationService.translate(
+                              context,
+                              'reset_app_title',
+                            ),
                           ),
                           content: SingleChildScrollView(
                             child: Column(
@@ -1106,88 +1172,132 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  TranslationService.translate(context, 'reset_app_confirmation'),
+                                  TranslationService.translate(
+                                    context,
+                                    'reset_app_confirmation',
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
-                                
+
                                 // Reset Type Selection
                                 Text(
-                                  TranslationService.translate(context, 'reset_type_label') ?? 
+                                  TranslationService.translate(
+                                        context,
+                                        'reset_type_label',
+                                      ) ??
                                       'Choose reset type:',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
-                                
+
                                 // Standard Reset Option
                                 RadioListTile<bool>(
                                   value: false,
                                   groupValue: resetEntirely,
                                   title: Text(
-                                    TranslationService.translate(context, 'reset_type_standard') ?? 
+                                    TranslationService.translate(
+                                          context,
+                                          'reset_type_standard',
+                                        ) ??
                                         'Standard Reset',
                                   ),
                                   subtitle: Text(
-                                    TranslationService.translate(context, 'reset_standard_desc') ?? 
+                                    TranslationService.translate(
+                                          context,
+                                          'reset_standard_desc',
+                                        ) ??
                                         'Clears library data but keeps your login',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
                                   ),
-                                  onChanged: (val) => setState(() => resetEntirely = val!),
+                                  onChanged: (val) =>
+                                      setState(() => resetEntirely = val!),
                                   dense: true,
                                   contentPadding: EdgeInsets.zero,
                                 ),
-                                
+
                                 // Reset Entirely Option
                                 RadioListTile<bool>(
                                   value: true,
                                   groupValue: resetEntirely,
                                   title: Text(
-                                    TranslationService.translate(context, 'reset_type_full') ?? 
+                                    TranslationService.translate(
+                                          context,
+                                          'reset_type_full',
+                                        ) ??
                                         'Reset Entirely',
                                     style: const TextStyle(color: Colors.red),
                                   ),
                                   subtitle: Text(
-                                    TranslationService.translate(context, 'reset_full_desc') ?? 
+                                    TranslationService.translate(
+                                          context,
+                                          'reset_full_desc',
+                                        ) ??
                                         'Completely removes all data and credentials',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
                                   ),
-                                  onChanged: (val) => setState(() => resetEntirely = val!),
+                                  onChanged: (val) =>
+                                      setState(() => resetEntirely = val!),
                                   dense: true,
                                   contentPadding: EdgeInsets.zero,
                                 ),
-                                
+
                                 // Warning for full reset
                                 if (resetEntirely) ...[
                                   const SizedBox(height: 8),
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.orange.withValues(alpha: 0.1),
+                                      color: Colors.orange.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(color: Colors.orange),
                                     ),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.warning, color: Colors.orange, size: 20),
+                                        const Icon(
+                                          Icons.warning,
+                                          color: Colors.orange,
+                                          size: 20,
+                                        ),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            TranslationService.translate(context, 'reset_full_warning') ?? 
+                                            TranslationService.translate(
+                                                  context,
+                                                  'reset_full_warning',
+                                                ) ??
                                                 'You will need to set a new username and password',
-                                            style: const TextStyle(fontSize: 12, color: Colors.orange),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.orange,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 ],
-                                
+
                                 if (hasPassword) ...[
                                   const SizedBox(height: 16),
                                   TextField(
                                     controller: passwordController,
                                     obscureText: true,
                                     decoration: InputDecoration(
-                                      labelText: TranslationService.translate(context, 'enter_password_to_reset') ??
+                                      labelText:
+                                          TranslationService.translate(
+                                            context,
+                                            'enter_password_to_reset',
+                                          ) ??
                                           'Enter your password to confirm',
                                       errorText: errorText,
                                       border: const OutlineInputBorder(),
@@ -1207,17 +1317,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             TextButton(
                               onPressed: () async {
                                 if (hasPassword) {
-                                  final isValid = await authService.verifyPassword(passwordController.text);
+                                  final isValid = await authService
+                                      .verifyPassword(passwordController.text);
                                   if (!isValid) {
-                                    setState(() => errorText = TranslationService.translate(context, 'password_incorrect') ?? 
-                                        'Incorrect password');
+                                    setState(
+                                      () => errorText =
+                                          TranslationService.translate(
+                                            context,
+                                            'password_incorrect',
+                                          ) ??
+                                          'Incorrect password',
+                                    );
                                     return;
                                   }
                                 }
                                 Navigator.pop(context, true);
                               },
                               child: Text(
-                                TranslationService.translate(context, 'reset_confirm'),
+                                TranslationService.translate(
+                                  context,
+                                  'reset_confirm',
+                                ),
                                 style: const TextStyle(color: Colors.red),
                               ),
                             ),
@@ -1241,7 +1361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           listen: false,
                         );
                         await themeProvider.resetSetup();
-                        
+
                         // 3. If full reset, also clear credentials
                         if (resetEntirely) {
                           await authService.clearAll();
@@ -1308,7 +1428,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Small delay to ensure any pending theme/UI updates are settled
               // This prevents 'Failed assertion: _dependents.isEmpty' if theme changed recently
               await Future.delayed(const Duration(milliseconds: 200));
-              
+
               await authService.logout();
               if (mounted) {
                 context.go('/login');
@@ -1997,12 +2117,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final libraryNameController = TextEditingController(
       text: _config?['library_name'] ?? _config?['name'] ?? '',
     );
-    
+
     // Capture providers BEFORE showing dialog to avoid context issues
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final apiService = Provider.of<ApiService>(context, listen: false);
     final outerContext = context; // Keep reference to outer context
-    
+
     // Use local state to defer changes until Save
     String selectedLocale = themeProvider.locale.languageCode;
     String selectedTheme = themeProvider.themeStyle;
@@ -2022,7 +2142,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(TranslationService.translate(builderContext, 'library_name')),
+                    Text(
+                      TranslationService.translate(
+                        builderContext,
+                        'library_name',
+                      ),
+                    ),
                     TextField(
                       controller: libraryNameController,
                       decoration: InputDecoration(
@@ -2034,7 +2159,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      TranslationService.translate(builderContext, 'lang_title') ??
+                      TranslationService.translate(
+                            builderContext,
+                            'lang_title',
+                          ) ??
                           'Language',
                     ),
                     DropdownButton<String>(
@@ -2044,25 +2172,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         DropdownMenuItem(
                           value: 'en',
                           child: Text(
-                            TranslationService.translate(builderContext, 'lang_en'),
+                            TranslationService.translate(
+                              builderContext,
+                              'lang_en',
+                            ),
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'fr',
                           child: Text(
-                            TranslationService.translate(builderContext, 'lang_fr'),
+                            TranslationService.translate(
+                              builderContext,
+                              'lang_fr',
+                            ),
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'es',
                           child: Text(
-                            TranslationService.translate(builderContext, 'lang_es'),
+                            TranslationService.translate(
+                              builderContext,
+                              'lang_es',
+                            ),
                           ),
                         ),
                         DropdownMenuItem(
                           value: 'de',
                           child: Text(
-                            TranslationService.translate(builderContext, 'lang_de'),
+                            TranslationService.translate(
+                              builderContext,
+                              'lang_de',
+                            ),
                           ),
                         ),
                       ],
@@ -2074,7 +2214,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      TranslationService.translate(builderContext, 'theme_title') ??
+                      TranslationService.translate(
+                            builderContext,
+                            'theme_title',
+                          ) ??
                           'Theme',
                     ),
                     DropdownButton<String>(
@@ -2115,7 +2258,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      TranslationService.translate(builderContext, selectedProfileType) ??
+                      TranslationService.translate(
+                            builderContext,
+                            selectedProfileType,
+                          ) ??
                           (selectedProfileType == 'individual'
                               ? 'Particulier'
                               : 'Bibliothèque'),
@@ -2180,7 +2326,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(TranslationService.translate(builderContext, 'cancel')),
+                  child: Text(
+                    TranslationService.translate(builderContext, 'cancel'),
+                  ),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -2189,13 +2337,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final newLocale = selectedLocale;
                     final newProfileType = selectedProfileType;
                     final libName = libraryNameController.text;
-                    
+
                     // Close dialog FIRST
                     Navigator.pop(dialogContext);
-                    
+
                     // Wait for dialog animation to FULLY complete (default duration ~300ms)
                     await Future.delayed(const Duration(milliseconds: 350));
-                    
+
                     // Now safe to apply theme changes
                     if (newTheme != themeProvider.themeStyle) {
                       themeProvider.setThemeStyle(newTheme);
@@ -2209,10 +2357,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         apiService: apiService,
                       );
                     }
-                    
+
                     // Save library name if changed
                     if (libName.isNotEmpty &&
-                        libName != (_config?['library_name'] ?? _config?['name'])) {
+                        libName !=
+                            (_config?['library_name'] ?? _config?['name'])) {
                       try {
                         await apiService.updateLibraryConfig(
                           name: libName,
@@ -2230,25 +2379,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         debugPrint('Error updating library config: $e');
                       }
                     }
-                    
+
                     // Refresh status
                     _fetchStatus();
-                    
+
                     // Show confirmation using outer context (still valid)
                     if (mounted) {
                       ScaffoldMessenger.of(outerContext).showSnackBar(
                         SnackBar(
                           content: Text(
                             TranslationService.translate(
-                              outerContext,
-                              'settings_saved',
-                            ) ?? 'Settings saved',
+                                  outerContext,
+                                  'settings_saved',
+                                ) ??
+                                'Settings saved',
                           ),
                         ),
                       );
                     }
                   },
-                  child: Text(TranslationService.translate(builderContext, 'save')),
+                  child: Text(
+                    TranslationService.translate(builderContext, 'save'),
+                  ),
                 ),
               ],
             );
