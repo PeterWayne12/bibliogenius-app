@@ -2167,6 +2167,46 @@ class ApiService {
       throw Exception('Failed to load tags: $e');
     }
   }
+  // ============ Pairing / Device Linking ============
+
+  /// Generate a manual pairing code (Source device)
+  Future<Response> generatePairingCode({
+    required String uuid,
+    required String secret,
+    required String ip,
+  }) async {
+    // Calls local backend
+    if (useFfi) {
+      final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+      return await localDio.post(
+        '/api/auth/pairing/code',
+        data: {'uuid': uuid, 'secret': secret, 'ip': ip},
+      );
+    }
+    // Web/Desktop without FFI (dev mode)
+    return await _dio.post(
+      '/api/auth/pairing/code',
+      data: {'uuid': uuid, 'secret': secret, 'ip': ip},
+    );
+  }
+
+  /// Verify a pairing code against a remote source (Target device)
+  Future<Response> verifyRemotePairingCode({
+    required String host, // e.g., "192.168.1.50:8000"
+    required String code,
+  }) async {
+    // This calls the REMOTE device directly
+    final remoteDio = Dio(BaseOptions(baseUrl: 'http://$host'));
+    try {
+      return await remoteDio.post(
+        '/api/auth/pairing/verify',
+        data: {'code': code},
+      );
+    } catch (e) {
+      debugPrint('❌ verifyRemotePairingCode error: $e');
+      rethrow;
+    }
+  }
 }
 
 class RetryInterceptor extends Interceptor {

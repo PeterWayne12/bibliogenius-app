@@ -85,6 +85,11 @@ class AuthService {
     return uuid;
   }
 
+  /// Set the library UUID (used when adopting an identity from another device)
+  Future<void> setLibraryUuid(String uuid) async {
+    await storage.write(key: _libraryUuidKey, value: uuid);
+  }
+
   Future<void> logout() async {
     await storage.delete(key: _tokenKey);
     await storage.delete(key: _usernameKey);

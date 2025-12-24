@@ -42,6 +42,7 @@ import 'screens/shelves_screen.dart';
 import 'screens/network_screen.dart';
 import 'screens/feedback_screen.dart';
 import 'screens/animations_test_screen.dart';
+import 'screens/link_device_screen.dart';
 import 'services/wizard_service.dart';
 import 'widgets/scaffold_with_nav.dart';
 
@@ -451,6 +452,12 @@ class _AppRouterState extends State<AppRouter> {
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+              routes: [
+                GoRoute(
+                  path: 'link-device',
+                  builder: (context, state) => const LinkDeviceScreen(),
+                ),
+              ],
             ),
             GoRoute(
               path: '/peers',

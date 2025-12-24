@@ -848,6 +848,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                 ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.phonelink_setup),
+                  title: const Text('Link Device'), // TODO: Translation
+                  subtitle: const Text(
+                    'Connect another device to this library',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    context.go('/profile/link-device');
+                  },
+                ),
                 // TODO: Re-enable when borrowed books list is needed (currently using filters instead)
                 // if (_config?['profile_type'] == 'individual')
                 //   SwitchListTile(
