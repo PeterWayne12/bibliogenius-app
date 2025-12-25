@@ -13,8 +13,11 @@ class ScaffoldWithNav extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     final bool useRail = width > 600;
 
+    // Build navigation items (always includes loans menu)
+    final navItems = _buildNavItems(context);
+
     return Scaffold(
-      drawer: useRail ? null : const AppDrawer(), // Drawer for mobile
+      drawer: useRail ? null : const AppDrawer(),
       body: Row(
         children: [
           if (useRail)
@@ -27,93 +30,16 @@ class ScaffoldWithNav extends StatelessWidget {
                     ),
                     child: IntrinsicHeight(
                       child: NavigationRail(
-                        selectedIndex: _calculateSelectedIndex(context),
+                        selectedIndex: _calculateSelectedIndex(
+                          context,
+                          navItems,
+                        ),
                         onDestinationSelected: (int index) =>
-                            _onItemTapped(index, context),
+                            _onItemTapped(index, context, navItems),
                         labelType: NavigationRailLabelType.all,
-                        destinations: [
-                          NavigationRailDestination(
-                            icon: Icon(Icons.dashboard),
-                            label: Text(
-                              TranslationService.translate(
-                                context,
-                                'dashboard',
-                              ),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.book),
-                            label: Text(
-                              TranslationService.translate(context, 'library'),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.shelves),
-                            label: Text(
-                              TranslationService.translate(
-                                    context,
-                                    'shelves',
-                                  ) ??
-                                  'Shelves',
-                            ),
-                          ),
-                          // Unified Network (contacts + peers merged)
-                          NavigationRailDestination(
-                            icon: Icon(Icons.cloud_sync),
-                            label: Text(
-                              TranslationService.translate(context, 'network'),
-                            ),
-                          ),
-                          // P2P Requests
-                          NavigationRailDestination(
-                            icon: Icon(Icons.swap_horiz),
-                            label: Text(
-                              TranslationService.translate(
-                                context,
-                                'nav_requests',
-                              ),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.person),
-                            label: Text(
-                              TranslationService.translate(context, 'profile'),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.insights),
-                            label: Text(
-                              TranslationService.translate(
-                                context,
-                                'nav_statistics',
-                              ),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.school),
-                            label: Text(
-                              TranslationService.translate(
-                                context,
-                                'menu_tutorial',
-                              ),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.help_outline),
-                            label: Text(
-                              TranslationService.translate(context, 'nav_help'),
-                            ),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.bug_report),
-                            label: Text(
-                              TranslationService.translate(
-                                context,
-                                'nav_report_bug',
-                              ),
-                            ),
-                          ),
-                        ],
+                        destinations: navItems
+                            .map((item) => item.destination)
+                            .toList(),
                       ),
                     ),
                   ),
@@ -124,61 +50,130 @@ class ScaffoldWithNav extends StatelessWidget {
           Expanded(child: child),
         ],
       ),
-      // No bottomNavigationBar
     );
   }
 
-  static int _calculateSelectedIndex(BuildContext context) {
+  List<_NavItem> _buildNavItems(BuildContext context) {
+    return [
+      _NavItem(
+        route: '/dashboard',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.dashboard),
+          label: Text(TranslationService.translate(context, 'dashboard')),
+        ),
+      ),
+      _NavItem(
+        route: '/books',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.book),
+          label: Text(TranslationService.translate(context, 'library')),
+        ),
+      ),
+      _NavItem(
+        route: '/shelves',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.shelves),
+          label: Text(
+            TranslationService.translate(context, 'shelves') ?? 'Shelves',
+          ),
+        ),
+      ),
+      _NavItem(
+        route: '/network',
+        matchPrefixes: ['/network', '/contacts', '/peers'],
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.cloud_sync),
+          label: Text(TranslationService.translate(context, 'network')),
+        ),
+      ),
+      // Loans menu always visible (borrowing capability controlled in the screen)
+      _NavItem(
+        route: '/requests',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.swap_horiz),
+          label: Text(TranslationService.translate(context, 'loans_menu')),
+        ),
+      ),
+      _NavItem(
+        route: '/profile',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.person),
+          label: Text(TranslationService.translate(context, 'profile')),
+        ),
+      ),
+      _NavItem(
+        route: '/statistics',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.insights),
+          label: Text(TranslationService.translate(context, 'nav_statistics')),
+        ),
+      ),
+      _NavItem(
+        route: '/onboarding',
+        isPush: true,
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.school),
+          label: Text(TranslationService.translate(context, 'menu_tutorial')),
+        ),
+      ),
+      _NavItem(
+        route: '/help',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.help_outline),
+          label: Text(TranslationService.translate(context, 'nav_help')),
+        ),
+      ),
+      _NavItem(
+        route: '/feedback',
+        isPush: true,
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.bug_report),
+          label: Text(TranslationService.translate(context, 'nav_report_bug')),
+        ),
+      ),
+    ];
+  }
+
+  static int _calculateSelectedIndex(
+    BuildContext context,
+    List<_NavItem> navItems,
+  ) {
     final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/dashboard')) return 0;
-    if (location.startsWith('/books')) return 1;
-    if (location.startsWith('/shelves')) return 2;
-    if (location.startsWith('/network') ||
-        location.startsWith('/contacts') ||
-        location.startsWith('/peers')) {
-      return 3;
+    for (int i = 0; i < navItems.length; i++) {
+      final item = navItems[i];
+      if (item.matchPrefixes != null) {
+        for (final prefix in item.matchPrefixes!) {
+          if (location.startsWith(prefix)) return i;
+        }
+      } else if (location.startsWith(item.route)) {
+        return i;
+      }
     }
-    if (location.startsWith('/requests')) return 4;
-    if (location.startsWith('/profile')) return 5;
-    if (location.startsWith('/statistics')) return 6;
-    if (location.startsWith('/onboarding')) return 7;
-    if (location.startsWith('/help')) return 8;
-    if (location.startsWith('/feedback')) return 9;
     return 0;
   }
 
-  void _onItemTapped(int index, BuildContext context) {
-    switch (index) {
-      case 0:
-        context.go('/dashboard');
-        break;
-      case 1:
-        context.go('/books');
-        break;
-      case 2:
-        context.go('/shelves');
-        break;
-      case 3:
-        context.go('/network');
-        break;
-      case 4:
-        context.go('/requests');
-        break;
-      case 5:
-        context.go('/profile');
-        break;
-      case 6:
-        context.go('/statistics');
-        break;
-      case 7:
-        context.push('/onboarding');
-        break;
-      case 8:
-        context.go('/help');
-        break;
-      case 9:
-        context.push('/feedback');
-        break;
+  void _onItemTapped(int index, BuildContext context, List<_NavItem> navItems) {
+    if (index >= 0 && index < navItems.length) {
+      final item = navItems[index];
+      if (item.isPush) {
+        context.push(item.route);
+      } else {
+        context.go(item.route);
+      }
     }
   }
+}
+
+class _NavItem {
+  final String route;
+  final List<String>? matchPrefixes;
+  final NavigationRailDestination destination;
+  final bool isPush;
+
+  _NavItem({
+    required this.route,
+    required this.destination,
+    this.matchPrefixes,
+    this.isPush = false,
+  });
 }

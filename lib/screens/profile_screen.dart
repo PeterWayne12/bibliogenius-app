@@ -868,6 +868,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context.go('/profile/link-device');
                   },
                 ),
+                const Divider(),
+                // Borrowing Module Toggle
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) => SwitchListTile(
+                    secondary: const Icon(Icons.swap_horiz),
+                    title: Text(
+                      TranslationService.translate(
+                        context,
+                        'enable_borrowing_module',
+                      ),
+                    ),
+                    subtitle: Text(
+                      TranslationService.translate(
+                        context,
+                        'borrowing_module_desc',
+                      ),
+                    ),
+                    value: themeProvider.canBorrowBooks,
+                    onChanged: (value) =>
+                        themeProvider.setCanBorrowBooks(value),
+                  ),
+                ),
                 // TODO: Re-enable when borrowed books list is needed (currently using filters instead)
                 // if (_config?['profile_type'] == 'individual')
                 //   SwitchListTile(

@@ -886,6 +886,15 @@ class TranslationService {
       'audiobooks_discover': 'Discover free audiobooks from LibriVox & others',
       'wifi_streaming_available': 'WiFi connected — streaming available',
       'wifi_connect_to_stream': 'Connect to WiFi to stream audiobooks',
+      // Borrowing Module
+      'enable_borrowing_module': 'Enable Borrowing',
+      'borrowing_module_desc': 'Lend and borrow books with friends',
+      'loans_menu': 'Loans & Borrows',
+      'tab_requests': 'Requests',
+      'tab_lent': 'Lent',
+      'tab_borrowed': 'Borrowed',
+      'tab_received': 'Received',
+      'tab_sent': 'Sent',
     },
     'fr': {
       'app_title': 'BiblioGenius',
@@ -1763,6 +1772,15 @@ class TranslationService {
       'wifi_streaming_available': 'WiFi connecté — streaming disponible',
       'wifi_connect_to_stream':
           'Connectez-vous au WiFi pour écouter les livres audio',
+      // Borrowing Module
+      'enable_borrowing_module': 'Activer les emprunts',
+      'borrowing_module_desc': 'Prêter et emprunter des livres entre amis',
+      'loans_menu': 'Prêts & Emprunts',
+      'tab_requests': 'Demandes',
+      'tab_lent': 'Prêtés',
+      'tab_borrowed': 'Empruntés',
+      'tab_received': 'Reçues',
+      'tab_sent': 'Envoyées',
     },
     'es': {
       'app_title': 'BiblioGenius',

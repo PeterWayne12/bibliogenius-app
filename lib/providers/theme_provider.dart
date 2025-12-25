@@ -33,6 +33,10 @@ class ThemeProvider with ChangeNotifier {
   bool get hasReadingStatus =>
       _profileType == 'individual' || _profileType == 'kid';
 
+  // Borrowing capability: disabled by default for librarians (they lend, not borrow)
+  bool _canBorrowBooks = true;
+  bool get canBorrowBooks => _canBorrowBooks;
+
   ThemeData get themeData {
     // Initialize registry if needed
     ThemeRegistry.initialize();
@@ -67,6 +71,15 @@ class ThemeProvider with ChangeNotifier {
 
     _currentAvatarId = prefs.getString('avatarId') ?? 'individual';
     _profileType = prefs.getString('profileType') ?? 'individual';
+
+    // Load borrowing capability setting (default based on profile type)
+    final savedCanBorrow = prefs.getBool('canBorrowBooks');
+    if (savedCanBorrow != null) {
+      _canBorrowBooks = savedCanBorrow;
+    } else {
+      // Default: disabled for librarians (they lend, not borrow), enabled for others
+      _canBorrowBooks = !isLibrarian;
+    }
 
     final avatarConfigJson = prefs.getString('avatarConfig');
     if (avatarConfigJson != null) {
@@ -110,10 +123,24 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setCanBorrowBooks(bool enabled) async {
+    _canBorrowBooks = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('canBorrowBooks', enabled);
+    notifyListeners();
+  }
+
   Future<void> setProfileType(String type, {ApiService? apiService}) async {
     _profileType = type;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('profileType', type);
+
+    // Reset borrowing capability to profile-based default if not explicitly set
+    final savedCanBorrow = prefs.getBool('canBorrowBooks');
+    if (savedCanBorrow == null) {
+      _canBorrowBooks = !isLibrarian;
+    }
+
     notifyListeners();
 
     if (apiService != null) {
