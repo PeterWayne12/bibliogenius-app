@@ -85,6 +85,12 @@ class AuthService {
     return uuid;
   }
 
+  /// Adopt a library UUID from another device during P2P pairing.
+  /// This overwrites the local UUID, effectively joining the source library.
+  Future<void> setLibraryUuid(String uuid) async {
+    await storage.write(key: _libraryUuidKey, value: uuid);
+  }
+
   Future<void> logout() async {
     await storage.delete(key: _tokenKey);
     await storage.delete(key: _usernameKey);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/audio_provider.dart';
+import '../../services/translation_service.dart';
 
 /// Self-contained settings card for the audio module.
 ///
@@ -32,7 +33,7 @@ class AudioSettingsCard extends StatelessWidget {
                 Icon(Icons.headphones, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Audio Module',
+                  TranslationService.translate(context, 'audio_module_title'),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -61,11 +62,19 @@ class AudioSettingsCard extends StatelessWidget {
             ),
           ),
           SwitchListTile(
-            title: const Text('Enable Audiobooks'),
+            title: Text(
+              TranslationService.translate(context, 'enable_audiobooks'),
+            ),
             subtitle: Text(
               audioProvider.isEnabled
-                  ? 'Automatically search for free audiobook versions'
-                  : 'Discover free audiobooks from LibriVox & others',
+                  ? TranslationService.translate(
+                      context,
+                      'audiobooks_auto_search',
+                    )
+                  : TranslationService.translate(
+                      context,
+                      'audiobooks_discover',
+                    ),
               style: TextStyle(
                 fontSize: 12,
                 color: colorScheme.onSurfaceVariant,
@@ -95,8 +104,14 @@ class AudioSettingsCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         audioProvider.isWifiConnected
-                            ? 'WiFi connected — streaming available'
-                            : 'Connect to WiFi to stream audiobooks',
+                            ? TranslationService.translate(
+                                context,
+                                'wifi_streaming_available',
+                              )
+                            : TranslationService.translate(
+                                context,
+                                'wifi_connect_to_stream',
+                              ),
                         style: TextStyle(
                           fontSize: 12,
                           color: audioProvider.isWifiConnected

@@ -466,7 +466,8 @@ class TranslationService {
       'setup_username_label': 'Username',
       'setup_password_label': 'Password',
       'setup_confirm_password': 'Confirm Password',
-      'setup_password_optional': 'Optional - Set a password to protect your library',
+      'setup_password_optional':
+          'Optional - Set a password to protect your library',
       'leave_empty_no_password': 'Leave empty for no password',
       'passwords_do_not_match': 'Passwords do not match',
       'lang_en': 'English',
@@ -809,7 +810,8 @@ class TranslationService {
       'mfa_setup_success': 'Two-factor authentication enabled',
       'mfa_setup_error': 'Failed to set up two-factor authentication',
       'mfa_code_required': 'Please enter the verification code',
-      'mfa_requires_server': 'Two-factor authentication is only available when connected to a remote BiblioGenius server. In local mode, your data is already secured on your device.',
+      'mfa_requires_server':
+          'Two-factor authentication is only available when connected to a remote BiblioGenius server. In local mode, your data is already secured on your device.',
       // Password Management
       'change_password': 'Change Password',
       'current_password': 'Current Password',
@@ -851,6 +853,39 @@ class TranslationService {
       'verify': 'Verify',
       'cancel': 'Cancel',
       'save': 'Save',
+      // Link Device Screen
+      'link_device_title': 'Link Devices',
+      'link_device_tab_source': 'This Device (Source)',
+      'link_device_tab_target': 'Join Library (Target)',
+      'link_device_share_title': 'Share Your Library',
+      'link_device_share_desc':
+          'Share this code with another device to join your library.',
+      'link_device_your_ip': 'Your IP address',
+      'link_device_generate_code': 'Generate Code',
+      'link_device_code_valid': 'Code valid for 5 minutes',
+      'link_device_code_instructions':
+          'Give this code and IP address to the other device.',
+      'link_device_join_title': 'Join a Library',
+      'link_device_join_desc':
+          'Enter the IP address and code from the source device to join its library.',
+      'link_device_host_ip': 'Host IP Address',
+      'link_device_host_ip_hint': 'e.g. 192.168.1.10:8000',
+      'link_device_pairing_code': 'Pairing Code',
+      'link_device_pairing_code_hint': '6-digit code',
+      'link_device_verify_link': 'Verify & Link',
+      'link_device_success': 'Device linked successfully!',
+      'link_device_sync_complete': 'Synchronization complete',
+      'link_device_error': 'Linking failed',
+      'link_device_menu_title': 'Link Device',
+      'link_device_menu_subtitle': 'Connect another device to this library',
+      // Audio Module
+      'audio_module_title': 'Audio Module',
+      'enable_audiobooks': 'Enable Audiobooks',
+      'audiobooks_auto_search':
+          'Automatically search for free audiobook versions',
+      'audiobooks_discover': 'Discover free audiobooks from LibriVox & others',
+      'wifi_streaming_available': 'WiFi connected — streaming available',
+      'wifi_connect_to_stream': 'Connect to WiFi to stream audiobooks',
     },
     'fr': {
       'app_title': 'BiblioGenius',
@@ -886,7 +921,8 @@ class TranslationService {
       'mfa_setup_success': 'Authentification à deux facteurs activée',
       'mfa_setup_error': 'Échec de la configuration de l\'authentification',
       'mfa_code_required': 'Veuillez entrer le code de vérification',
-      'mfa_requires_server': 'L\'authentification à deux facteurs n\'est disponible que lorsque vous êtes connecté à un serveur BiblioGenius distant. En mode local, vos données sont déjà sécurisées sur votre appareil.',
+      'mfa_requires_server':
+          'L\'authentification à deux facteurs n\'est disponible que lorsque vous êtes connecté à un serveur BiblioGenius distant. En mode local, vos données sont déjà sécurisées sur votre appareil.',
       // Password Management
       'change_password': 'Changer le mot de passe',
       'current_password': 'Mot de passe actuel',
@@ -896,11 +932,14 @@ class TranslationService {
       'password_incorrect': 'Mot de passe incorrect',
       'passwords_dont_match': 'Les mots de passe ne correspondent pas',
       'password_changed_success': 'Mot de passe modifié avec succès',
-      'password_too_short': 'Le mot de passe doit contenir au moins 4 caractères',
-      'enter_password_to_reset': 'Entrez votre mot de passe pour confirmer la réinitialisation',
+      'password_too_short':
+          'Le mot de passe doit contenir au moins 4 caractères',
+      'enter_password_to_reset':
+          'Entrez votre mot de passe pour confirmer la réinitialisation',
       'set_password': 'Définir un mot de passe',
       'no_password_set': 'Aucun mot de passe défini',
-      'first_time_password': 'Définissez un mot de passe pour protéger vos données',
+      'first_time_password':
+          'Définissez un mot de passe pour protéger vos données',
       // Intégrations / MCP
       'integrations': 'Intégrations',
       'mcp_integration': 'Assistants IA (MCP)',
@@ -977,7 +1016,8 @@ class TranslationService {
       'reset_type_full': 'Réinitialisation complète',
       'reset_standard_desc': 'Efface les données mais garde vos identifiants',
       'reset_full_desc': 'Supprime toutes les données et identifiants',
-      'reset_full_warning': 'Vous devrez définir un nouveau nom d\'utilisateur et mot de passe',
+      'reset_full_warning':
+          'Vous devrez définir un nouveau nom d\'utilisateur et mot de passe',
       'import_success': 'Livres importés avec succès !',
       'import_fail': 'Échec de l\'importation',
       'import_success': 'Importation réussie :',
@@ -986,7 +1026,8 @@ class TranslationService {
       'import': 'Importer',
       'import_demo_data': 'Importer des données de démo',
       'import_demo_data_title': 'Importer des données de démo ?',
-      'import_demo_data_desc': 'Cela ajoutera des livres exemples à votre bibliothèque.',
+      'import_demo_data_desc':
+          'Cela ajoutera des livres exemples à votre bibliothèque.',
       'demo_data_imported': 'Données de démo importées !',
       'error': 'Erreur',
       'no_data': 'Aucune donnée',
@@ -1158,7 +1199,8 @@ class TranslationService {
       'add_copy_title': 'Ajouter un exemplaire',
       'edit_copy_title': 'Modifier l\'exemplaire',
       'delete_copy_title': 'Supprimer l\'exemplaire',
-      'delete_copy_confirm': 'Êtes-vous sûr de vouloir supprimer cet exemplaire ?',
+      'delete_copy_confirm':
+          'Êtes-vous sûr de vouloir supprimer cet exemplaire ?',
       'delete_copy_btn': 'Supprimer',
       'is_temporary_copy': 'Exemplaire temporaire',
       'copy_status': 'Statut',
@@ -1189,6 +1231,7 @@ class TranslationService {
       'enter_isbn': 'Entrez l\'ISBN',
       'publisher_hint': 'Nom de l\'éditeur',
       'year_hint': 'AAAA',
+      'book_summary': 'Résumé',
       'summary_hint': 'Bref résumé du livre',
       'author_label': 'Auteur',
       'author_hint': 'Nom de l\'auteur',
@@ -1315,8 +1358,10 @@ class TranslationService {
       'setup_username_label': 'Nom d\'utilisateur',
       'setup_password_label': 'Mot de passe',
       'setup_confirm_password': 'Confirmer le mot de passe',
-      'setup_password_optional': 'Facultatif - Définissez un mot de passe pour protéger votre bibliothèque',
-      'leave_empty_no_password': 'Laissez vide pour ne pas avoir de mot de passe',
+      'setup_password_optional':
+          'Facultatif - Définissez un mot de passe pour protéger votre bibliothèque',
+      'leave_empty_no_password':
+          'Laissez vide pour ne pas avoir de mot de passe',
       'passwords_do_not_match': 'Les mots de passe ne correspondent pas',
       'lang_en': 'Anglais',
       'lang_fr': 'Français',
@@ -1658,11 +1703,14 @@ class TranslationService {
       'password_incorrect': 'Mot de passe incorrect',
       'passwords_dont_match': 'Les mots de passe ne correspondent pas',
       'password_changed_success': 'Mot de passe changé avec succès',
-      'password_too_short': 'Le mot de passe doit contenir au moins 4 caractères',
-      'enter_password_to_reset': 'Entrez votre mot de passe pour confirmer la réinitialisation',
+      'password_too_short':
+          'Le mot de passe doit contenir au moins 4 caractères',
+      'enter_password_to_reset':
+          'Entrez votre mot de passe pour confirmer la réinitialisation',
       'set_password': 'Définir un mot de passe',
       'no_password_set': 'Aucun mot de passe défini',
-      'first_time_password': 'Définissez un mot de passe pour protéger vos données',
+      'first_time_password':
+          'Définissez un mot de passe pour protéger vos données',
       'manage_login_credentials': 'Gérer vos informations de connexion',
       'username': 'Nom d\'utilisateur',
       'password': 'Mot de passe',
@@ -1679,6 +1727,42 @@ class TranslationService {
       'verify': 'Vérifier',
       'cancel': 'Annuler',
       'save': 'Enregistrer',
+      // Link Device Screen
+      'link_device_title': 'Lier des appareils',
+      'link_device_tab_source': 'Cet appareil (Source)',
+      'link_device_tab_target': 'Rejoindre (Cible)',
+      'link_device_share_title': 'Partager votre bibliothèque',
+      'link_device_share_desc':
+          'Partagez ce code avec un autre appareil pour qu\'il rejoigne votre bibliothèque.',
+      'link_device_your_ip': 'Votre adresse IP',
+      'link_device_generate_code': 'Générer un code',
+      'link_device_code_valid': 'Code valide pendant 5 minutes',
+      'link_device_code_instructions':
+          'Donnez ce code et l\'adresse IP à l\'autre appareil.',
+      'link_device_join_title': 'Rejoindre une bibliothèque',
+      'link_device_join_desc':
+          'Entrez l\'adresse IP et le code de l\'appareil source pour rejoindre sa bibliothèque.',
+      'link_device_host_ip': 'Adresse IP de l\'hôte',
+      'link_device_host_ip_hint': 'ex: 192.168.1.10:8000',
+      'link_device_pairing_code': 'Code d\'appairage',
+      'link_device_pairing_code_hint': 'Code à 6 chiffres',
+      'link_device_verify_link': 'Vérifier et lier',
+      'link_device_success': 'Appareil lié avec succès !',
+      'link_device_sync_complete': 'Synchronisation terminée',
+      'link_device_error': 'Échec de la liaison',
+      'link_device_menu_title': 'Lier un appareil',
+      'link_device_menu_subtitle':
+          'Connecter un autre appareil à cette bibliothèque',
+      // Audio Module
+      'audio_module_title': 'Module Audio',
+      'enable_audiobooks': 'Activer les livres audio',
+      'audiobooks_auto_search':
+          'Recherche automatique de versions audio gratuites',
+      'audiobooks_discover':
+          'Découvrez des livres audio gratuits sur LibriVox & autres',
+      'wifi_streaming_available': 'WiFi connecté — streaming disponible',
+      'wifi_connect_to_stream':
+          'Connectez-vous au WiFi pour écouter les livres audio',
     },
     'es': {
       'app_title': 'BiblioGenius',
@@ -1738,7 +1822,8 @@ class TranslationService {
       'reset_type_full': 'Reinicio completo',
       'reset_standard_desc': 'Borra los datos pero mantiene tu sesión',
       'reset_full_desc': 'Elimina todos los datos y credenciales',
-      'reset_full_warning': 'Tendrás que establecer un nuevo nombre de usuario y contraseña',
+      'reset_full_warning':
+          'Tendrás que establecer un nuevo nombre de usuario y contraseña',
       'import_success': '¡Libros importados con éxito!',
       'import_fail': 'Fallo en la importación',
       'import_success': 'Importación exitosa:',
@@ -1747,7 +1832,8 @@ class TranslationService {
       'import': 'Importar',
       'import_demo_data': 'Importar datos de demo',
       'import_demo_data_title': '¿Importar datos de demo?',
-      'import_demo_data_desc': 'Esto añadirá libros de ejemplo a tu biblioteca.',
+      'import_demo_data_desc':
+          'Esto añadirá libros de ejemplo a tu biblioteca.',
       'demo_data_imported': '¡Datos de demo importados!',
       'error': 'Error',
       'no_data': 'Sin datos',
@@ -1908,7 +1994,8 @@ class TranslationService {
       'add_copy_title': 'Añadir copia',
       'edit_copy_title': 'Editar copia',
       'delete_copy_title': 'Eliminar copia',
-      'delete_copy_confirm': '¿Estás seguro de que quieres eliminar esta copia?',
+      'delete_copy_confirm':
+          '¿Estás seguro de que quieres eliminar esta copia?',
       'delete_copy_btn': 'Eliminar',
       'is_temporary_copy': 'Copia temporal',
       'copy_status': 'Estado',
@@ -2075,7 +2162,8 @@ class TranslationService {
       'setup_username_label': 'Nombre de usuario',
       'setup_password_label': 'Contraseña',
       'setup_confirm_password': 'Confirmar contraseña',
-      'setup_password_optional': 'Opcional - Establece una contraseña para proteger tu biblioteca',
+      'setup_password_optional':
+          'Opcional - Establece una contraseña para proteger tu biblioteca',
       'leave_empty_no_password': 'Deja vacío para no tener contraseña',
       'passwords_do_not_match': 'Las contraseñas no coinciden',
       'lang_en': 'Inglés',
@@ -2209,7 +2297,8 @@ class TranslationService {
       'import': 'Importieren',
       'import_demo_data': 'Demodaten importieren',
       'import_demo_data_title': 'Demodaten importieren?',
-      'import_demo_data_desc': 'Dies fügt Beispielbücher zu Ihrer Bibliothek hinzu.',
+      'import_demo_data_desc':
+          'Dies fügt Beispielbücher zu Ihrer Bibliothek hinzu.',
       'demo_data_imported': 'Demodaten importiert!',
       'error': 'Fehler',
       'no_data': 'Keine Daten',
@@ -2515,7 +2604,8 @@ class TranslationService {
       'setup_username_label': 'Benutzername',
       'setup_password_label': 'Passwort',
       'setup_confirm_password': 'Passwort bestätigen',
-      'setup_password_optional': 'Optional - Passwort zum Schutz Ihrer Bibliothek festlegen',
+      'setup_password_optional':
+          'Optional - Passwort zum Schutz Ihrer Bibliothek festlegen',
       'leave_empty_no_password': 'Leer lassen für kein Passwort',
       'passwords_do_not_match': 'Passwörter stimmen nicht überein',
       'lang_en': 'Englisch',

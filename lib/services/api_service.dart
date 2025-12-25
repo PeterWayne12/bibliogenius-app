@@ -1311,16 +1311,21 @@ class ApiService {
   }
 
   Future<Response> syncPeer(String peerUrl) async {
+    // Ensure URL has http:// prefix
+    final normalizedUrl = peerUrl.startsWith('http')
+        ? peerUrl
+        : 'http://$peerUrl';
+
     if (useFfi) {
       // FFI mode: Direct P2P sync
       try {
         final myUrl = await _getMyUrl();
         final dio = Dio();
         debugPrint(
-          'P2P Sync: Requesting sync from $peerUrl/api/peers/sync_by_url with my URL $myUrl',
+          'P2P Sync: Requesting sync from $normalizedUrl/api/peers/sync_by_url with my URL $myUrl',
         );
         return await dio.post(
-          '$peerUrl/api/peers/sync_by_url',
+          '$normalizedUrl/api/peers/sync_by_url',
           data: {'url': myUrl},
         );
       } catch (e) {
@@ -2165,6 +2170,125 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Failed to load tags: $e');
+    }
+  }
+
+  // ============ P2P Device Pairing ============
+
+  /// Generate a pairing code on this device (Source) by calling the local backend.
+  Future<Response> generatePairingCode({
+    required String uuid,
+    required String secret,
+    required String ip,
+  }) async {
+    final localDio = Dio(BaseOptions(baseUrl: 'http://localhost:$httpPort'));
+    return await localDio.post(
+      '/api/auth/pairing/code',
+      data: {'uuid': uuid, 'secret': secret, 'ip': ip},
+    );
+  }
+
+  /// Verify a pairing code on a remote peer (Target wants to join Source).
+  Future<Response> verifyRemotePairingCode({
+    required String host,
+    required String code,
+  }) async {
+    debugPrint('🔗 Pairing: Attempting to verify code on http://$host');
+    try {
+      final remoteDio = Dio(
+        BaseOptions(
+          baseUrl: 'http://$host',
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+      final response = await remoteDio.post(
+        '/api/auth/pairing/verify',
+        data: {'code': code},
+      );
+      debugPrint(
+        '🔗 Pairing: Response status=${response.statusCode}, data=${response.data}',
+      );
+      return response;
+    } on DioException catch (e) {
+      debugPrint('🔗 Pairing ERROR: ${e.type} - ${e.message}');
+      // Return a fake response with error info for display
+      return Response(
+        requestOptions: RequestOptions(path: '/api/auth/pairing/verify'),
+        statusCode: 500,
+        data: {'error': 'Connection failed: ${e.message ?? e.type}'},
+      );
+    }
+  }
+
+  /// Import full library data from a remote peer after successful pairing.
+  /// Downloads all books, contacts, tags from the peer and imports them locally.
+  Future<Map<String, dynamic>> importFromPeer(String host) async {
+    debugPrint('📥 Sync: Starting full import from http://$host');
+    final normalizedHost = host.startsWith('http') ? host : 'http://$host';
+
+    try {
+      final remoteDio = Dio(
+        BaseOptions(
+          baseUrl: normalizedHost,
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+
+      // Fetch full export from peer
+      final res = await remoteDio.get('/api/export');
+      if (res.statusCode != 200) {
+        throw Exception('Export failed with status ${res.statusCode}');
+      }
+
+      final data = res.data as Map<String, dynamic>;
+      int booksImported = 0;
+      int contactsImported = 0;
+      int tagsImported = 0;
+
+      // Import books
+      if (data['books'] != null) {
+        final books = data['books'] as List;
+        for (final bookData in books) {
+          try {
+            // Create book via local API
+            await createBook(bookData);
+            booksImported++;
+          } catch (e) {
+            debugPrint('📥 Sync: Failed to import book: $e');
+          }
+        }
+      }
+
+      // Import contacts
+      if (data['contacts'] != null) {
+        final contacts = data['contacts'] as List;
+        for (final contactData in contacts) {
+          try {
+            await createContact(contactData);
+            contactsImported++;
+          } catch (e) {
+            debugPrint('📥 Sync: Failed to import contact: $e');
+          }
+        }
+      }
+
+      // Note: Tags are imported as part of book data, no need to import separately
+
+      debugPrint(
+        '📥 Sync: Import complete - Books: $booksImported, Contacts: $contactsImported, Tags: $tagsImported',
+      );
+
+      return {
+        'success': true,
+        'books': booksImported,
+        'contacts': contactsImported,
+        'tags': tagsImported,
+      };
+    } catch (e) {
+      debugPrint('📥 Sync ERROR: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 }

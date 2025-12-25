@@ -525,8 +525,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               return Stack(
                 children: [
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: 140,
+                    height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: avatar.themeColor, width: 4),
@@ -548,7 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             )
                           : Image.network(
                               themeProvider.avatarConfig?.toUrl(
-                                    size: 120,
+                                    size: 140,
                                     format: 'png',
                                   ) ??
                                   '',
@@ -847,6 +847,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.phonelink_setup),
+                  title: Text(
+                    TranslationService.translate(
+                      context,
+                      'link_device_menu_title',
+                    ),
+                  ),
+                  subtitle: Text(
+                    TranslationService.translate(
+                      context,
+                      'link_device_menu_subtitle',
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    context.go('/profile/link-device');
+                  },
                 ),
                 // TODO: Re-enable when borrowed books list is needed (currently using filters instead)
                 // if (_config?['profile_type'] == 'individual')
