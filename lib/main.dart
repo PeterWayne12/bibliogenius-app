@@ -465,7 +465,10 @@ class _AppRouterState extends State<AppRouter> {
             ),
             GoRoute(
               path: '/profile',
-              builder: (context, state) => const ProfileScreen(),
+              builder: (context, state) {
+                final action = state.uri.queryParameters['action'];
+                return ProfileScreen(initialAction: action);
+              },
               routes: [
                 GoRoute(
                   path: 'link-device',

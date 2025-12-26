@@ -29,7 +29,9 @@ import '../utils/app_constants.dart';
 import '../audio/audio_module.dart'; // Audio module (decoupled)
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String? initialAction;
+
+  const ProfileScreen({super.key, this.initialAction});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -46,6 +48,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchStatus();
+
+    // Check for auto-actions (e.g. backup request from dialog)
+    if (widget.initialAction == 'backup') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Add a small delay to ensure UI is ready
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) _exportData();
+        });
+      });
+    }
   }
 
   Future<void> _fetchStatus() async {

@@ -140,7 +140,12 @@ class BackupReminderService {
               await acknowledgeVersion();
               if (context.mounted) {
                 Navigator.of(context).pop();
-                context.push('/profile');
+                context.push(
+                  Uri(
+                    path: '/profile',
+                    queryParameters: {'action': 'backup'},
+                  ).toString(),
+                );
               }
             },
             icon: const Icon(Icons.download),
