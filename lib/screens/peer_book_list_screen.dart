@@ -65,15 +65,20 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
     try {
       final res = await api.getPeerBooksByUrl(widget.peerUrl);
       debugPrint('📚 PeerBookList: Got response: ${res.statusCode}');
+      debugPrint('📚 PeerBookList: Response type: ${res.data.runtimeType}');
+      debugPrint('📚 PeerBookList: Response data: ${res.data}');
 
       // Handle both response formats: [...] or {books: [...]}
       List<dynamic> data;
       if (res.data is List) {
         data = res.data as List<dynamic>;
+        debugPrint('📚 PeerBookList: Direct list format, ${data.length} items');
       } else if (res.data is Map && res.data['books'] != null) {
         data = res.data['books'] as List<dynamic>;
+        debugPrint('📚 PeerBookList: Map with books key, ${data.length} items');
       } else if (res.data is Map && res.data['data'] != null) {
         data = res.data['data'] as List<dynamic>;
+        debugPrint('📚 PeerBookList: Map with data key, ${data.length} items');
       } else {
         debugPrint(
           '⚠️ PeerBookList: Unknown response format: ${res.data.runtimeType}',
@@ -117,7 +122,19 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
       await api.syncPeer(widget.peerUrl);
       // Re-fetch after sync
       final res = await api.getPeerBooksByUrl(widget.peerUrl);
-      final List<dynamic> data = res.data;
+
+      // Handle both response formats: [...] or {books: [...]} or {data: [...]}
+      List<dynamic> data;
+      if (res.data is List) {
+        data = res.data as List<dynamic>;
+      } else if (res.data is Map && res.data['books'] != null) {
+        data = res.data['books'] as List<dynamic>;
+      } else if (res.data is Map && res.data['data'] != null) {
+        data = res.data['data'] as List<dynamic>;
+      } else {
+        debugPrint('⚠️ Sync: Unknown response format: ${res.data.runtimeType}');
+        data = [];
+      }
 
       if (mounted) {
         setState(() {
@@ -319,9 +336,9 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
+        initialChildSize: 0.75,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) => SingleChildScrollView(
           controller: scrollController,
@@ -329,6 +346,18 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
               Center(
                 child: Container(
                   width: 100,

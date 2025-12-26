@@ -9,6 +9,8 @@ import '../models/book.dart';
 import '../services/open_library_service.dart';
 import '../services/search_cache.dart';
 import '../widgets/plus_one_animation.dart';
+import '../widgets/cached_book_cover.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'scan_screen.dart';
 
 class AddBookScreen extends StatefulWidget {
@@ -29,7 +31,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final _isbnController = TextEditingController();
   final _summaryController = TextEditingController();
   final _authorController = TextEditingController();
-  String _readingStatus = 'to_read';
+  String? _readingStatus; // Initialized in didChangeDependencies
   String? _coverUrl;
   List<dynamic>? _authorsData;
   bool _isFetchingDetails = false;
@@ -38,6 +40,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final List<String> _selectedTags = [];
   final List<String> _authors = []; // Multiple authors support
   late TextEditingController _tagsController;
+  final FocusNode _titleFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -51,6 +54,16 @@ class _AddBookScreenState extends State<AddBookScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize _readingStatus with correct default based on profile type
+    if (_readingStatus == null) {
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      _readingStatus = getDefaultStatus(themeProvider.isLibrarian);
+    }
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _authorController.dispose();
@@ -58,6 +71,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
     _publicationYearController.dispose();
     _isbnController.dispose();
     _summaryController.dispose();
+    _titleFocusNode.dispose();
     // _tagsController is managed by Autocomplete
     super.dispose();
   }
@@ -90,13 +104,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
         setState(() {
           if (_titleController.text.isEmpty)
             _titleController.text = bookData['title'] ?? '';
-            
+
           // Handle authors
           _authors.clear();
           if (bookData['authors'] != null && bookData['authors'] is List) {
-             _authors.addAll(List<String>.from(bookData['authors']));
+            _authors.addAll(List<String>.from(bookData['authors']));
           } else if (bookData['author'] != null) {
-             _authors.add(bookData['author']);
+            _authors.add(bookData['author']);
           }
           // Also set text controller for fallback/display if needed
           _authorController.text = _authors.join(', ');
@@ -153,25 +167,27 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
   Future<void> _saveBook() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     // Check for pending author
     if (_authorController.text.trim().isNotEmpty) {
-       final pendingRaw = _authorController.text;
-       // Only add if it's not already joined string of all authors (avoid duplication)
-       if (pendingRaw != _authors.join(', ')) {
-          final pending = pendingRaw.trim();
-          if (!_authors.contains(pending)) {
-             _authors.add(pending);
-          }
-       }
+      final pendingRaw = _authorController.text;
+      // Only add if it's not already joined string of all authors (avoid duplication)
+      if (pendingRaw != _authors.join(', ')) {
+        final pending = pendingRaw.trim();
+        if (!_authors.contains(pending)) {
+          _authors.add(pending);
+        }
+      }
     }
-    
+
     setState(() => _isSaving = true);
 
     final apiService = Provider.of<ApiService>(context, listen: false);
     final book = Book(
       title: _titleController.text,
-      author: _authors.isNotEmpty ? _authors.join(', ') : _authorController.text,
+      author: _authors.isNotEmpty
+          ? _authors.join(', ')
+          : _authorController.text,
       publisher: _publisherController.text,
       publicationYear: int.tryParse(_publicationYearController.text),
       isbn: _isbnController.text,
@@ -244,8 +260,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     key: const Key('saveBookButton'),
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      foregroundColor: Theme.of(
+                        context,
+                      ).appBarTheme.foregroundColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                     ),
                     child: Text(
                       TranslationService.translate(context, 'save_book') ??
@@ -289,7 +310,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
               builder: (context, constraints) {
                 return RawAutocomplete<Map<String, dynamic>>(
                   textEditingController: _titleController,
-                  focusNode: FocusNode(),
+                  focusNode: _titleFocusNode,
                   optionsBuilder: (TextEditingValue textEditingValue) async {
                     if (textEditingValue.text.isEmpty) {
                       return const Iterable<Map<String, dynamic>>.empty();
@@ -406,15 +427,10 @@ class _AddBookScreenState extends State<AddBookScreen> {
                               }
 
                               return ListTile(
-                                leading: cover != null && cover.isNotEmpty
-                                    ? Image.network(
-                                        cover,
-                                        width: 40,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                const Icon(Icons.book),
-                                      )
-                                    : const Icon(Icons.book),
+                                leading: CompactBookCover(
+                                  imageUrl: cover,
+                                  size: 40,
+                                ),
                                 title: Text(option['title'] ?? ''),
                                 subtitle: subtitle.isNotEmpty
                                     ? Text(
@@ -439,55 +455,61 @@ class _AddBookScreenState extends State<AddBookScreen> {
             _buildLabel(TranslationService.translate(context, 'author_label')),
             Autocomplete<String>(
               optionsBuilder: (TextEditingValue textEditingValue) {
-                return const Iterable<String>.empty(); // No autocomplete for now, just manual
+                return const Iterable<
+                  String
+                >.empty(); // No autocomplete for now, just manual
               },
-              fieldViewBuilder: (
-                context,
-                textEditingController,
-                focusNode,
-                onFieldSubmitted,
-              ) {
-                // Keep reference to controller for manual adding
-                if (_authorController != textEditingController) {
-                  // If we are replacing the controller, we should copy the text if any
-                  // But usually Autocomplete creates its own. 
-                  // Let's just use the one provided by Autocomplete for the input
-                }
-                return TextFormField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  decoration: _buildInputDecoration(
-                    hint: TranslationService.translate(context, 'author_hint'),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: () {
-                         if (textEditingController.text.trim().isNotEmpty) {
-                           setState(() {
-                             final val = textEditingController.text.trim();
-                             if (!_authors.contains(val)) {
-                               _authors.add(val);
-                             }
-                             textEditingController.clear();
-                           });
-                         }
-                      },
-                    ),
-                  ),
-                  onFieldSubmitted: (String value) {
-                    final trimmed = value.trim();
-                    if (trimmed.isNotEmpty) {
-                      setState(() {
-                         if (!_authors.contains(trimmed)) {
-                           _authors.add(trimmed);
-                         }
-                         textEditingController.clear();
-                      });
-                      // Keep focus for next entry
-                      focusNode.requestFocus();
+              fieldViewBuilder:
+                  (
+                    context,
+                    textEditingController,
+                    focusNode,
+                    onFieldSubmitted,
+                  ) {
+                    // Keep reference to controller for manual adding
+                    if (_authorController != textEditingController) {
+                      // If we are replacing the controller, we should copy the text if any
+                      // But usually Autocomplete creates its own.
+                      // Let's just use the one provided by Autocomplete for the input
                     }
+                    return TextFormField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      decoration: _buildInputDecoration(
+                        hint: TranslationService.translate(
+                          context,
+                          'author_hint',
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: () {
+                            if (textEditingController.text.trim().isNotEmpty) {
+                              setState(() {
+                                final val = textEditingController.text.trim();
+                                if (!_authors.contains(val)) {
+                                  _authors.add(val);
+                                }
+                                textEditingController.clear();
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      onFieldSubmitted: (String value) {
+                        final trimmed = value.trim();
+                        if (trimmed.isNotEmpty) {
+                          setState(() {
+                            if (!_authors.contains(trimmed)) {
+                              _authors.add(trimmed);
+                            }
+                            textEditingController.clear();
+                          });
+                          // Keep focus for next entry
+                          focusNode.requestFocus();
+                        }
+                      },
+                    );
                   },
-                );
-              },
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -537,12 +559,12 @@ class _AddBookScreenState extends State<AddBookScreen> {
                             padding: const EdgeInsets.only(right: 12.0),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(40),
-                              child: Image.network(
-                                imageUrl,
+                              child: CachedNetworkImage(
+                                imageUrl: imageUrl,
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorWidget: (_, __, ___) =>
                                     const Icon(Icons.person, size: 40),
                               ),
                             ),
@@ -712,8 +734,20 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 final isLibrarian = themeProvider.isLibrarian;
                 final statusOptions = getStatusOptions(context, isLibrarian);
 
+                // Ensure current value is valid for this mode
+                final validValue =
+                    statusOptions.any((s) => s.value == _readingStatus)
+                    ? _readingStatus
+                    : statusOptions.first.value;
+                if (validValue != _readingStatus) {
+                  // Update in next frame to avoid setState during build
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() => _readingStatus = validValue);
+                  });
+                }
+
                 return DropdownButtonFormField<String>(
-                  initialValue: _readingStatus,
+                  value: validValue,
                   decoration: _buildInputDecoration(),
                   items: statusOptions.map((status) {
                     return DropdownMenuItem<String>(
@@ -727,7 +761,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       ),
                     );
                   }).toList(),
-                  onChanged: (value) => setState(() => _readingStatus = value!),
+                  onChanged: (value) => setState(() => _readingStatus = value),
                 );
               },
             ),

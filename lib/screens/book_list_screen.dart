@@ -7,12 +7,12 @@ import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../services/translation_service.dart';
 import '../models/book.dart';
+import '../models/tag.dart';
 import '../widgets/bookshelf_view.dart';
 import '../widgets/book_cover_grid.dart';
 import '../widgets/premium_book_card.dart';
 import '../theme/app_design.dart';
 import '../providers/theme_provider.dart';
-import '../utils/avatars.dart';
 
 enum ViewMode {
   coverGrid, // Netflix style
@@ -36,6 +36,11 @@ class _BookListScreenState extends State<BookListScreen> {
   // Filter state
   String? _selectedStatus;
   String? _tagFilter;
+
+  // Hierarchical shelf navigation state
+  List<Tag> _allTags = []; // All tags for hierarchy traversal
+  List<Tag> _shelfPath = []; // Breadcrumb path (list of ancestors)
+  Tag? _currentShelf; // Currently selected shelf (null = root)
 
   bool _isLoading = true;
   ViewMode _viewMode = ViewMode.coverGrid; // Default to cover grid
@@ -301,8 +306,12 @@ class _BookListScreenState extends State<BookListScreen> {
       }
 
       if (mounted) {
+        // Also load tags for hierarchy navigation
+        final tags = await apiService.getTags();
+
         setState(() {
           _books = books; // Store ALL books, filtering happens in _filterBooks
+          _allTags = tags; // Store tags for hierarchy traversal
           _libraryName = libraryName;
           _filterBooks(); // Apply filters after fetching all books
           _isLoading = false;
@@ -335,8 +344,22 @@ class _BookListScreenState extends State<BookListScreen> {
           .toList();
     }
 
-    // Apply tag filter
-    if (_tagFilter != null) {
+    // Apply tag filter with hierarchy support
+    // When filtering by a parent tag, include books from all child tags
+    if (_currentShelf != null && _allTags.isNotEmpty) {
+      // Get all matching tag names (this tag + descendants)
+      final matchingNames = Tag.getTagNamesWithDescendants(
+        _currentShelf!,
+        _allTags,
+      );
+      tempBooks = tempBooks.where((book) {
+        final bookTags =
+            book.subjects?.map((s) => s.toLowerCase()).toSet() ?? {};
+        // Book matches if any of its tags match any of the filter tags
+        return bookTags.any((tag) => matchingNames.contains(tag));
+      }).toList();
+    } else if (_tagFilter != null) {
+      // Fallback to simple string match for legacy compatibility
       final filterLower = _tagFilter!.toLowerCase();
       tempBooks = tempBooks.where((book) {
         final bookTags =
@@ -381,46 +404,30 @@ class _BookListScreenState extends State<BookListScreen> {
         return;
       }
 
+      // Update local tags cache
+      _allTags = tags;
+
+      // Show hierarchical shelf navigation dialog
       showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         builder: (context) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  TranslationService.translate(context, 'filter_by_tag'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: tags.map((tag) {
-                    return ActionChip(
-                      label: Text('${tag.name} (${tag.count})'),
-                      avatar: const Icon(Icons.label, size: 16),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          _tagFilter = tag.name;
-                          _filterBooks();
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+          return _ShelfNavigationSheet(
+            tags: tags,
+            currentShelf: _currentShelf,
+            shelfPath: _shelfPath,
+            onShelfSelected: (tag, path) {
+              Navigator.pop(context);
+              setState(() {
+                _currentShelf = tag;
+                _shelfPath = path;
+                _tagFilter = tag?.fullPath;
+                _filterBooks();
+              });
+            },
           );
         },
       );
@@ -685,9 +692,11 @@ class _BookListScreenState extends State<BookListScreen> {
         ),
         child: Icon(
           icon,
-          color: isSelected 
-              ? Colors.white 
-              : isDarkTheme ? Colors.white70 : Colors.black54,
+          color: isSelected
+              ? Colors.white
+              : isDarkTheme
+              ? Colors.white70
+              : Colors.black54,
           size: 20,
         ),
       ),
@@ -723,18 +732,18 @@ class _BookListScreenState extends State<BookListScreen> {
           decoration: BoxDecoration(
             color: isClearAction
                 ? Colors.redAccent.withOpacity(0.8)
-                : (isSelected 
-                    ? Theme.of(context).primaryColor 
-                    : isDarkTheme 
-                        ? Theme.of(context).cardColor.withOpacity(0.8)
-                        : Colors.white),
+                : (isSelected
+                      ? Theme.of(context).primaryColor
+                      : isDarkTheme
+                      ? Theme.of(context).cardColor.withOpacity(0.8)
+                      : Colors.white),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
                   ? Colors.transparent
-                  : isDarkTheme 
-                      ? Theme.of(context).colorScheme.outline
-                      : Colors.grey.withOpacity(0.3),
+                  : isDarkTheme
+                  ? Theme.of(context).colorScheme.outline
+                  : Colors.grey.withOpacity(0.3),
               width: isDarkTheme ? 1.5 : 1.0,
             ),
             boxShadow: isSelected && !isClearAction
@@ -759,9 +768,10 @@ class _BookListScreenState extends State<BookListScreen> {
                 style: TextStyle(
                   color: isClearAction
                       ? Colors.white
-                      : (isSelected 
-                          ? Colors.white 
-                          : Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black54),
+                      : (isSelected
+                            ? Colors.white
+                            : Theme.of(context).textTheme.bodyMedium?.color ??
+                                  Colors.black54),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   fontSize: 13,
                 ),
@@ -952,6 +962,437 @@ class _BookListScreenState extends State<BookListScreen> {
       const SnackBar(
         content: Text('Sorted by author A→Z. Click ✓ to save.'),
         duration: Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+/// Netflix-style hierarchical shelf navigation sheet
+/// Shows breadcrumbs + category cards with drill-down support
+class _ShelfNavigationSheet extends StatefulWidget {
+  final List<Tag> tags;
+  final Tag? currentShelf;
+  final List<Tag> shelfPath;
+  final void Function(Tag? tag, List<Tag> path) onShelfSelected;
+
+  const _ShelfNavigationSheet({
+    required this.tags,
+    required this.currentShelf,
+    required this.shelfPath,
+    required this.onShelfSelected,
+  });
+
+  @override
+  State<_ShelfNavigationSheet> createState() => _ShelfNavigationSheetState();
+}
+
+class _ShelfNavigationSheetState extends State<_ShelfNavigationSheet> {
+  late List<Tag> _path;
+  Tag? _currentLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _path = List.from(widget.shelfPath);
+    _currentLevel = widget.currentShelf;
+  }
+
+  List<Tag> get _visibleTags {
+    if (_currentLevel == null) {
+      // Show root tags only
+      final rootTags = Tag.getRootTags(widget.tags);
+      // Debug: print all tags to see parentId values
+      debugPrint('📚 All tags (${widget.tags.length}):');
+      for (final t in widget.tags) {
+        debugPrint('  - ${t.name} (id=${t.id}, parentId=${t.parentId})');
+      }
+      debugPrint(
+        '📚 Root tags (${rootTags.length}): ${rootTags.map((t) => t.name).join(", ")}',
+      );
+      return rootTags;
+    } else {
+      // Show direct children of current level
+      return Tag.getDirectChildren(_currentLevel!.id, widget.tags);
+    }
+  }
+
+  void _drillDown(Tag tag) {
+    setState(() {
+      if (_currentLevel != null) {
+        _path.add(_currentLevel!);
+      }
+      _currentLevel = tag;
+    });
+  }
+
+  void _navigateToPath(int index) {
+    setState(() {
+      if (index < 0) {
+        // Go to root
+        _path.clear();
+        _currentLevel = null;
+      } else if (index < _path.length) {
+        _currentLevel = _path[index];
+        _path = _path.sublist(0, index);
+      }
+    });
+  }
+
+  void _selectCurrent() {
+    widget.onShelfSelected(_currentLevel, _path);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final children = _visibleTags;
+    final hasChildren = children.isNotEmpty;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with title and clear button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    TranslationService.translate(context, 'filter_by_tag'),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (_currentLevel != null || widget.currentShelf != null)
+                    TextButton.icon(
+                      onPressed: () => widget.onShelfSelected(null, []),
+                      icon: const Icon(Icons.clear, size: 18),
+                      label: Text(
+                        TranslationService.translate(context, 'clear') ??
+                            'Clear',
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Breadcrumb navigation
+              _buildBreadcrumbs(theme),
+              const SizedBox(height: 16),
+
+              // Current shelf info and select button
+              if (_currentLevel != null) ...[
+                _buildCurrentShelfCard(theme),
+                const SizedBox(height: 16),
+              ],
+
+              // Sub-categories section
+              if (hasChildren) ...[
+                Text(
+                  TranslationService.translate(context, 'sub_categories') ??
+                      'Sub-categories',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+
+              // Category cards grid
+              Expanded(
+                child: hasChildren
+                    ? GridView.builder(
+                        controller: scrollController,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 1.8,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                        itemCount: children.length,
+                        itemBuilder: (context, index) {
+                          return _buildCategoryCard(children[index], theme);
+                        },
+                      )
+                    : Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.folder_open,
+                              size: 48,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              TranslationService.translate(
+                                    context,
+                                    'no_sub_shelves',
+                                  ) ??
+                                  'No sub-shelves',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBreadcrumbs(ThemeData theme) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Home / All shelves
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => _navigateToPath(-1),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.home,
+                    size: 18,
+                    color: _currentLevel == null
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    TranslationService.translate(context, 'all_shelves') ??
+                        'All Shelves',
+                    style: TextStyle(
+                      fontWeight: _currentLevel == null
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: _currentLevel == null
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Path segments
+          for (int i = 0; i < _path.length; i++) ...[
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => _navigateToPath(i),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  _path[i].name,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+            ),
+          ],
+
+          // Current level
+          if (_currentLevel != null) ...[
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Text(
+                _currentLevel!.name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentShelfCard(ThemeData theme) {
+    final aggregatedCount = Tag.getAggregatedCount(_currentLevel!, widget.tags);
+
+    return Card(
+      elevation: 2,
+      color: theme.colorScheme.primaryContainer,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: _selectCurrent,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.folder,
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentLevel!.name,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (TranslationService.translate(
+                                context,
+                                'shelf_books_count',
+                              ) ??
+                              '%d books')
+                          .replaceAll('%d', aggregatedCount.toString()),
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: _selectCurrent,
+                icon: const Icon(Icons.filter_list, size: 18),
+                label: Text(
+                  TranslationService.translate(context, 'browse_shelf') ??
+                      'Browse',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(Tag tag, ThemeData theme) {
+    final hasChildren = Tag.getDirectChildren(tag.id, widget.tags).isNotEmpty;
+    final aggregatedCount = Tag.getAggregatedCount(tag, widget.tags);
+
+    return Card(
+      elevation: 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          if (hasChildren) {
+            _drillDown(tag);
+          } else {
+            // No children, directly select
+            widget.onShelfSelected(tag, [
+              ..._path,
+              if (_currentLevel != null) _currentLevel!,
+            ]);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.surface,
+                theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
+              ],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(
+                    hasChildren ? Icons.folder : Icons.label,
+                    color: theme.colorScheme.primary,
+                    size: 24,
+                  ),
+                  if (hasChildren)
+                    Icon(
+                      Icons.chevron_right,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      size: 20,
+                    ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                tag.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                (TranslationService.translate(context, 'shelf_books_count') ??
+                        '%d books')
+                    .replaceAll('%d', aggregatedCount.toString()),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

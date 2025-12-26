@@ -18,8 +18,8 @@ import '../base/theme_interface.dart';
 class SorbonneColors {
   SorbonneColors._();
 
-  // Wood tones (Very Dark Base)
-  static const darkWood = Color(0xFF0D0705); // Almost black wood
+  // Wood tones (Very Dark Base - slightly lightened for visibility)
+  static const darkWood = Color(0xFF1A110D); // Dark wood (was 0xFF0D0705)
   static const warmWood = Color(0xFF1A0F0A); // Dark mahogany
   static const leather = Color(0xFF2D1810); // Rich leather brown
   static const lighterWood = Color(0xFF3D2314); // Medium wood highlight
@@ -341,12 +341,8 @@ class SorbonneTheme extends AppTheme {
           color: SorbonneColors.parchment.withValues(alpha: 0.5),
           fontStyle: FontStyle.italic,
         ),
-        labelStyle: const TextStyle(
-          color: SorbonneColors.warmAmber,
-        ),
-        floatingLabelStyle: const TextStyle(
-          color: SorbonneColors.goldLeaf,
-        ),
+        labelStyle: const TextStyle(color: SorbonneColors.warmAmber),
+        floatingLabelStyle: const TextStyle(color: SorbonneColors.goldLeaf),
         floatingLabelBehavior: FloatingLabelBehavior.auto,
       ),
 

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../services/translation_service.dart';
-import '../providers/theme_provider.dart';
 import '../utils/app_constants.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -10,9 +8,6 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // debugPrint('Building AppDrawer');
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -76,19 +71,15 @@ class AppDrawer extends StatelessWidget {
               context.go('/network');
             },
           ),
-          /*
           if (AppConstants.enableP2PFeatures)
             ListTile(
               leading: const Icon(Icons.swap_horiz),
-              title: Text(
-                TranslationService.translate(context, 'nav_requests'),
-              ),
+              title: Text(TranslationService.translate(context, 'loans_menu')),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/requests');
               },
             ),
-          */
           // P2P Connect removed from drawer to simplify UX. Accessed via Network > Add.
           const Divider(),
           ListTile(

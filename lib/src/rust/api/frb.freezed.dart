@@ -1165,4 +1165,264 @@ as String,
 
 }
 
+/// @nodoc
+mixin _$FrbTag {
+
+ int get id; String get name; int? get parentId; PlatformInt64 get count;
+/// Create a copy of FrbTag
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FrbTagCopyWith<FrbTag> get copyWith => _$FrbTagCopyWithImpl<FrbTag>(this as FrbTag, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FrbTag&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.count, count) || other.count == count));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,id,name,parentId,count);
+
+@override
+String toString() {
+  return 'FrbTag(id: $id, name: $name, parentId: $parentId, count: $count)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FrbTagCopyWith<$Res>  {
+  factory $FrbTagCopyWith(FrbTag value, $Res Function(FrbTag) _then) = _$FrbTagCopyWithImpl;
+@useResult
+$Res call({
+ int id, String name, int? parentId, PlatformInt64 count
+});
+
+
+
+
+}
+/// @nodoc
+class _$FrbTagCopyWithImpl<$Res>
+    implements $FrbTagCopyWith<$Res> {
+  _$FrbTagCopyWithImpl(this._self, this._then);
+
+  final FrbTag _self;
+  final $Res Function(FrbTag) _then;
+
+/// Create a copy of FrbTag
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? parentId = freezed,Object? count = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as int?,count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nullable
+as PlatformInt64,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [FrbTag].
+extension FrbTagPatterns on FrbTag {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FrbTag value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FrbTag() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FrbTag value)  $default,){
+final _that = this;
+switch (_that) {
+case _FrbTag():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FrbTag value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FrbTag() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  int? parentId,  PlatformInt64 count)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FrbTag() when $default != null:
+return $default(_that.id,_that.name,_that.parentId,_that.count);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  int? parentId,  PlatformInt64 count)  $default,) {final _that = this;
+switch (_that) {
+case _FrbTag():
+return $default(_that.id,_that.name,_that.parentId,_that.count);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  int? parentId,  PlatformInt64 count)?  $default,) {final _that = this;
+switch (_that) {
+case _FrbTag() when $default != null:
+return $default(_that.id,_that.name,_that.parentId,_that.count);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FrbTag implements FrbTag {
+  const _FrbTag({required this.id, required this.name, this.parentId, required this.count});
+  
+
+@override final  int id;
+@override final  String name;
+@override final  int? parentId;
+@override final  PlatformInt64 count;
+
+/// Create a copy of FrbTag
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FrbTagCopyWith<_FrbTag> get copyWith => __$FrbTagCopyWithImpl<_FrbTag>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FrbTag&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.count, count) || other.count == count));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,id,name,parentId,count);
+
+@override
+String toString() {
+  return 'FrbTag(id: $id, name: $name, parentId: $parentId, count: $count)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FrbTagCopyWith<$Res> implements $FrbTagCopyWith<$Res> {
+  factory _$FrbTagCopyWith(_FrbTag value, $Res Function(_FrbTag) _then) = __$FrbTagCopyWithImpl;
+@override @useResult
+$Res call({
+ int id, String name, int? parentId, PlatformInt64 count
+});
+
+
+
+
+}
+/// @nodoc
+class __$FrbTagCopyWithImpl<$Res>
+    implements _$FrbTagCopyWith<$Res> {
+  __$FrbTagCopyWithImpl(this._self, this._then);
+
+  final _FrbTag _self;
+  final $Res Function(_FrbTag) _then;
+
+/// Create a copy of FrbTag
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? parentId = freezed,Object? count = null,}) {
+  return _then(_FrbTag(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as int?,count: null == count ? _self.count : count // ignore: cast_nullable_to_non_nullable
+as PlatformInt64,
+  ));
+}
+
+
+}
+
 // dart format on

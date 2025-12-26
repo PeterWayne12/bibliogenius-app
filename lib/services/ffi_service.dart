@@ -91,11 +91,68 @@ class FfiService {
   /// Get all tags with counts
   Future<List<Tag>> getTags() async {
     try {
-      final tags = await frb.getAllTags();
-      return tags.map((t) => Tag(name: t.$1, count: t.$2.toInt())).toList();
+      final frbTags = await frb.getAllTags();
+
+      // Convert FrbTag to Tag model
+      // Note: FrbTag now includes parentId directly from Rust
+      return frbTags
+          .map(
+            (t) => Tag(
+              id: t.id,
+              name: t.name,
+              parentId: t.parentId,
+              count: t.count.toInt(),
+              // Children will be built by the UI tree builder or we could do it here
+              // The TagTreeView expects a flat list and builds hierarchy itself via `_buildTree`
+              // or assumes we pass a list of tags. The `Tag` model has `copyWithChildren`.
+            ),
+          )
+          .toList();
     } catch (e) {
       debugPrint('FFI getTags error: $e');
       return [];
+    }
+  }
+
+  /// Create a new tag
+  Future<Tag> createTag(String name, {int? parentId}) async {
+    try {
+      final t = await frb.createTag(name: name, parentId: parentId);
+      return Tag(
+        id: t.id,
+        name: t.name,
+        parentId: t.parentId,
+        count: t.count.toInt(),
+      );
+    } catch (e) {
+      debugPrint('FFI createTag error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a tag
+  Future<Tag> updateTag(int id, String name, {int? parentId}) async {
+    try {
+      final t = await frb.updateTag(id: id, name: name, parentId: parentId);
+      return Tag(
+        id: t.id,
+        name: t.name,
+        parentId: t.parentId,
+        count: t.count.toInt(),
+      );
+    } catch (e) {
+      debugPrint('FFI updateTag error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a tag
+  Future<void> deleteTag(int id) async {
+    try {
+      await frb.deleteTag(id: id);
+    } catch (e) {
+      debugPrint('FFI deleteTag error: $e');
+      rethrow;
     }
   }
 
@@ -403,6 +460,10 @@ class FfiService {
   /// Start the HTTP server on the specified port
   /// This is required for P2P functionality in standalone mode
   Future<int?> startServer(int port) async {
+    // Zombie cleanup disabled - it was killing the app during hot restart
+    // The /api/admin/shutdown endpoint is still available for manual use
+    // if (kDebugMode && port == 8000) { ... }
+
     try {
       final actualPort = await frb.startServer(port: port);
       debugPrint('🚀 FfiService: HTTP Server started on port $actualPort');

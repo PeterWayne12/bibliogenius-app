@@ -17,6 +17,9 @@ class ShelvesScreen extends StatefulWidget {
 
 class _ShelvesScreenState extends State<ShelvesScreen> {
   late Future<List<Tag>> _tagsFuture;
+  List<Tag> _allTags = [];
+  Tag? _currentParent; // null = root level
+  List<Tag> _path = []; // breadcrumb path
 
   @override
   void initState() {
@@ -27,6 +30,54 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
   void _refreshTags() {
     setState(() {
       _tagsFuture = Provider.of<ApiService>(context, listen: false).getTags();
+      _currentParent = null;
+      _path = [];
+    });
+  }
+
+  /// Get tags to display at current level
+  List<Tag> get _visibleTags {
+    if (_currentParent == null) {
+      // Show only root tags (no parent)
+      return _allTags.where((t) => t.parentId == null).toList();
+    } else {
+      // Show direct children of current parent
+      return _allTags.where((t) => t.parentId == _currentParent!.id).toList();
+    }
+  }
+
+  /// Drill down into a tag's children
+  void _drillDown(Tag tag) {
+    final children = _allTags.where((t) => t.parentId == tag.id).toList();
+    if (children.isNotEmpty) {
+      setState(() {
+        if (_currentParent != null) {
+          _path.add(_currentParent!);
+        }
+        _currentParent = tag;
+      });
+    } else {
+      // No children, navigate to books filtered by this tag
+      context.go('/books?tag=${tag.name}');
+    }
+  }
+
+  /// Go back one level
+  void _goBack() {
+    setState(() {
+      if (_path.isNotEmpty) {
+        _currentParent = _path.removeLast();
+      } else {
+        _currentParent = null;
+      }
+    });
+  }
+
+  /// Go to root
+  void _goToRoot() {
+    setState(() {
+      _currentParent = null;
+      _path = [];
     });
   }
 
@@ -38,13 +89,20 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
 
     return Scaffold(
       appBar: GenieAppBar(
-        title: TranslationService.translate(context, 'shelves') ?? 'Shelves',
-        leading: isMobile
+        title:
+            _currentParent?.name ??
+            (TranslationService.translate(context, 'shelves') ?? 'Shelves'),
+        leading: _currentParent != null
             ? IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () => Scaffold.of(context).openDrawer(),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: _goBack,
               )
-            : null,
+            : (isMobile
+                  ? IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    )
+                  : null),
         automaticallyImplyLeading: false,
       ),
       body: Container(
@@ -62,28 +120,121 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
               return _buildEmptyState(context);
             }
 
-            final tags = snapshot.data!;
+            // Store all tags for hierarchy navigation
+            _allTags = snapshot.data!;
+            final visibleTags = _visibleTags;
+
+            if (visibleTags.isEmpty && _currentParent != null) {
+              // Current level has no children - show books for this tag
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.go('/books?tag=${_currentParent!.name}');
+              });
+              return const Center(child: CircularProgressIndicator());
+            }
+
             return RefreshIndicator(
               onRefresh: () async => _refreshTags(),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isMobile ? 2 : 3,
-                    childAspectRatio: 1.2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+              child: Column(
+                children: [
+                  // Breadcrumb navigation
+                  if (_currentParent != null) _buildBreadcrumb(context),
+
+                  // Grid of shelves
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: isMobile ? 2 : 3,
+                          childAspectRatio: 1.2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: visibleTags.length,
+                        itemBuilder: (context, index) {
+                          final tag = visibleTags[index];
+                          return _buildShelfCard(context, tag, index);
+                        },
+                      ),
+                    ),
                   ),
-                  itemCount: tags.length,
-                  itemBuilder: (context, index) {
-                    final tag = tags[index];
-                    return _buildShelfCard(context, tag, index);
-                  },
-                ),
+                ],
               ),
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// Build breadcrumb navigation bar
+  Widget _buildBreadcrumb(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+      child: Row(
+        children: [
+          // Home button
+          InkWell(
+            onTap: _goToRoot,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.home,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    TranslationService.translate(context, 'all_shelves') ??
+                        'All',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Path segments
+          ..._path.map(
+            (tag) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.chevron_right, size: 20, color: Colors.grey[400]),
+                InkWell(
+                  onTap: () {
+                    final index = _path.indexOf(tag);
+                    setState(() {
+                      _currentParent = tag;
+                      _path = _path.sublist(0, index);
+                    });
+                  },
+                  child: Text(
+                    tag.name,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Current level
+          if (_currentParent != null) ...[
+            Icon(Icons.chevron_right, size: 20, color: Colors.grey[400]),
+            Text(
+              _currentParent!.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -105,8 +256,7 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              TranslationService.translate(context, 'no_shelves_title') ??
-                  'No Shelves Yet',
+              TranslationService.translate(context, 'no_shelves_title'),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -114,8 +264,7 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              TranslationService.translate(context, 'no_shelves_hint') ??
-                  'Add tags to your books to organize them into shelves.',
+              TranslationService.translate(context, 'no_shelves_hint'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -128,8 +277,7 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
               onPressed: () => context.go('/books'),
               icon: const Icon(Icons.library_books),
               label: Text(
-                TranslationService.translate(context, 'go_to_library') ??
-                    'Go to Library',
+                TranslationService.translate(context, 'go_to_library'),
               ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -206,6 +354,15 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
             const Color(0xFFfee140), // Yellow
             const Color(0xFFf5576c), // Red
           ];
+    // Check if tag has children
+    final hasChildren = _allTags.any((t) => t.parentId == tag.id);
+    // Calculate aggregated count (this tag + children)
+    int aggregatedCount = tag.count;
+    for (final t in _allTags) {
+      if (t.parentId == tag.id) {
+        aggregatedCount += t.count;
+      }
+    }
 
     final color = colors[index % colors.length];
     final gradient = LinearGradient(
@@ -220,9 +377,7 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          context.go('/books?tag=${tag.name}');
-        },
+        onTap: () => _drillDown(tag),
         child: Container(
           decoration: BoxDecoration(
             gradient: gradient,
@@ -257,8 +412,8 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
-                            Icons.shelves,
+                          child: Icon(
+                            hasChildren ? Icons.folder : Icons.label,
                             color: Colors.white,
                             size: 24,
                           ),
@@ -272,13 +427,26 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
                             color: Colors.white.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(
-                            '${tag.count}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '$aggregatedCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              if (hasChildren) ...[
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
@@ -301,8 +469,8 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
                         const SizedBox(height: 4),
                         Text(
                           tag.count == 1
-                              ? '${tag.count} ${TranslationService.translate(context, 'book') ?? 'book'}'
-                              : '${tag.count} ${TranslationService.translate(context, 'books') ?? 'books'}',
+                              ? '${tag.count} ${TranslationService.translate(context, 'book')}'
+                              : '${tag.count} ${TranslationService.translate(context, 'books')}',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 13,
@@ -313,6 +481,51 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
                   ],
                 ),
               ),
+              // Direct access button for shelves with sub-shelves
+              if (hasChildren)
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => context.go('/books?tag=${tag.name}'),
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.visibility,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              TranslationService.translate(context, 'view'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

@@ -85,9 +85,28 @@ Future<void> deleteBook({required int id}) =>
 Future<PlatformInt64> countBooks() =>
     RustLib.instance.api.crateApiFrbCountBooks();
 
-/// Get all unique tags with counts
-Future<List<(String, PlatformInt64)>> getAllTags() =>
+/// Get all tags with hierarchy info
+Future<List<FrbTag>> getAllTags() =>
     RustLib.instance.api.crateApiFrbGetAllTags();
+
+/// Create a new tag
+Future<FrbTag> createTag({required String name, int? parentId}) =>
+    RustLib.instance.api.crateApiFrbCreateTag(name: name, parentId: parentId);
+
+/// Update a tag
+Future<FrbTag> updateTag({
+  required int id,
+  required String name,
+  int? parentId,
+}) => RustLib.instance.api.crateApiFrbUpdateTag(
+  id: id,
+  name: name,
+  parentId: parentId,
+);
+
+/// Delete a tag
+Future<void> deleteTag({required int id}) =>
+    RustLib.instance.api.crateApiFrbDeleteTag(id: id);
 
 /// Reorder books by updating shelf positions
 Future<void> reorderBooks({required List<int> bookIds}) =>
@@ -246,4 +265,15 @@ sealed class FrbLoan with _$FrbLoan {
     required String contactName,
     required String bookTitle,
   }) = _FrbLoan;
+}
+
+/// Simplified tag structure for FFI
+@freezed
+sealed class FrbTag with _$FrbTag {
+  const factory FrbTag({
+    required int id,
+    required String name,
+    int? parentId,
+    required PlatformInt64 count,
+  }) = _FrbTag;
 }

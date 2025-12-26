@@ -5,8 +5,10 @@ import '../services/api_service.dart';
 import '../services/translation_service.dart';
 import '../providers/theme_provider.dart';
 import '../utils/book_status.dart';
-import '../services/open_library_service.dart';
 import '../models/book.dart';
+import '../widgets/hierarchical_tag_selector.dart';
+import '../models/tag.dart';
+
 import '../widgets/book_complete_animation.dart';
 
 class EditBookScreen extends StatefulWidget {
@@ -20,7 +22,6 @@ class EditBookScreen extends StatefulWidget {
 
 class _EditBookScreenState extends State<EditBookScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _openLibraryService = OpenLibraryService();
   late TextEditingController _titleController;
   late TextEditingController _authorController;
   late TextEditingController _publisherController;
@@ -34,8 +35,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
   List<String> _selectedTags = []; // Add this
   List<String> _authors = []; // Multiple authors support
   String _readingStatus = 'to_read';
-  String? _originalReadingStatus; // Track original status to detect changes to 'read'
-  
+  String?
+  _originalReadingStatus; // Track original status to detect changes to 'read'
+
   String? _coverUrl;
   bool _isEditing = true; // Always start in edit mode
   bool _isSaving = false;
@@ -47,17 +49,28 @@ class _EditBookScreenState extends State<EditBookScreen> {
   int? _copyId;
   bool _owned = true; // Whether I own this book (controls copy creation)
 
+  // FocusNodes - must be created once and disposed
+  late FocusNode _titleFocusNode;
+  late FocusNode _authorFocusNode;
+
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.book.title);
     _authorController = TextEditingController(text: widget.book.author ?? '');
-    
+
     // Initialize authors list
     if (widget.book.author != null && widget.book.author!.isNotEmpty) {
-       _authors = widget.book.author!.split(RegExp(r',\s*')).where((s) => s.isNotEmpty).toList();
+      _authors = widget.book.author!
+          .split(RegExp(r',\s*'))
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
-    
+
+    // Initialize FocusNodes
+    _titleFocusNode = FocusNode();
+    _authorFocusNode = FocusNode();
+
     _isbnController = TextEditingController(text: widget.book.isbn ?? '');
     _publisherController = TextEditingController(
       text: widget.book.publisher ?? '',
@@ -66,7 +79,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
       text: widget.book.publicationYear?.toString() ?? '',
     );
     _summaryController = TextEditingController(text: widget.book.summary ?? '');
-    _tagsController = TextEditingController(); // Initialize tags input controller
+    _tagsController =
+        TextEditingController(); // Initialize tags input controller
     _startedDateController = TextEditingController(
       text: widget.book.startedReadingAt?.toIso8601String().split('T')[0] ?? '',
     );
@@ -83,34 +97,36 @@ class _EditBookScreenState extends State<EditBookScreen> {
         : [];
 
     // Get profile type from ThemeProvider after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      final isLibrarian = themeProvider.isLibrarian;
-      setState(() {
-        final status = widget.book.readingStatus ?? getDefaultStatus(isLibrarian);
-        // Sanitize legacy statuses that are no longer in the dropdown
-        _readingStatus = ['lent', 'borrowed'].contains(status) ? 'to_read' : status;
-        _originalReadingStatus =
-            _readingStatus; // Store original for comparison
-        _owned = widget.book.owned; // Initialize owned state
-      });
-      // Load copy status
-      _loadCopyStatus();
-    });
-
     // Add listener for ISBN changes
     _isbnController.addListener(_onIsbnChanged);
   }
 
-  // ... (keeping _loadCopyStatus and _fetchBookDetails methods as is, assuming they are outside the range or I will include them if needed, see strict ReplacementContent)
-  // Actually, I need to update _fetchBookDetails too to populate _authors!
-  // But wait, the previous tool call viewed lines 1-800.
-  // The ReplacementBlock spans lines 34-276 roughly. 
-  
-  // Let's do the initialization first, and I'll do _fetchBookDetails in a separate chunk to be safe or verify line numbers.
-  // Wait, I can do multiple chunks if they are non-contiguous, but I should use multi_replace for that.
-  // Here I'm using replace_file_content.
-  // Let's just focus on Init and Save logic first.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Initialize status based on profile - doing this here ensures we have context access
+    // and it runs before build, preventing the invalid 'to_read' default for librarians
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isLibrarian = themeProvider.isLibrarian;
+
+    // Get valid status values for current profile
+    final validStatuses = isLibrarian
+        ? librarianStatuses.map((s) => s.value).toList()
+        : individualStatuses.map((s) => s.value).toList();
+
+    // Use book status if valid, else default
+    // Only set if not already set (to avoid implementation overriding user changes on hot reload/rebuilds)
+    if (_originalReadingStatus == null) {
+      final status = widget.book.readingStatus ?? getDefaultStatus(isLibrarian);
+      _readingStatus = validStatuses.contains(status)
+          ? status
+          : getDefaultStatus(isLibrarian);
+      _originalReadingStatus = _readingStatus;
+      _owned = widget.book.owned;
+      _loadCopyStatus();
+    }
+  }
 
   Future<void> _loadCopyStatus() async {
     // ... existing implementation
@@ -151,12 +167,12 @@ class _EditBookScreenState extends State<EditBookScreen> {
         setState(() {
           if (_titleController.text.isEmpty)
             _titleController.text = bookData['title'] ?? '';
-            
+
           // Handle authors in fetch details
           if (bookData['authors'] != null && bookData['authors'] is List) {
-             _authors = List<String>.from(bookData['authors']);
+            _authors = List<String>.from(bookData['authors']);
           } else if (bookData['author'] != null) {
-             _authors = [bookData['author']];
+            _authors = [bookData['author']];
           }
           _authorController.text = _authors.join(', ');
 
@@ -190,14 +206,16 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _publisherController.dispose();
     _yearController.dispose();
     _isbnController.dispose();
-    // _isbnController.dispose(); // Removing duplicate
     _summaryController.dispose();
     _startedDateController.dispose();
     _finishedDateController.dispose();
+    // Dispose FocusNodes
+    _titleFocusNode.dispose();
+    _authorFocusNode.dispose();
     super.dispose();
   }
 
-  // ... keeping _selectDate, _formatDateForDisplay ... 
+  // ... keeping _selectDate, _formatDateForDisplay ...
   Future<void> _selectDate(
     BuildContext context,
     TextEditingController controller,
@@ -221,7 +239,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
       });
     }
   }
-  
+
   String _formatDateForDisplay(String? isoDate) {
     if (isoDate == null || isoDate.isEmpty) return '';
     final date = DateTime.tryParse(isoDate);
@@ -240,17 +258,17 @@ class _EditBookScreenState extends State<EditBookScreen> {
         });
       }
     }
-    
+
     // Check for pending author
     if (_authorController.text.trim().isNotEmpty) {
-       // Only add if explicit add wasn't clicked but text remains
-       // Avoid duplicating the joined string if it matches
-       if (_authorController.text != _authors.join(', ')) {
-         final pending = _authorController.text.trim();
-         if (!_authors.contains(pending)) {
-            setState(() => _authors.add(pending));
-         }
-       }
+      // Only add if explicit add wasn't clicked but text remains
+      // Avoid duplicating the joined string if it matches
+      if (_authorController.text != _authors.join(', ')) {
+        final pending = _authorController.text.trim();
+        if (!_authors.contains(pending)) {
+          setState(() => _authors.add(pending));
+        }
+      }
     }
 
     if (!_formKey.currentState!.validate()) return;
@@ -258,7 +276,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     setState(() => _isSaving = true);
 
     final apiService = Provider.of<ApiService>(context, listen: false);
-    
+
     // Construct book data map manually for update
     final bookData = {
       'title': _titleController.text,
@@ -268,20 +286,24 @@ class _EditBookScreenState extends State<EditBookScreen> {
       'summary': _summaryController.text,
       'reading_status': _readingStatus,
       'cover_url': _coverUrl,
-      'author': _authors.isNotEmpty ? _authors.join(', ') : _authorController.text, // Use joined authors
+      'author': _authors.isNotEmpty
+          ? _authors.join(', ')
+          : _authorController.text, // Use joined authors
       'started_reading_at': _startedDateController.text.isNotEmpty
           ? DateTime.parse(_startedDateController.text).toIso8601String()
           : null,
       'finished_reading_at': _finishedDateController.text.isNotEmpty
           ? DateTime.parse(_finishedDateController.text).toIso8601String()
           : null,
-      'subjects': _selectedTags,
+      'subjects': _selectedTags.isEmpty
+          ? null
+          : _selectedTags, // Ensure null if empty for cleaner JSON
       'owned': _owned,
     };
 
     try {
       if (widget.book.id == null) {
-         throw Exception("Book ID is missing");
+        throw Exception("Book ID is missing");
       }
       await apiService.updateBook(widget.book.id!, bookData);
 
@@ -303,8 +325,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
           DateTime? finishedAt = _finishedDateController.text.isNotEmpty
               ? DateTime.tryParse(_finishedDateController.text)
               : null;
-              
-          final authorString = _authors.isNotEmpty ? _authors.join(', ') : _authorController.text;
+
+          final authorString = _authors.isNotEmpty
+              ? _authors.join(', ')
+              : _authorController.text;
 
           _book = Book(
             id: widget.book.id,
@@ -407,6 +431,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
     }
   }
 
+  // Tag tree dialog removed - replaced by HierarchicalTagSelector
+
   @override
   Widget build(BuildContext context) {
     // Only build edit mode, view mode logic is deprecated for this screen
@@ -474,15 +500,22 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                      color:
+                          Theme.of(context).appBarTheme.foregroundColor ??
+                          Colors.white,
                     ),
                   )
                 : TextButton(
                     onPressed: _saveBook,
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      foregroundColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      foregroundColor:
+                          Theme.of(context).appBarTheme.foregroundColor ??
+                          Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                     ),
                     child: Text(
                       TranslationService.translate(context, 'save_changes') ??
@@ -526,97 +559,20 @@ class _EditBookScreenState extends State<EditBookScreen> {
               ),
               const Divider(height: 32),
 
-              // Title
+              // Title - Simple TextFormField (autocomplete not needed for edit, book already exists)
               _buildLabel(TranslationService.translate(context, 'title_label')),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return RawAutocomplete<OpenLibraryBook>(
-                    textEditingController: _titleController,
-                    focusNode: FocusNode(),
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      return _openLibraryService.searchBooks(
-                        textEditingValue.text,
-                      );
-                    },
-                    displayStringForOption: (OpenLibraryBook option) =>
-                        option.title,
-                    onSelected: (OpenLibraryBook selection) {
-                      setState(() {
-                        // Update authors list
-                        _authors = [selection.author];
-                        _authorController.text = selection.author;
-                        
-                        if (selection.isbn != null)
-                          _isbnController.text = selection.isbn!;
-                        if (selection.publisher != null)
-                          _publisherController.text = selection.publisher!;
-                        if (selection.year != null)
-                          _yearController.text = selection.year.toString();
-                        if (selection.coverUrl != null)
-                          _coverUrl = selection.coverUrl;
-                      });
-                    },
-                    fieldViewBuilder:
-                        (
-                          context,
-                          textEditingController,
-                          focusNode,
-                          onFieldSubmitted,
-                        ) {
-                          return TextFormField(
-                            controller: textEditingController,
-                            focusNode: focusNode,
-                            decoration: _buildInputDecoration(
-                              hint: TranslationService.translate(
-                                context,
-                                'enter_book_title',
-                              ),
-                              suffixIcon: const Icon(Icons.search),
-                            ),
-                            validator: (value) => value == null || value.isEmpty
-                                ? TranslationService.translate(
-                                    context,
-                                    'enter_title_error',
-                                  )
-                                : null,
-                          );
-                        },
-                    optionsViewBuilder: (context, onSelected, options) {
-                      return Align(
-                        alignment: Alignment.topLeft,
-                        child: Material(
-                          elevation: 4.0,
-                          child: SizedBox(
-                            width: constraints.maxWidth,
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: options.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final option = options.elementAt(index);
-                                return ListTile(
-                                    leading: option.coverUrl != null
-                                        ? Image.network(
-                                            option.coverUrl!,
-                                            width: 40,
-                                            height: 60,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) =>
-                                                const Icon(Icons.book, size: 40),
-                                          )
-                                        : const Icon(Icons.book, size: 40),
-                                  title: Text(option.title),
-                                  subtitle: Text(option.author),
-                                  onTap: () => onSelected(option),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+              TextFormField(
+                controller: _titleController,
+                focusNode: _titleFocusNode,
+                decoration: _buildInputDecoration(
+                  hint: TranslationService.translate(
+                    context,
+                    'enter_book_title',
+                  ),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? TranslationService.translate(context, 'enter_title_error')
+                    : null,
               ),
               const SizedBox(height: 24),
 
@@ -629,52 +585,59 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 optionsBuilder: (TextEditingValue textEditingValue) {
                   return const Iterable<String>.empty();
                 },
-                fieldViewBuilder: (
-                  context,
-                  textEditingController,
-                  focusNode,
-                  onFieldSubmitted,
-                ) {
-                  if (_authorController != textEditingController) {
-                     // Sync logic if needed, but usually we just let Autocomplete handle its internal controller
-                     // or we could assign it. But existing logic uses _authorController.
-                     // Let's just use the one passed here.
-                  }
-                   return TextFormField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    decoration: _buildInputDecoration(
-                      hint: TranslationService.translate(context, 'enter_author') ??
-                          'Enter author name',
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () {
-                           if (textEditingController.text.trim().isNotEmpty) {
-                             setState(() {
-                               final val = textEditingController.text.trim();
-                               if (!_authors.contains(val)) {
-                                 _authors.add(val);
-                               }
-                               textEditingController.clear();
-                             });
-                           }
-                        },
-                      ),
-                    ),
-                    onFieldSubmitted: (String value) {
-                      final trimmed = value.trim();
-                      if (trimmed.isNotEmpty) {
-                        setState(() {
-                           if (!_authors.contains(trimmed)) {
-                             _authors.add(trimmed);
-                           }
-                           textEditingController.clear();
-                        });
-                        focusNode.requestFocus();
+                fieldViewBuilder:
+                    (
+                      context,
+                      textEditingController,
+                      focusNode,
+                      onFieldSubmitted,
+                    ) {
+                      if (_authorController != textEditingController) {
+                        // Sync logic if needed, but usually we just let Autocomplete handle its internal controller
+                        // or we could assign it. But existing logic uses _authorController.
+                        // Let's just use the one passed here.
                       }
+                      return TextFormField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: _buildInputDecoration(
+                          hint:
+                              TranslationService.translate(
+                                context,
+                                'enter_author',
+                              ) ??
+                              'Enter author name',
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () {
+                              if (textEditingController.text
+                                  .trim()
+                                  .isNotEmpty) {
+                                setState(() {
+                                  final val = textEditingController.text.trim();
+                                  if (!_authors.contains(val)) {
+                                    _authors.add(val);
+                                  }
+                                  textEditingController.clear();
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                        onFieldSubmitted: (String value) {
+                          final trimmed = value.trim();
+                          if (trimmed.isNotEmpty) {
+                            setState(() {
+                              if (!_authors.contains(trimmed)) {
+                                _authors.add(trimmed);
+                              }
+                              textEditingController.clear();
+                            });
+                            focusNode.requestFocus();
+                          }
+                        },
+                      );
                     },
-                  );
-                },
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -809,8 +772,21 @@ class _EditBookScreenState extends State<EditBookScreen> {
                   final isLibrarian = themeProvider.isLibrarian;
                   final statusOptions = getStatusOptions(context, isLibrarian);
 
+                  // Safety check: ensure current value exists in options
+                  if (!statusOptions.any((s) => s.value == _readingStatus)) {
+                    // If mismatch, add a temporary option to prevent crash
+                    statusOptions.add(
+                      BookStatus(
+                        value: _readingStatus,
+                        label: _readingStatus,
+                        icon: Icons.help_outline,
+                        color: Colors.grey,
+                      ),
+                    );
+                  }
+
                   return DropdownButtonFormField<String>(
-                    initialValue: _readingStatus,
+                    value: _readingStatus,
                     decoration: _buildInputDecoration(),
                     items: statusOptions.map((status) {
                       return DropdownMenuItem<String>(
@@ -868,7 +844,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
                       value: 'lent',
                       child: Row(
                         children: [
-                          const Icon(Icons.call_made, size: 20, color: Colors.orange),
+                          const Icon(
+                            Icons.call_made,
+                            size: 20,
+                            color: Colors.orange,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             TranslationService.translate(
@@ -989,96 +969,14 @@ class _EditBookScreenState extends State<EditBookScreen> {
               ],
 
               // Tags
-              _buildLabel(TranslationService.translate(context, 'tags')),
-              Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) async {
-                  if (textEditingValue.text == '') {
-                    return const Iterable<String>.empty();
-                  }
-
-                  // Fetch tags from backend or filter local list if we had one
-                  try {
-                    final api = Provider.of<ApiService>(context, listen: false);
-                    final tags = await api.getTags();
-                    final tagNames = tags.map((t) => t.name).toList();
-
-                    return tagNames.where((String option) {
-                      return option.toLowerCase().contains(
-                            textEditingValue.text.toLowerCase(),
-                          ) &&
-                          !_selectedTags.contains(option);
-                    });
-                  } catch (e) {
-                    return const Iterable<String>.empty();
-                  }
-                },
-                onSelected: (String selection) {
+              HierarchicalTagSelector(
+                selectedTags: _selectedTags,
+                onTagsChanged: (tags) {
                   setState(() {
-                    final trimmed = selection.trim();
-                    if (trimmed.isNotEmpty &&
-                        !_selectedTags.contains(trimmed)) {
-                      _selectedTags.add(trimmed);
-                    }
-                    _tagsController.clear();
+                    _selectedTags = tags;
+                    _hasChanges = true;
                   });
                 },
-                fieldViewBuilder:
-                    (context, controller, focusNode, onFieldSubmitted) {
-                      _tagsController =
-                          controller; // Keep reference to check in _saveBook
-                      return TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: _buildInputDecoration(
-                          hint: TranslationService.translate(
-                            context,
-                            'add_tag_hint',
-                          ),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: () {
-                              if (controller.text.trim().isNotEmpty) {
-                                setState(() {
-                                  final val = controller.text.trim();
-                                  if (!_selectedTags.contains(val)) {
-                                    _selectedTags.add(val);
-                                  }
-                                  controller.clear();
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                        onFieldSubmitted: (String value) {
-                          final trimmed = value.trim();
-                          if (trimmed.isNotEmpty) {
-                            setState(() {
-                              if (!_selectedTags.contains(trimmed)) {
-                                _selectedTags.add(trimmed);
-                              }
-                              controller.clear();
-                            });
-                            focusNode.requestFocus(); // Keep focus to add more
-                          }
-                        },
-                      );
-                    },
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _selectedTags.map((tag) {
-                  return Chip(
-                    label: Text(tag),
-                    deleteIcon: const Icon(Icons.close, size: 18),
-                    onDeleted: () {
-                      setState(() {
-                        _selectedTags.remove(tag);
-                      });
-                    },
-                  );
-                }).toList(),
               ),
               const SizedBox(height: 32),
 

@@ -13,7 +13,10 @@ import 'services/sync_service.dart';
 import 'services/translation_service.dart';
 import 'services/mdns_service.dart';
 import 'services/ffi_service.dart';
+import 'utils/app_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/theme_provider.dart';
+import 'audio/audio_module.dart'; // Audio module (decoupled)
 import 'screens/login_screen.dart';
 import 'screens/book_list_screen.dart';
 import 'screens/add_book_screen.dart';
@@ -30,6 +33,7 @@ import 'screens/setup_screen.dart';
 import 'screens/external_search_screen.dart';
 import 'screens/borrow_requests_screen.dart';
 import 'screens/peer_book_list_screen.dart';
+import 'screens/shelf_management_screen.dart';
 import 'screens/search_peer_screen.dart';
 import 'screens/genie_chat_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -41,6 +45,7 @@ import 'screens/shelves_screen.dart';
 import 'screens/network_screen.dart';
 import 'screens/feedback_screen.dart';
 import 'screens/animations_test_screen.dart';
+import 'screens/link_device_screen.dart';
 import 'services/wizard_service.dart';
 import 'widgets/scaffold_with_nav.dart';
 
@@ -114,6 +119,12 @@ void main([List<String>? args]) async {
   // Load settings early so library name is available for mDNS
   try {
     await themeProvider.loadSettings();
+    // Initialize feature flags
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey('enableHierarchicalTags')) {
+      AppConstants.enableHierarchicalTags =
+          prefs.getBool('enableHierarchicalTags') ?? true;
+    }
   } catch (e) {
     debugPrint('Error loading settings early: $e');
   }
@@ -167,10 +178,16 @@ void main([List<String>? args]) async {
       // Auto-initialize mDNS for local network discovery (Native Bonjour)
       // This makes the app discoverable on the local WiFi network
       try {
+        final authService = AuthService();
+        final libraryUuid = await authService.getOrCreateLibraryUuid();
         final libraryName = themeProvider.libraryName.isNotEmpty
             ? themeProvider.libraryName
             : 'BiblioGenius Library';
-        await MdnsService.startAnnouncing(libraryName, httpPort);
+        await MdnsService.startAnnouncing(
+          libraryName,
+          httpPort,
+          libraryId: libraryUuid,
+        );
         await MdnsService.startDiscovery();
       } catch (mdnsError) {
         debugPrint('mDNS: Init failed (non-blocking): $mdnsError');
@@ -223,6 +240,8 @@ class MyApp extends StatelessWidget {
         Provider<AuthService>.value(value: authService),
         Provider<ApiService>.value(value: apiService),
         Provider<SyncService>(create: (_) => SyncService(apiService)),
+        // Audio module (decoupled, can be removed without breaking the app)
+        ChangeNotifierProvider<AudioProvider>(create: (_) => AudioProvider()),
       ],
       child: const AppRouter(),
     );
@@ -302,16 +321,16 @@ class _AppRouterState extends State<AppRouter> {
           builder: (context, state) => const OnboardingTourScreen(),
         ),
         GoRoute(
-          path: '/search/external',
-          builder: (context, state) => const ExternalSearchScreen(),
-        ),
-        GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),
         ),
         GoRoute(
           path: '/genie-chat',
           builder: (context, state) => const GenieChatScreen(),
+        ),
+        GoRoute(
+          path: '/shelves-management',
+          builder: (context, state) => const ShelfManagementScreen(),
         ),
         ShellRoute(
           builder: (context, state, child) {
@@ -337,7 +356,8 @@ class _AppRouterState extends State<AppRouter> {
                 GoRoute(
                   path: ':id',
                   builder: (context, state) {
-                    final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final bookId =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     Book? book;
                     if (state.extra is Book) {
                       book = state.extra as Book;
@@ -361,11 +381,13 @@ class _AppRouterState extends State<AppRouter> {
                        to fetch by ID, similar to BookDetailsScreen. 
                        For now, this remains a risk if navigated to directly without extra. */
                     if (book == null) {
-                       // Fallback or error screen could be returned here ideally
-                       // For now we assume typical navigation flow or let it throw/show error
-                       // But to prevent hard crash let's redirect or show details if possible?
-                       // Actually EditBookScreen constructor requires 'book'.
-                       throw Exception('Direct navigation to edit not fully supported without object properly passed yet. Please go via details.');
+                      // Fallback or error screen could be returned here ideally
+                      // For now we assume typical navigation flow or let it throw/show error
+                      // But to prevent hard crash let's redirect or show details if possible?
+                      // Actually EditBookScreen constructor requires 'book'.
+                      throw Exception(
+                        'Direct navigation to edit not fully supported without object properly passed yet. Please go via details.',
+                      );
                     }
                     return EditBookScreen(book: book);
                   },
@@ -373,7 +395,8 @@ class _AppRouterState extends State<AppRouter> {
                 GoRoute(
                   path: ':id/copies',
                   builder: (context, state) {
-                    final bookId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final bookId =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     final extra = state.extra as Map<String, dynamic>?;
                     final bookTitle = extra?['bookTitle'] as String? ?? '';
                     return BookCopiesScreen(
@@ -383,6 +406,11 @@ class _AppRouterState extends State<AppRouter> {
                   },
                 ),
               ],
+            ),
+            // External search - inside ShellRoute for hamburger menu access
+            GoRoute(
+              path: '/search/external',
+              builder: (context, state) => const ExternalSearchScreen(),
             ),
             GoRoute(
               path: '/network',
@@ -438,6 +466,12 @@ class _AppRouterState extends State<AppRouter> {
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+              routes: [
+                GoRoute(
+                  path: 'link-device',
+                  builder: (context, state) => const LinkDeviceScreen(),
+                ),
+              ],
             ),
             GoRoute(
               path: '/peers',
