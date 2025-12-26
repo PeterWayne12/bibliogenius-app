@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../services/translation_service.dart';
 import 'package:go_router/go_router.dart';
+import '../utils/global_keys.dart';
 
 class ExternalSearchScreen extends StatefulWidget {
   const ExternalSearchScreen({super.key});
@@ -130,6 +131,8 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -139,10 +142,17 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       child: Scaffold(
         appBar: GenieAppBar(
           title: TranslationService.translate(context, 'external_search_title'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.pop(_booksAdded),
-          ),
+          leading: isMobile
+              ? IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white),
+                  onPressed: () {
+                    GlobalKeys.rootScaffoldKey.currentState?.openDrawer();
+                  },
+                )
+              : IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => context.pop(_booksAdded),
+                ),
           automaticallyImplyLeading: false,
         ),
         body: Column(

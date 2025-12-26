@@ -12,6 +12,7 @@ import '../widgets/plus_one_animation.dart';
 import '../widgets/cached_book_cover.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'scan_screen.dart';
+import '../utils/global_keys.dart';
 
 class AddBookScreen extends StatefulWidget {
   final String? isbn;
@@ -225,8 +226,18 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       appBar: AppBar(
+        leading: isMobile
+            ? IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  GlobalKeys.rootScaffoldKey.currentState?.openDrawer();
+                },
+              )
+            : null, // Default back button on desktop
         title: Text(TranslationService.translate(context, 'add_book_title')),
         actions: [
           TextButton.icon(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/translation_service.dart';
 import 'app_drawer.dart';
+import '../utils/global_keys.dart';
 
 class ScaffoldWithNav extends StatelessWidget {
   final Widget child;
@@ -17,6 +18,7 @@ class ScaffoldWithNav extends StatelessWidget {
     final navItems = _buildNavItems(context);
 
     return Scaffold(
+      key: GlobalKeys.rootScaffoldKey,
       drawer: useRail ? null : const AppDrawer(),
       body: Row(
         children: [

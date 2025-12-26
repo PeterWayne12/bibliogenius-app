@@ -10,6 +10,7 @@ import '../widgets/hierarchical_tag_selector.dart';
 import '../models/tag.dart';
 
 import '../widgets/book_complete_animation.dart';
+import '../utils/global_keys.dart';
 
 class EditBookScreen extends StatefulWidget {
   final Book book;
@@ -481,28 +482,39 @@ class _EditBookScreenState extends State<EditBookScreen> {
   }
 
   Widget _buildEditMode() {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(TranslationService.translate(context, 'edit_book_title')),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Signal back if changes were made
-            Navigator.of(context).pop(_hasChanges);
-          },
-        ),
+        leading: isMobile
+            ? IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  GlobalKeys.rootScaffoldKey.currentState?.openDrawer();
+                },
+              )
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  // Signal back if changes were made
+                  Navigator.of(context).pop(_hasChanges);
+                },
+              ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: _isSaving
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color:
-                          Theme.of(context).appBarTheme.foregroundColor ??
-                          Colors.white,
+                ? Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color:
+                            Theme.of(context).appBarTheme.foregroundColor ??
+                            Colors.white,
+                      ),
                     ),
                   )
                 : TextButton(
