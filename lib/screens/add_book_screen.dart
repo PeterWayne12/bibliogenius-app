@@ -109,9 +109,33 @@ class _AddBookScreenState extends State<AddBookScreen> {
           // Handle authors - only if user hasn't entered any
           if (_authors.isEmpty && _authorController.text.trim().isEmpty) {
             if (bookData['authors'] != null && bookData['authors'] is List) {
-              _authors.addAll(List<String>.from(bookData['authors']));
+              // Handle each author - split if contains comma
+              for (final author in bookData['authors']) {
+                if (author is String && author.contains(',')) {
+                  // Split comma-separated authors into individual entries
+                  _authors.addAll(
+                    author
+                        .split(',')
+                        .map((a) => a.trim())
+                        .where((a) => a.isNotEmpty),
+                  );
+                } else {
+                  _authors.add(author.toString());
+                }
+              }
             } else if (bookData['author'] != null) {
-              _authors.add(bookData['author']);
+              final authorStr = bookData['author'].toString();
+              if (authorStr.contains(',')) {
+                // Split comma-separated authors into individual entries
+                _authors.addAll(
+                  authorStr
+                      .split(',')
+                      .map((a) => a.trim())
+                      .where((a) => a.isNotEmpty),
+                );
+              } else {
+                _authors.add(authorStr);
+              }
             }
             // Also set text controller for fallback/display if needed
             _authorController.text = _authors.join(', ');
