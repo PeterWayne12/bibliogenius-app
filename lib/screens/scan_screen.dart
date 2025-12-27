@@ -63,20 +63,103 @@ class _ScanScreenState extends State<ScanScreen> {
     if (!foundValid && barcodes.isNotEmpty) {
       final now = DateTime.now();
       if (_lastInvalidScanTime == null ||
-          now.difference(_lastInvalidScanTime!) > const Duration(seconds: 2)) {
+          now.difference(_lastInvalidScanTime!) > const Duration(seconds: 3)) {
         _lastInvalidScanTime = now;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              TranslationService.translate(context, 'invalid_isbn_scanned') ??
-                  'Not a valid book barcode',
-            ),
-            duration: const Duration(seconds: 1),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        _showInvalidBarcodeDialog();
       }
     }
+  }
+
+  void _showInvalidBarcodeDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                TranslationService.translate(context, 'invalid_isbn_scanned'),
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          TranslationService.translate(context, 'scan_instruction'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(TranslationService.translate(context, 'cancel')),
+          ),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showIsbnInputDialog();
+            },
+            icon: const Icon(Icons.keyboard),
+            label: Text(
+              TranslationService.translate(context, 'enter_isbn_manually'),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.push('/books/add');
+            },
+            icon: const Icon(Icons.edit),
+            label: Text(
+              TranslationService.translate(context, 'add_book_manually'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showIsbnInputDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          TranslationService.translate(context, 'enter_isbn_manually'),
+        ),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'ISBN',
+            hintText: '978...',
+            prefixIcon: const Icon(Icons.book),
+          ),
+          autofocus: true,
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              Navigator.pop(ctx);
+              context.push('/books/add', extra: {'isbn': value});
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(TranslationService.translate(context, 'cancel')),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                Navigator.pop(ctx);
+                context.push('/books/add', extra: {'isbn': controller.text});
+              }
+            },
+            child: Text(TranslationService.translate(context, 'confirm')),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

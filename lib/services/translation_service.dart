@@ -184,6 +184,9 @@ class TranslationService {
       'share_code_instruction':
           'Show this code to another user to let them connect to your library.',
       'scan_instruction': 'Align barcode within the frame',
+      'invalid_isbn_scanned': 'Not a valid book barcode',
+      'enter_isbn_manually': 'Enter ISBN manually',
+      'add_book_manually': 'Add book manually',
       'connected_to': 'Connected to',
       'connection_failed': 'Failed to connect',
       'sending_request': 'Sending request...',
@@ -1166,6 +1169,9 @@ class TranslationService {
       'share_code_instruction':
           'Montrez ce code à un autre utilisateur pour qu\'il se connecte à votre bibliothèque.',
       'scan_instruction': 'Alignez le code-barres dans le cadre',
+      'invalid_isbn_scanned': 'Code-barres non valide',
+      'enter_isbn_manually': 'Saisir l\'ISBN manuellement',
+      'add_book_manually': 'Ajouter le livre manuellement',
       'connected_to': 'Connecté à',
       'connection_failed': 'Échec de la connexion',
       'sending_request': 'Envoi de la demande...',
