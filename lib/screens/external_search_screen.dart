@@ -85,6 +85,94 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
   Future<void> _addBook(Map<String, dynamic> doc) async {
     try {
       final api = Provider.of<ApiService>(context, listen: false);
+      final isbn = doc['isbn'] as String?;
+
+      // Check if ISBN already exists in library
+      if (isbn != null && isbn.isNotEmpty) {
+        final existingBook = await api.findBookByIsbn(isbn);
+        if (existingBook != null && mounted) {
+          // Show duplicate dialog
+          final action = await showDialog<String>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      TranslationService.translate(
+                            context,
+                            'isbn_already_exists',
+                          ) ??
+                          'Book already in collection',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${existingBook.title}${existingBook.author != null ? '\n${existingBook.author}' : ''}',
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, 'cancel'),
+                  child: Text(
+                    TranslationService.translate(context, 'cancel') ?? 'Cancel',
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(ctx, 'view'),
+                  icon: const Icon(Icons.visibility),
+                  label: Text(
+                    TranslationService.translate(context, 'view_existing') ??
+                        'View Book',
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(ctx, 'copy'),
+                  icon: const Icon(Icons.add),
+                  label: Text(
+                    TranslationService.translate(context, 'add_copy') ??
+                        'Add Copy',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          if (action == 'view' && mounted) {
+            context.push('/books/${existingBook.id}');
+          } else if (action == 'copy' && mounted) {
+            await api.createCopy({
+              'book_id': existingBook.id,
+              'status': 'available',
+            });
+            _booksAdded = true;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  TranslationService.translate(context, 'copy_added') ??
+                      'Copy added successfully',
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return; // Don't create duplicate
+        }
+      }
 
       // Map unified search result (Book DTO) to create payload
       final bookData = {
