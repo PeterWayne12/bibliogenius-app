@@ -314,39 +314,45 @@ class _EditBookScreenState extends State<EditBookScreen> {
       }
 
       if (mounted) {
-        setState(() {
-          _isSaving = false;
-          _isEditing = false; // Return to view mode
-          _hasChanges = true; // Mark as changed
+        // Re-fetch the book from API to get confirmed server state
+        try {
+          final updatedBook = await apiService.getBook(widget.book.id!);
+          setState(() {
+            _isSaving = false;
+            _isEditing = false; // Return to view mode
+            _hasChanges = true; // Mark as changed
+            _book = updatedBook;
 
-          // Update local book state including dates
-          DateTime? startedAt = _startedDateController.text.isNotEmpty
-              ? DateTime.tryParse(_startedDateController.text)
-              : null;
-          DateTime? finishedAt = _finishedDateController.text.isNotEmpty
-              ? DateTime.tryParse(_finishedDateController.text)
-              : null;
+            // Sync controllers with server data
+            _titleController.text = updatedBook.title;
+            _authorController.text = updatedBook.author ?? '';
+            _isbnController.text = updatedBook.isbn ?? '';
+            _publisherController.text = updatedBook.publisher ?? '';
+            _yearController.text =
+                updatedBook.publicationYear?.toString() ?? '';
+            _summaryController.text = updatedBook.summary ?? '';
+            _readingStatus = updatedBook.readingStatus ?? 'to_read';
+            _coverUrl = updatedBook.coverUrl;
+            _selectedTags = updatedBook.subjects ?? [];
+            _owned = updatedBook.owned;
 
-          final authorString = _authors.isNotEmpty
-              ? _authors.join(', ')
-              : _authorController.text;
-
-          _book = Book(
-            id: widget.book.id,
-            title: _titleController.text,
-            author: authorString.isNotEmpty ? authorString : widget.book.author,
-            isbn: _isbnController.text,
-            publisher: _publisherController.text,
-            publicationYear: int.tryParse(_yearController.text),
-            summary: _summaryController.text,
-            readingStatus: _readingStatus,
-            coverUrl: _coverUrl,
-            startedReadingAt: startedAt,
-            finishedReadingAt: finishedAt,
-            subjects: _selectedTags,
-            owned: _owned,
-          );
-        });
+            // Sync authors list
+            if (updatedBook.author != null && updatedBook.author!.isNotEmpty) {
+              _authors = updatedBook.author!
+                  .split(RegExp(r',\s*'))
+                  .where((s) => s.isNotEmpty)
+                  .toList();
+            }
+          });
+        } catch (e) {
+          debugPrint('Error re-fetching book after save: $e');
+          // Fallback to local state construction if fetch fails
+          setState(() {
+            _isSaving = false;
+            _isEditing = false;
+            _hasChanges = true;
+          });
+        }
 
         // 🎉 Book Complete celebration when status changed to "read"
         if (_readingStatus == 'read' && _originalReadingStatus != 'read') {
