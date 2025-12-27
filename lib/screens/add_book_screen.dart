@@ -106,15 +106,16 @@ class _AddBookScreenState extends State<AddBookScreen> {
           if (_titleController.text.isEmpty)
             _titleController.text = bookData['title'] ?? '';
 
-          // Handle authors
-          _authors.clear();
-          if (bookData['authors'] != null && bookData['authors'] is List) {
-            _authors.addAll(List<String>.from(bookData['authors']));
-          } else if (bookData['author'] != null) {
-            _authors.add(bookData['author']);
+          // Handle authors - only if user hasn't entered any
+          if (_authors.isEmpty && _authorController.text.trim().isEmpty) {
+            if (bookData['authors'] != null && bookData['authors'] is List) {
+              _authors.addAll(List<String>.from(bookData['authors']));
+            } else if (bookData['author'] != null) {
+              _authors.add(bookData['author']);
+            }
+            // Also set text controller for fallback/display if needed
+            _authorController.text = _authors.join(', ');
           }
-          // Also set text controller for fallback/display if needed
-          _authorController.text = _authors.join(', ');
 
           if (_publisherController.text.isEmpty)
             _publisherController.text = bookData['publisher'] ?? '';
