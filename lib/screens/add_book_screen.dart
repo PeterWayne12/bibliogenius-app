@@ -108,6 +108,18 @@ class _AddBookScreenState extends State<AddBookScreen> {
 
           // Handle authors - only if user hasn't entered any
           if (_authors.isEmpty && _authorController.text.trim().isEmpty) {
+            // Helper to check if author is a placeholder value
+            bool isPlaceholderAuthor(String author) {
+              final lower = author.toLowerCase().trim();
+              return lower == 'unknown author' ||
+                  lower == 'auteur inconnu' ||
+                  lower == 'autor desconocido' ||
+                  lower == 'unbekannter autor' ||
+                  lower == 'unknown' ||
+                  lower == 'inconnu' ||
+                  lower.isEmpty;
+            }
+
             if (bookData['authors'] != null && bookData['authors'] is List) {
               // Handle each author - split if contains comma
               for (final author in bookData['authors']) {
@@ -117,10 +129,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     author
                         .split(',')
                         .map((a) => a.trim())
-                        .where((a) => a.isNotEmpty),
+                        .where((a) => a.isNotEmpty && !isPlaceholderAuthor(a)),
                   );
                 } else {
-                  _authors.add(author.toString());
+                  final authorStr = author.toString().trim();
+                  if (!isPlaceholderAuthor(authorStr)) {
+                    _authors.add(authorStr);
+                  }
                 }
               }
             } else if (bookData['author'] != null) {
@@ -131,10 +146,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   authorStr
                       .split(',')
                       .map((a) => a.trim())
-                      .where((a) => a.isNotEmpty),
+                      .where((a) => a.isNotEmpty && !isPlaceholderAuthor(a)),
                 );
               } else {
-                _authors.add(authorStr);
+                final trimmed = authorStr.trim();
+                if (!isPlaceholderAuthor(trimmed)) {
+                  _authors.add(trimmed);
+                }
               }
             }
             // Also set text controller for fallback/display if needed
