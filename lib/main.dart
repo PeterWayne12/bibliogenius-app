@@ -162,7 +162,6 @@ void main([List<String>? args]) async {
       useFfi = true;
       debugPrint('FFI: useFfi set to TRUE');
 
-      // Start HTTP server for P2P capabilities
       int httpPort = 8000;
       try {
         final startedPort = await FfiService().startServer(8000);

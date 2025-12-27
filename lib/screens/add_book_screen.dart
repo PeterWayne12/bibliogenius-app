@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../services/translation_service.dart';
+import '../services/sync_service.dart';
 import '../providers/theme_provider.dart';
 import '../utils/book_status.dart';
 import '../models/book.dart';
@@ -280,6 +281,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
     try {
       await apiService.createBook(book.toJson());
       if (mounted) {
+        // Trigger sync with peers in background (dont await to keep UI snappy)
+        try {
+          Provider.of<SyncService>(context, listen: false).syncAllPeers();
+        } catch (e) {
+          debugPrint('Failed to trigger background sync: $e');
+        }
+
         // Mario Bros-style +1 animation! 🎮
         PlusOneAnimation.show(context);
 

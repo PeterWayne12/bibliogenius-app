@@ -81,26 +81,39 @@ class _LinkDeviceScreenState extends State<LinkDeviceScreen>
     }
   }
 
-  /// Get the local network IP address from network interfaces
   Future<String> _getLocalIpAddress() async {
     try {
       final interfaces = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
         includeLinkLocal: false,
       );
+
+      final List<String> candidates = [];
+
       for (var interface in interfaces) {
-        // Skip loopback
-        if (interface.name == 'lo' || interface.name == 'lo0') continue;
+        // Skip loopback interfaces
+        if (interface.name.startsWith('lo')) continue;
+
         for (var addr in interface.addresses) {
           // Skip loopback addresses
           if (addr.address.startsWith('127.')) continue;
-          // Prefer private network IPs
+
+          // Collect private network IPs
           if (addr.address.startsWith('192.168.') ||
               addr.address.startsWith('10.') ||
               addr.address.startsWith('172.')) {
-            return addr.address;
+            candidates.add(addr.address);
           }
         }
+      }
+
+      if (candidates.isNotEmpty) {
+        // Prioritize 192.168.x.x (most common home wifi)
+        final best = candidates.firstWhere(
+          (ip) => ip.startsWith('192.168.'),
+          orElse: () => candidates.first,
+        );
+        return best;
       }
     } catch (e) {
       debugPrint('Error getting local IP: $e');

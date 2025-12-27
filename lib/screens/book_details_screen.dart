@@ -29,6 +29,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   List<dynamic> _copies = [];
   bool _isLoadingCopies = true;
   bool _isLoadingBook = false;
+  bool _hasChanges = false;
 
   @override
   void initState() {
@@ -163,57 +164,63 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     // Use large cover URL if available, otherwise fallback
     final coverUrl = book.largeCoverUrl ?? book.coverUrl;
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(context, book, coverUrl),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context, book),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(context, book),
-                  const SizedBox(height: 32),
-                  _buildMetadataGrid(context, book),
-                  const SizedBox(height: 16),
-                  // Audio module section (decoupled - only shows if enabled)
-                  if (book.id != null)
-                    AudioSection(
-                      bookId: book.id!,
-                      bookTitle: book.title,
-                      bookAuthor: book.author,
-                      // Use app language as preferred audiobook language
-                      bookLanguage: Localizations.localeOf(
-                        context,
-                      ).languageCode,
-                    ),
-                  const SizedBox(height: 32),
-                  if (book.summary != null && book.summary!.isNotEmpty) ...[
-                    Text(
-                      TranslationService.translate(context, 'book_summary') ??
-                          'Summary',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      book.summary!,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        height: 1.6,
-                        color: Colors.grey[700],
-                      ),
-                    ),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop(_hasChanges);
+        return false;
+      },
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            _buildSliverAppBar(context, book, coverUrl),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context, book),
+                    const SizedBox(height: 24),
+                    _buildActionButtons(context, book),
                     const SizedBox(height: 32),
+                    _buildMetadataGrid(context, book),
+                    const SizedBox(height: 16),
+                    // Audio module section (decoupled - only shows if enabled)
+                    if (book.id != null)
+                      AudioSection(
+                        bookId: book.id!,
+                        bookTitle: book.title,
+                        bookAuthor: book.author,
+                        // Use app language as preferred audiobook language
+                        bookLanguage: Localizations.localeOf(
+                          context,
+                        ).languageCode,
+                      ),
+                    const SizedBox(height: 32),
+                    if (book.summary != null && book.summary!.isNotEmpty) ...[
+                      Text(
+                        TranslationService.translate(context, 'book_summary') ??
+                            'Summary',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        book.summary!,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          height: 1.6,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -418,11 +425,15 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       extra: _book,
                     );
                     if (result == true && context.mounted) {
-                      // Refresh book data before returning to list
+                      // Refresh book data but STAY on the screen
                       await _fetchBookDetails();
-                      if (mounted) {
-                        Navigator.of(context).pop(true);
-                      }
+                      // Mark that we have changes so we can return true later
+                      setState(() {
+                        // We track this via a member variable which we need to add to the State class
+                        // For now, let's just make sure the UI is up to date.
+                        // The list screen underneath will naturally refresh if we pop later with true.
+                        _hasChanges = true;
+                      });
                     }
                   },
                   icon: const Icon(Icons.edit_outlined),
