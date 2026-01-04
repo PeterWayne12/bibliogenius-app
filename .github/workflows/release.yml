@@ -160,9 +160,10 @@ jobs:
 
       - name: Build macOS app (unsigned)
         run: |
-          # Override code signing settings in xcconfig
-          echo "CODE_SIGN_IDENTITY = -" >> macos/Runner/Configs/Release.xcconfig
-          echo "CODE_SIGN_STYLE = Manual" >> macos/Runner/Configs/Release.xcconfig
+          # Disable code signing in project.pbxproj
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/"Apple Development"/-/g' macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DEVELOPMENT_TEAM = RF374CUSUZ/DEVELOPMENT_TEAM = ""/g' macos/Runner.xcodeproj/project.pbxproj
           
           # Build the app
           flutter build macos --release
