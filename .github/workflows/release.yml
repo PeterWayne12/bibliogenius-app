@@ -146,9 +146,6 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Disable Code Signing
-        run: sed -i '' 's/Apple Development/-/g' macos/Runner.xcodeproj/project.pbxproj
-
       - name: Download Rust Backend (x64)
         uses: actions/download-artifact@v4
         with:
@@ -161,8 +158,32 @@ jobs:
           name: bibliogenius-macos-arm64
           path: backend-arm64
 
-      - name: Build macOS app
-        run: flutter build macos --release
+      - name: Build macOS app (unsigned)
+        run: |
+          flutter build macos --release \
+            --dart-define=FLUTTER_BUILD_MODE=release \
+            --build-args="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual"
+      
+      - name: Validate app bundle
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/bibliogenius.app"
+          
+          # Check essential files exist
+          if [ ! -f "$APP_PATH/Contents/Info.plist" ]; then
+            echo "❌ ERROR: Info.plist missing!"
+            ls -la "$APP_PATH/Contents" || echo "Contents directory doesn't exist"
+            exit 1
+          fi
+          
+          if [ ! -f "$APP_PATH/Contents/MacOS/bibliogenius" ]; then
+            echo "❌ ERROR: Main executable missing!"
+            ls -la "$APP_PATH/Contents/MacOS" || echo "MacOS directory doesn't exist"
+            exit 1
+          fi
+          
+          echo "✅ App bundle validation passed"
+          echo "App bundle structure:"
+          ls -la "$APP_PATH/Contents"
 
       - name: Inject Rust Binary
         run: |
@@ -355,7 +376,13 @@ jobs:
             ## 🚀 Getting Started
             
             1. Download the appropriate file for your platform
-            2. **macOS**: Open the .dmg, drag to Applications. First launch: Right-click → Open
+            2. **macOS**: 
+               - Open the .dmg, drag to Applications
+               - **Important**: The app is unsigned. To run it, open Terminal and execute:
+                 ```bash
+                 xattr -cr /Applications/bibliogenius.app
+                 ```
+               - Then launch the app normally from Applications
             3. **Android**: Enable "Install from unknown sources", install APK
             4. **Windows**: Extract ZIP, run `bibliogenius.exe`
             5. **Linux**: Extract tarball, run `./bibliogenius`
@@ -363,7 +390,7 @@ jobs:
             ## 🐛 Known Limitations
             - P2P works on local network only (global P2P coming in v2.0)
             - No iOS build (requires Apple Developer account)
-            - Apps are unsigned (security warnings expected)
+            - **macOS app is unsigned**: You must remove quarantine flag with `xattr -cr` (see instructions above)
             
             ## 📝 Feedback
             Please report issues on [GitHub Issues](https://github.com/bibliogenius/bibliogenius-app/issues)
