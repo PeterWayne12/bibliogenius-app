@@ -24,22 +24,32 @@ class ThemeProvider with ChangeNotifier {
   AvatarConfig? _avatarConfig;
   AvatarConfig? get avatarConfig => _avatarConfig;
 
-  // Profile type: 'librarian', 'individual', or 'kid'
+  // Profile type: 'librarian', 'individual', 'kid', 'bookseller'
   String _profileType = 'individual';
   String get profileType => _profileType;
   bool get isLibrarian =>
       _profileType == 'librarian' || _profileType == 'professional';
+  bool get isBookseller =>
+      _profileType == 'bookseller'; // Nouveau profil Libraire
   bool get isKid => _profileType == 'kid';
   bool get hasReadingStatus =>
       _profileType == 'individual' || _profileType == 'kid';
 
+  // Nouveau: modules spécifiques pour le profil Libraire
+  bool get hasCommerce => isBookseller; // Module commerce (prix) actif
+  bool get hasSales => isBookseller; // Module ventes/transactions actif
+  bool get hasLoans =>
+      !isBookseller; // Prêts désactivés par défaut pour libraires
+
   // Borrowing capability: disabled by default for librarians (they lend, not borrow)
+  // Also disabled for booksellers (they sell, not borrow)
   bool _canBorrowBooks = true;
   bool get canBorrowBooks => _canBorrowBooks;
 
-  // Gamification: disabled by default for librarians
+  // Gamification: disabled by default for librarians and booksellers
   bool _gamificationEnabled = true;
-  bool get gamificationEnabled => _gamificationEnabled;
+  bool get gamificationEnabled =>
+      _gamificationEnabled && !isLibrarian && !isBookseller;
 
   ThemeData get themeData {
     // Initialize registry if needed

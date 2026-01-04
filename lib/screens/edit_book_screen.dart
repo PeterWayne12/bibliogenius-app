@@ -32,6 +32,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
   late TextEditingController _startedDateController;
   late TextEditingController _finishedDateController;
   late TextEditingController _tagsController; // Add this
+  late TextEditingController _priceController; // Prix pour profil Libraire
   late Book _book;
   List<String> _selectedTags = []; // Add this
   List<String> _authors = []; // Multiple authors support
@@ -98,6 +99,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _selectedTags = widget.book.subjects != null
         ? List.from(widget.book.subjects!)
         : [];
+
+    // Initialize price controller for bookseller profile
+    _priceController = TextEditingController(
+      text: widget.book.price?.toString() ?? '',
+    );
 
     // Get profile type from ThemeProvider after first frame
     // Add listener for ISBN changes
@@ -229,6 +235,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _summaryController.dispose();
     _startedDateController.dispose();
     _finishedDateController.dispose();
+    _priceController.dispose(); // Dispose price controller
     // Dispose FocusNodes
     _titleFocusNode.dispose();
     _authorFocusNode.dispose();
@@ -319,6 +326,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
           ? null
           : _selectedTags, // Ensure null if empty for cleaner JSON
       'owned': _owned,
+      'price': _priceController.text.isNotEmpty
+          ? double.tryParse(_priceController.text)
+          : null, // Prix pour profil Libraire
     };
 
     try {
@@ -354,6 +364,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
             _coverUrl = updatedBook.coverUrl;
             _selectedTags = updatedBook.subjects ?? [];
             _owned = updatedBook.owned;
+            _priceController.text =
+                updatedBook.price?.toString() ?? ''; // Sync prix
 
             // Sync authors list
             if (updatedBook.author != null && updatedBook.author!.isNotEmpty) {
@@ -797,6 +809,32 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 maxLines: 4,
               ),
               const SizedBox(height: 24),
+
+              // Price field (Bookseller profile only)
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, child) {
+                  if (!themeProvider.hasCommerce)
+                    return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel(
+                        TranslationService.translate(context, 'price_label') ??
+                            'Price (EUR)',
+                      ),
+                      TextFormField(
+                        controller: _priceController,
+                        decoration: _buildInputDecoration(hint: '0.00'),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  );
+                },
+              ),
 
               // Owned checkbox - controls copy creation
               CheckboxListTile(

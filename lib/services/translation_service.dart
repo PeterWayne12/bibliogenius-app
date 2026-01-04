@@ -66,6 +66,7 @@ class TranslationService {
       'book': 'Book',
       'profile': 'My Profile',
       'librarian': 'Librarian',
+      'bookseller': 'Bookseller', // Nouveau profil Libraire
       'individual': 'Individual',
       'individual_reader': 'Individual Reader',
       'professional': 'Professional',
@@ -323,6 +324,18 @@ class TranslationService {
       'status_label': 'Status',
       'save_changes': 'Save Changes',
       'saving_changes': 'Saving Changes...',
+      // Commerce (Bookseller profile)
+      'price': 'Price',
+      'price_label': 'Price (EUR)',
+      'sale_price': 'Sale Price',
+      'book_price': 'Book Price',
+      'copy_price': 'Copy Price',
+      'sales': 'Sales',
+      'record_sale': 'Record Sale',
+      'sales_statistics': 'Sales Statistics',
+      'total_revenue': 'Total Revenue',
+      'average_price': 'Average Price',
+      'sales_count': 'Total Sales',
       'add_book_title': 'Add Book',
       'add_new_book': 'Add a New Book',
       'author_label': 'Author',
@@ -553,6 +566,9 @@ class TranslationService {
       'profile_individual_desc':
           'Track your reading, wishlists, and personal collection.',
       'profile_kid_desc': 'Fun interface, simple tracking, and cool avatars!',
+      'profile_bookseller': 'Bookseller',
+      'profile_bookseller_desc':
+          'Track inventory, prices, and sales for your bookstore.',
       // Avatars
       'avatar_junior_reader': 'Junior Reader',
       'avatar_bookworm': 'Bookworm',
@@ -1026,6 +1042,7 @@ class TranslationService {
       'book': 'Livre',
       'profile': 'Mon Profil',
       'librarian': 'Bibliothécaire',
+      'bookseller': 'Libraire', // Nouveau profil
       'individual': 'Particulier',
       'individual_reader': 'Lecteur individuel',
       'professional': 'Professionnel',
@@ -1589,6 +1606,9 @@ class TranslationService {
       'profile_kid': 'Jeune Lecteur',
       'profile_kid_desc':
           'Interface amusante, suivi simple et avatars sympas !',
+      'profile_bookseller': 'Libraire',
+      'profile_bookseller_desc':
+          'Gérez votre inventaire, prix et ventes pour votre librairie.',
       // Avatars
       'avatar_junior_reader': 'Jeune Lecteur',
       'avatar_bookworm': 'Rat de bibliothèque',

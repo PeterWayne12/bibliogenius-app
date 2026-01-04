@@ -352,6 +352,19 @@ class _SetupScreenState extends State<SetupScreen> {
                       themeProvider,
                     ),
                     _buildProfileOption(
+                      'bookseller', // Nouveau profil Libraire
+                      TranslationService.translate(
+                        context,
+                        'profile_bookseller',
+                      ),
+                      TranslationService.translate(
+                        context,
+                        'profile_bookseller_desc',
+                      ),
+                      Icons.storefront, // Icône boutique
+                      themeProvider,
+                    ),
+                    _buildProfileOption(
                       'individual',
                       TranslationService.translate(
                         context,

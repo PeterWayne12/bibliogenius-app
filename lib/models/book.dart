@@ -13,6 +13,7 @@ class Book {
   final String? _coverUrl; // Stored cover URL
   final int? userRating; // 0-10 scale
   final bool owned; // Whether I physically own this book (default: true)
+  final double? price; // Prix du livre (profil Libraire)
 
   Book({
     this.id,
@@ -29,6 +30,7 @@ class Book {
     String? coverUrl,
     this.userRating,
     this.owned = true,
+    this.price, // Prix optionnel
   }) : _coverUrl = coverUrl;
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -60,6 +62,7 @@ class Book {
           : null,
       userRating: json['user_rating'],
       owned: json['owned'] ?? true,
+      price: json['price'] != null ? (json['price'] as num).toDouble() : null,
     );
   }
 
@@ -79,6 +82,7 @@ class Book {
       'cover_url': _coverUrl,
       'user_rating': userRating,
       'owned': owned,
+      'price': price, // Prix pour profil Libraire
       'created_at': now,
       'updated_at': now,
     };
@@ -101,6 +105,7 @@ class Book {
       coverUrl: _coverUrl,
       userRating: newRating,
       owned: owned,
+      price: price, // Préserver le prix
     );
   }
 
