@@ -793,6 +793,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (![
                             'individual',
                             'librarian',
+                            'bookseller',
                             'kid',
                           ].contains(normalizedType)) {
                             normalizedType = 'individual';
@@ -820,6 +821,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       TranslationService.translate(
                                         context,
                                         'profile_librarian',
+                                      ),
+                                    ),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'bookseller',
+                                    child: Text(
+                                      TranslationService.translate(
+                                        context,
+                                        'profile_bookseller',
                                       ),
                                     ),
                                   ),
@@ -2112,6 +2122,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             };
             restrictions = {
               // No specific restrictions for now, just simplified UI
+            };
+            break;
+          case 'bookseller':
+            advantages = {
+              'profile_advantage_pricing': ['✓'],
+              'profile_advantage_sales': ['✓'],
+              'profile_advantage_inventory': ['✓'],
+              'profile_advantage_statistics': ['✓'],
+            };
+            restrictions = {
+              'profile_restriction_no_loans': ['✗'],
+              'profile_restriction_no_gamification': ['✗'],
             };
             break;
         }
