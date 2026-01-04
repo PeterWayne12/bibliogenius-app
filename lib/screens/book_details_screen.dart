@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
+import '../models/copy.dart';
 import '../models/contact.dart';
+import 'record_sale_screen.dart';
 import '../services/api_service.dart';
 import 'package:dio/dio.dart';
 import '../services/translation_service.dart';
@@ -625,7 +627,6 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             ),
           ),
         ],
-        // Give back borrowed book button - visible when there are borrowed copies
         if (_hasBorrowedCopies) ...[
           const SizedBox(height: 12),
           SizedBox(
@@ -634,8 +635,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               onPressed: () => _giveBackBook(context),
               icon: const Icon(Icons.keyboard_return_outlined),
               label: Text(
-                TranslationService.translate(context, 'give_back_book_btn') ??
-                    'Give back this book',
+                TranslationService.translate(context, 'give_back_book_btn'),
               ),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.teal,
@@ -648,8 +648,79 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             ),
           ),
         ],
+        // Sell book button - only visible if bookseller profile
+        if (Provider.of<ThemeProvider>(context).isBookseller &&
+            _hasAvailableCopies &&
+            book.owned) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () => _sellBook(context),
+              icon: const Icon(Icons.sell_outlined),
+              label: Text(
+                TranslationService.translate(context, 'sell_book_btn'),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  Future<void> _sellBook(BuildContext context) async {
+    // Check copies
+    final availableCopies = _copies
+        .where((c) => c['status'] == 'available')
+        .toList();
+    if (availableCopies.isEmpty) return;
+
+    Map<String, dynamic> selectedCopyMap;
+    if (availableCopies.length == 1) {
+      selectedCopyMap = availableCopies.first;
+    } else {
+      // Show dialog to pick copy
+      final picked = await showDialog<Map<String, dynamic>>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: Text(TranslationService.translate(context, 'select_copy')),
+          children: availableCopies
+              .map(
+                (c) => SimpleDialogOption(
+                  onPressed: () => Navigator.pop(ctx, c),
+                  child: Text(
+                    '${TranslationService.translate(context, 'copy_label')} #${c['id']}',
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      );
+      if (picked == null) return;
+      selectedCopyMap = picked;
+    }
+
+    final copy = Copy.fromJson(selectedCopyMap);
+
+    if (!mounted) return;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecordSaleScreen(copy: copy, book: _book),
+      ),
+    );
+
+    if (result == true) {
+      _fetchCopies();
+    }
   }
 
   Widget _buildMetadataGrid(BuildContext context, Book book) {
