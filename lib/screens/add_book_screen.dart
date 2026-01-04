@@ -285,6 +285,25 @@ class _AddBookScreenState extends State<AddBookScreen> {
     try {
       await apiService.createBook(book.toJson());
       if (mounted) {
+        // Clear all form fields to prevent Android autofill from retaining values
+        _titleController.clear();
+        _authorController.clear();
+        _publisherController.clear();
+        _publicationYearController.clear();
+        _isbnController.clear();
+        _summaryController.clear();
+        _priceController.clear();
+        _tagsController.clear();
+
+        // Reset all state variables
+        _authors.clear();
+        _selectedTags.clear();
+        _coverUrl = null;
+        _authorsData = null;
+        _isDuplicate = false;
+        _duplicateBook = null;
+        _lastLookedUpIsbn = null;
+
         // Trigger sync with peers in background (dont await to keep UI snappy)
         try {
           Provider.of<SyncService>(context, listen: false).syncAllPeers();

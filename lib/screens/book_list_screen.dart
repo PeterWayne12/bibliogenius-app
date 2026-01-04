@@ -227,7 +227,13 @@ class _BookListScreenState extends State<BookListScreen>
               onPressed: () async {
                 final isbn = await context.push<String>('/scan');
                 if (isbn != null && mounted) {
-                  context.push('/books/add', extra: {'isbn': isbn});
+                  final result = await context.push(
+                    '/books/add',
+                    extra: {'isbn': isbn},
+                  );
+                  if (result == true && mounted) {
+                    _fetchBooks(); // Refresh list after book was added
+                  }
                 }
               },
             ),
