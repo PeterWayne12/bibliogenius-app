@@ -160,9 +160,14 @@ jobs:
 
       - name: Build macOS app (unsigned)
         run: |
-          flutter build macos --release \
-            --dart-define=FLUTTER_BUILD_MODE=release \
-            --build-args="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual"
+          # Create a temporary xcconfig to override code signing
+          cat \u003e\u003e macos/Runner/Configs/Release.xcconfig \u003c\u003cEOF
+          CODE_SIGN_IDENTITY = -
+          CODE_SIGN_STYLE = Manual
+          EOF
+          
+          # Build the app
+          flutter build macos --release
       
       - name: Validate app bundle
         run: |
