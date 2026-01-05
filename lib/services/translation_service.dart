@@ -449,6 +449,24 @@ class TranslationService {
       'browse_shelf': 'Browse',
       'back_to_all': 'Back to All',
       'sub_categories': 'Sub-categories',
+      // Collections
+      'collections': 'Collections',
+      'no_collections': 'No collections found',
+      'create_collection': 'Create Collection',
+      'delete_collection': 'Delete Collection',
+      'delete_collection_confirm':
+          'Are you sure you want to delete this collection?',
+      'confirm_delete': 'Confirm Delete',
+      'create': 'Create',
+      'import_collection': 'Import Collection',
+      'import_file': 'Import File',
+      'import_success': 'Collection imported successfully',
+      'import_error': 'Error importing collection',
+      'collection_details': 'Collection Details',
+      'owned_vs_total': 'Owned / Total',
+      'sync_collection': 'Sync Prices',
+      'sync_success': 'Prices synced',
+      'add_to_collection': 'Add to Collection',
 
       // App Drawer
       'nav_dashboard': 'Dashboard',

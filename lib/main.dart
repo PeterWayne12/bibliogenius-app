@@ -46,6 +46,7 @@ import 'screens/network_screen.dart';
 import 'screens/feedback_screen.dart';
 import 'screens/animations_test_screen.dart';
 import 'screens/link_device_screen.dart';
+import 'screens/collection/collection_list_screen.dart'; // Collection module
 import 'services/wizard_service.dart';
 import 'widgets/scaffold_with_nav.dart';
 
@@ -519,6 +520,10 @@ class _AppRouterState extends State<AppRouter> {
             GoRoute(
               path: '/animations-test',
               builder: (context, state) => const AnimationsTestScreen(),
+            ),
+            GoRoute(
+              path: '/collections',
+              builder: (context, state) => const CollectionListScreen(),
             ),
           ],
         ),

@@ -62,6 +62,14 @@ class AppDrawer extends StatelessWidget {
               context.go('/shelves');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.collections_bookmark),
+            title: Text(TranslationService.translate(context, 'collections')),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/collections');
+            },
+          ),
           // Unified Network screen (contacts + peers merged)
           ListTile(
             leading: const Icon(Icons.cloud_sync),

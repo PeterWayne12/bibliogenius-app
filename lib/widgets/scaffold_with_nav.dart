@@ -81,6 +81,13 @@ class ScaffoldWithNav extends StatelessWidget {
         ),
       ),
       _NavItem(
+        route: '/collections',
+        destination: NavigationRailDestination(
+          icon: const Icon(Icons.collections_bookmark),
+          label: Text(TranslationService.translate(context, 'collections')),
+        ),
+      ),
+      _NavItem(
         route: '/network',
         matchPrefixes: ['/network', '/contacts', '/peers'],
         destination: NavigationRailDestination(

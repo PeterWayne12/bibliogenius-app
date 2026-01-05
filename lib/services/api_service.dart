@@ -10,6 +10,7 @@ import '../models/book.dart';
 import '../models/genie.dart';
 import '../models/tag.dart';
 import '../models/contact.dart';
+import '../models/collection.dart'; // Collection module
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../src/rust/api/frb.dart' as frb;
 import '../src/rust/frb_generated.dart';
@@ -418,6 +419,43 @@ class ApiService {
       }
     }
     return await _dio.post('/api/loans/$loanId/return');
+  }
+
+  // Collection methods
+  Future<List<Collection>> getCollections() async {
+    if (useFfi) {
+      // TODO: Implement FFI for collections or use local HTTP
+      final localDio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'));
+      final response = await localDio.get('/api/collections');
+      final List<dynamic> data = response.data;
+      return data.map((json) => Collection.fromJson(json)).toList();
+    }
+    final response = await _dio.get('/api/collections');
+    final List<dynamic> data = response.data;
+    return data.map((json) => Collection.fromJson(json)).toList();
+  }
+
+  Future<Collection> createCollection(
+    String name, {
+    String? description,
+  }) async {
+    final data = {'name': name, 'description': description, 'source': 'manual'};
+    if (useFfi) {
+      final localDio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'));
+      final response = await localDio.post('/api/collections', data: data);
+      return Collection.fromJson(response.data);
+    }
+    final response = await _dio.post('/api/collections', data: data);
+    return Collection.fromJson(response.data);
+  }
+
+  Future<void> deleteCollection(String id) async {
+    if (useFfi) {
+      final localDio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'));
+      await localDio.delete('/api/collections/$id');
+      return;
+    }
+    await _dio.delete('/api/collections/$id');
   }
 
   // Copy management methods
