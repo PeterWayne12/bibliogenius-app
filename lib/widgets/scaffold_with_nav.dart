@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/translation_service.dart';
+import 'package:provider/provider.dart';
 import 'app_drawer.dart';
 import '../utils/global_keys.dart';
+import '../providers/theme_provider.dart';
 
 class ScaffoldWithNav extends StatelessWidget {
   final Widget child;
@@ -80,13 +82,14 @@ class ScaffoldWithNav extends StatelessWidget {
           ),
         ),
       ),
-      _NavItem(
-        route: '/collections',
-        destination: NavigationRailDestination(
-          icon: const Icon(Icons.collections_bookmark),
-          label: Text(TranslationService.translate(context, 'collections')),
+      if (Provider.of<ThemeProvider>(context).collectionsEnabled)
+        _NavItem(
+          route: '/collections',
+          destination: NavigationRailDestination(
+            icon: const Icon(Icons.collections_bookmark),
+            label: Text(TranslationService.translate(context, 'collections')),
+          ),
         ),
-      ),
       _NavItem(
         route: '/network',
         matchPrefixes: ['/network', '/contacts', '/peers'],

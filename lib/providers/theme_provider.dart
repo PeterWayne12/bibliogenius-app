@@ -111,6 +111,7 @@ class ThemeProvider with ChangeNotifier {
 
     _commerceEnabled = prefs.getBool('commerceEnabled') ?? false;
     _networkDiscoveryEnabled = prefs.getBool('networkDiscoveryEnabled') ?? true;
+    _collectionsEnabled = prefs.getBool('collectionsEnabled') ?? true;
 
     // Load gamification setting (default based on profile type)
     final savedGamification = prefs.getBool('gamificationEnabled');
@@ -384,6 +385,17 @@ class ThemeProvider with ChangeNotifier {
     _networkDiscoveryEnabled = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('networkDiscoveryEnabled', enabled);
+    notifyListeners();
+  }
+
+  // Collections Module
+  bool _collectionsEnabled = true;
+  bool get collectionsEnabled => _collectionsEnabled;
+
+  Future<void> setCollectionsEnabled(bool enabled) async {
+    _collectionsEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('collectionsEnabled', enabled);
     notifyListeners();
   }
 }

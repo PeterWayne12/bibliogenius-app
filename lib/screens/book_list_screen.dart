@@ -340,9 +340,17 @@ class _BookListScreenState extends State<BookListScreen>
     }
   }
 
+  bool _showAllBooks = false;
+
   // Triggered when filters change or search query changes
   void _filterBooks() {
     List<Book> tempBooks = List.from(_books);
+
+    // Apply "Owned only" default filter
+    // Exception: If user explicitly selects "wanting" (Wishlist), show them regardless of ownership
+    if (!_showAllBooks && _selectedStatus != 'wanting') {
+      tempBooks = tempBooks.where((b) => b.owned).toList();
+    }
 
     // Apply "show borrowed" config logic:
     // If config says hide borrowed books, ONLY hide them if the user hasn't explicitly asked to see them.
@@ -514,8 +522,6 @@ class _BookListScreenState extends State<BookListScreen>
           // logical place for displaying library name in a header/appBar-like context within the provided snippet.
           // If GenieAppBar is used in the Scaffold, the subtitle should be added there.
           // Given the instruction, I'm assuming the user wants to add `subtitle: _libraryName` to an existing GenieAppBar.
-          // Since the GenieAppBar itself is not in the provided content, I'll assume it's part of the Scaffold
-          // that wraps this content, and the user wants to add the subtitle to it.
           // As I cannot modify the Scaffold directly, I will make a note here.
 
           return TextField(
@@ -621,6 +627,55 @@ class _BookListScreenState extends State<BookListScreen>
             ),
           ),
           const SizedBox(width: 12),
+
+          // Show All Toggle
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ScaleOnTap(
+              onTap: () {
+                setState(() {
+                  _showAllBooks = !_showAllBooks;
+                  _filterBooks();
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: _showAllBooks
+                      ? Theme.of(context).primaryColor
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _showAllBooks
+                        ? Colors.transparent
+                        : Colors.grey.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _showAllBooks ? Icons.visibility : Icons.visibility_off,
+                      size: 16,
+                      color: _showAllBooks ? Colors.white : Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Tout afficher',
+                      style: TextStyle(
+                        color: _showAllBooks ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
           // Tag Filter (if active)
           if (_tagFilter != null) ...[

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/api_service.dart';
 import '../../services/translation_service.dart';
 import '../../models/collection.dart';
+import 'import_curated_list_screen.dart' as import_curated;
 
 class CollectionListScreen extends StatefulWidget {
   const CollectionListScreen({super.key});
@@ -105,6 +107,24 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(TranslationService.translate(context, 'collections')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome_motion),
+            tooltip: 'Discover Curated Collections',
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const import_curated.ImportCuratedListScreen(),
+                ),
+              );
+              if (result == true) {
+                _refreshCollections();
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Collection>>(
         future: _collectionsFuture,
@@ -127,6 +147,23 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
                   Text(
                     TranslationService.translate(context, 'no_collections'),
                     style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const import_curated.ImportCuratedListScreen(),
+                        ),
+                      );
+                      if (result == true) {
+                        _refreshCollections();
+                      }
+                    },
+                    icon: const Icon(Icons.auto_awesome_motion),
+                    label: const Text('Discover Curated Lists'),
                   ),
                 ],
               ),
@@ -191,11 +228,9 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
                   },
                 ),
                 onTap: () {
-                  // Navigate to detail
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Detail view not implemented yet'),
-                    ),
+                  context.push(
+                    '/collections/${collection.id}',
+                    extra: collection,
                   );
                 },
               );

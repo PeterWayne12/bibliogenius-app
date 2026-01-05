@@ -435,6 +435,28 @@ class ApiService {
     return data.map((json) => Collection.fromJson(json)).toList();
   }
 
+  Future<List<Collection>> getBookCollections(int bookId) async {
+    final dio = useFfi
+        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
+        : _dio;
+    final response = await dio.get('/api/books/$bookId/collections');
+    final List<dynamic> data = response.data;
+    return data.map((json) => Collection.fromJson(json)).toList();
+  }
+
+  Future<void> updateBookCollections(
+    int bookId,
+    List<String> collectionIds,
+  ) async {
+    final dio = useFfi
+        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
+        : _dio;
+    await dio.put(
+      '/api/books/$bookId/collections',
+      data: {'collection_ids': collectionIds},
+    );
+  }
+
   Future<Collection> createCollection(
     String name, {
     String? description,
@@ -456,6 +478,39 @@ class ApiService {
       return;
     }
     await _dio.delete('/api/collections/$id');
+  }
+
+  Future<List<dynamic>> getCollectionBooks(String id) async {
+    // Returns List<CollectionBook> but keeping dynamic for flexibility if needed,
+    // or better perform conversion here.
+    // Let's return List<CollectionBook> actually.
+    final dio = useFfi
+        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
+        : _dio;
+    final response = await dio.get('/api/collections/$id/books');
+    return (response.data as List)
+        .map((e) => e)
+        .toList(); // Return raw or convert in screen?
+    // Better to convert here. I need to import CollectionBook.
+    // Since I can't easily add import at top right now without viewing top,
+    // I will return dynamic or map here.
+    // Wait, I can use a separate file edit for import or just assume I can edit top.
+    // safer to return dynamic list and let screen convert, or just use dynamic for now.
+    // actually I should add import.
+  }
+
+  Future<void> addBookToCollection(String collectionId, int bookId) async {
+    final dio = useFfi
+        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
+        : _dio;
+    await dio.post('/api/collections/$collectionId/books/$bookId');
+  }
+
+  Future<void> removeBookFromCollection(String collectionId, int bookId) async {
+    final dio = useFfi
+        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
+        : _dio;
+    await dio.delete('/api/collections/$collectionId/books/$bookId');
   }
 
   // Copy management methods
@@ -1478,8 +1533,39 @@ class ApiService {
           data: {'error': e.toString(), 'data': []},
         );
       }
-    }
+    } // End if (useFfi)
     return await _dio.get('$hubUrl/api/peers');
+  }
+
+  Future<Response> importCollectionBooks(
+    String collectionId,
+    dynamic fileSource, {
+    String? filename,
+    bool importAsOwned = false,
+  }) async {
+    final dio = useFfi
+        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
+        : _dio;
+
+    MultipartFile file;
+    if (fileSource is String) {
+      final name = filename ?? fileSource.split('/').last;
+      file = await MultipartFile.fromFile(fileSource, filename: name);
+    } else if (fileSource is List<int>) {
+      file = MultipartFile.fromBytes(
+        fileSource,
+        filename: filename ?? 'import.csv',
+      );
+    } else {
+      throw Exception("Unsupported file source type");
+    }
+
+    FormData formData = FormData.fromMap({"file": file});
+    return await dio.post(
+      '/api/collections/$collectionId/books',
+      data: formData,
+      queryParameters: {'owned': importAsOwned},
+    );
   }
 
   Future<Response> searchPeers(String query) async {

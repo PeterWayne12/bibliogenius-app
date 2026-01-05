@@ -30,7 +30,7 @@ import 'models/contact.dart';
 import 'screens/scan_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/setup_screen.dart';
-import 'screens/external_search_screen.dart';
+
 import 'screens/borrow_requests_screen.dart';
 import 'screens/peer_book_list_screen.dart';
 import 'screens/shelf_management_screen.dart';
@@ -44,9 +44,10 @@ import 'screens/onboarding_tour_screen.dart';
 import 'screens/shelves_screen.dart';
 import 'screens/network_screen.dart';
 import 'screens/feedback_screen.dart';
-import 'screens/animations_test_screen.dart';
+
 import 'screens/link_device_screen.dart';
 import 'screens/collection/collection_list_screen.dart'; // Collection module
+import 'screens/collection/import_from_search_screen.dart';
 import 'services/wizard_service.dart';
 import 'widgets/scaffold_with_nav.dart';
 
@@ -55,6 +56,9 @@ import 'package:flutter/gestures.dart';
 // FFI imports for native platforms
 import 'src/rust/frb_generated.dart';
 import 'src/rust/api/frb.dart' as frb;
+
+import 'screens/collection/collection_detail_screen.dart';
+import 'models/collection.dart';
 
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -409,7 +413,7 @@ class _AppRouterState extends State<AppRouter> {
             // External search - inside ShellRoute for hamburger menu access
             GoRoute(
               path: '/search/external',
-              builder: (context, state) => const ExternalSearchScreen(),
+              builder: (context, state) => const ImportFromSearchScreen(),
             ),
             GoRoute(
               path: '/network',
@@ -518,12 +522,17 @@ class _AppRouterState extends State<AppRouter> {
               builder: (context, state) => const FeedbackScreen(),
             ),
             GoRoute(
-              path: '/animations-test',
-              builder: (context, state) => const AnimationsTestScreen(),
-            ),
-            GoRoute(
               path: '/collections',
               builder: (context, state) => const CollectionListScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final collection = state.extra as Collection;
+                    return CollectionDetailScreen(collection: collection);
+                  },
+                ),
+              ],
             ),
           ],
         ),

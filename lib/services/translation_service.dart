@@ -460,7 +460,22 @@ class TranslationService {
       'create': 'Create',
       'import_collection': 'Import Collection',
       'import_file': 'Import File',
-      'import_success': 'Collection imported successfully',
+      'collections_label': 'Collections',
+      'add_collection': 'Add Collection',
+      'manage_collections': 'Manage Collections',
+      'create_new_collection': 'Create New Collection',
+      'collection_name_hint': 'Collection Name',
+      'import_options': 'Import Options (Tags & Collections)',
+      'add_tags': 'Add Tags',
+      'no_collection_selected': 'No collection selected',
+      'search_placeholder': 'Search (Subject, Author...)',
+      'search_hint_example': 'ex: "Science Fiction", "Asimov"',
+      'search_btn': 'Search',
+      'import_btn': 'Import Selected',
+      'add_to_collections_label': 'Add to Collections',
+      'selected_books_count': '{count} selected',
+      'mark_as_owned': 'Mark as Owned',
+      'import_collection_success': 'Collection imported successfully.',
       'import_error': 'Error importing collection',
       'collection_details': 'Collection Details',
       'owned_vs_total': 'Owned / Total',
@@ -1069,6 +1084,8 @@ class TranslationService {
       'action_reject': 'Reject',
       'action_cancel': 'Cancel request',
       'view': 'View',
+      'added_date_label': 'Added:',
+      'status_owned': 'Owned',
     },
     'fr': {
       'app_title': 'BiblioGenius',
@@ -1454,11 +1471,27 @@ class TranslationService {
       'currently_reading': 'En cours de lecture',
       'read_status': 'Lu',
       'wishlist_status': 'Liste de souhaits',
-      'owned_status': 'En collection',
+      'owned_status': 'Possédé',
       'to_read_status': 'À lire',
       'mark_as_finished': 'Marquer comme terminé',
       'finished_on': 'Terminé le',
       'reading_status_wanting': 'Je le veux',
+      'collections_label': 'Collections',
+      'add_collection': 'Ajouter une collection',
+      'manage_collections': 'Gérer les collections',
+      'create_new_collection': 'Créer une nouvelle collection',
+      'collection_name_hint': 'Nom de collection',
+      'import_options': 'Options d\'import (Tags & Collections)',
+      'add_tags': 'Ajouter des tags',
+      'no_collection_selected': 'Aucune collection sélectionnée',
+      'search_placeholder': 'Rechercher (Sujet, Auteur...)',
+      'search_hint_example': 'ex: "Science Fiction", "Asimov"',
+      'search_btn': 'Rechercher',
+      'import_btn': 'Importer la sélection',
+      'add_to_collections_label': 'Ajouter aux collections',
+      'selected_books_count': '{count} sélectionnés',
+      'mark_as_owned': 'Marquer comme "Possédé"',
+      'import_collection_success': 'Collection importée avec succès.',
       'reading_status_reading': 'En lecture',
       'reading_status_read': 'Lu',
       'reading_status_to_read': 'À lire',
@@ -1598,6 +1631,9 @@ class TranslationService {
       'borrow_from_contact': 'Emprunter un livre',
       'lend_to_contact': 'Prêter un livre',
       'borrow_book_title': 'Emprunter un livre',
+      'added_date_label': 'Ajouté :',
+      'status_owned': 'Possédé',
+
       'borrowing_from': 'Emprunt à',
       'book_borrowed_from': 'Livre emprunté à',
       'borrow_btn': 'Emprunter',
@@ -3144,30 +3180,42 @@ class TranslationService {
     },
   };
 
-  static String translate(BuildContext context, String key) {
+  static String translate(
+    BuildContext context,
+    String key, {
+    Map<String, String>? params,
+  }) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final lang = themeProvider.locale.languageCode;
-    // debugPrint('Translating $key for $lang');
+
+    String text = key;
 
     // 1. Check dynamic translations for current lang
     if (_dynamicTranslations.containsKey(lang) &&
         _dynamicTranslations[lang]!.containsKey(key)) {
-      return _dynamicTranslations[lang]![key]!;
+      text = _dynamicTranslations[lang]![key]!;
     }
-
     // 2. Check static translations for current lang
-    if (_localizedValues.containsKey(lang) &&
+    else if (_localizedValues.containsKey(lang) &&
         _localizedValues[lang]!.containsKey(key)) {
-      return _localizedValues[lang]![key]!;
+      text = _localizedValues[lang]![key]!;
     }
-
     // 3. Fallback to English dynamic
-    if (_dynamicTranslations.containsKey('en') &&
+    else if (_dynamicTranslations.containsKey('en') &&
         _dynamicTranslations['en']!.containsKey(key)) {
-      return _dynamicTranslations['en']![key]!;
+      text = _dynamicTranslations['en']![key]!;
+    }
+    // 4. Fallback to English static
+    else {
+      text = _localizedValues['en']?[key] ?? key;
     }
 
-    // 4. Fallback to English static
-    return _localizedValues['en']?[key] ?? key;
+    if (params != null) {
+      params.forEach((k, v) {
+        text = text.replaceAll('{$k}', v);
+      });
+    }
+
+    return text;
   }
 }

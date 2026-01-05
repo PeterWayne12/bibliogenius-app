@@ -13,6 +13,8 @@ import '../widgets/plus_one_animation.dart';
 import '../widgets/cached_book_cover.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'scan_screen.dart';
+import '../widgets/collection_selector.dart';
+import '../models/collection.dart';
 
 class AddBookScreen extends StatefulWidget {
   final String? isbn;
@@ -40,6 +42,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
   bool _isSaving = false;
   String? _lastLookedUpIsbn; // Prevent duplicate lookups
   final List<String> _selectedTags = [];
+  List<Collection> _selectedCollections = [];
   final List<String> _authors = []; // Multiple authors support
   Book? _duplicateBook; // Existing book with same ISBN
   bool _isDuplicate = false;
@@ -283,7 +286,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
     );
 
     try {
-      await apiService.createBook(book.toJson());
+      final response = await apiService.createBook(book.toJson());
+      final newBookId = response.data['id'];
+
+      // Update collections if any are selected
+      if (newBookId != null && _selectedCollections.isNotEmpty) {
+        await apiService.updateBookCollections(
+          newBookId,
+          _selectedCollections.map((c) => c.id).toList(),
+        );
+      }
+
       if (mounted) {
         // Clear all form fields to prevent Android autofill from retaining values
         _titleController.clear();
@@ -298,6 +311,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
         // Reset all state variables
         _authors.clear();
         _selectedTags.clear();
+        _selectedCollections.clear();
         _coverUrl = null;
         _authorsData = null;
         _isDuplicate = false;
@@ -879,6 +893,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
                 );
               }),
             ],
+            const SizedBox(height: 24),
+
+            // Collections
+            CollectionSelector(
+              selectedCollections: _selectedCollections,
+              onChanged: (collections) {
+                setState(() {
+                  _selectedCollections = collections;
+                });
+              },
+            ),
             const SizedBox(height: 24),
 
             _buildLabel(TranslationService.translate(context, 'isbn_label')),

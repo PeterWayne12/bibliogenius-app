@@ -767,6 +767,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Reading Goals Settings
               _buildReadingGoalsSection(),
               const SizedBox(height: 32),
+              // Module Management
+              Text('Modules', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 16),
+              Card(
+                child: Column(
+                  children: [
+                    Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, _) {
+                        return SwitchListTile(
+                          title: const Text('Collections Module'),
+                          subtitle: const Text(
+                            'Enable or disable the collection management features.',
+                          ),
+                          secondary: const Icon(Icons.collections_bookmark),
+                          value: themeProvider.collectionsEnabled,
+                          onChanged: (bool value) {
+                            themeProvider.setCollectionsEnabled(value);
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
               // Profile Settings
               Text(
                 TranslationService.translate(context, 'profile_settings'),

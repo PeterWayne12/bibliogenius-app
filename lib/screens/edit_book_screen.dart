@@ -8,6 +8,8 @@ import '../utils/book_status.dart';
 import '../models/book.dart';
 import '../widgets/hierarchical_tag_selector.dart';
 import '../models/tag.dart';
+import '../widgets/collection_selector.dart';
+import '../models/collection.dart';
 
 import '../widgets/book_complete_animation.dart';
 import '../utils/global_keys.dart';
@@ -35,6 +37,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
   late TextEditingController _priceController; // Price for Bookseller profile
   late Book _book;
   List<String> _selectedTags = []; // Add this
+  List<Collection> _selectedCollections = []; // Add this
   List<String> _authors = []; // Multiple authors support
   List<String> _allAuthors = []; // For autocomplete
 
@@ -110,7 +113,25 @@ class _EditBookScreenState extends State<EditBookScreen> {
     // Add listener for ISBN changes
     _isbnController.addListener(_onIsbnChanged);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAuthors());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAuthors();
+      _loadCollections();
+    });
+  }
+
+  Future<void> _loadCollections() async {
+    if (widget.book.id == null) return;
+    try {
+      final api = Provider.of<ApiService>(context, listen: false);
+      final collections = await api.getBookCollections(widget.book.id!);
+      if (mounted) {
+        setState(() {
+          _selectedCollections = collections;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading collections: $e');
+    }
   }
 
   Future<void> _loadAuthors() async {
@@ -340,6 +361,14 @@ class _EditBookScreenState extends State<EditBookScreen> {
       // Also update copy status if changed
       if (_copyId != null) {
         await apiService.updateCopy(_copyId!, {'status': _copyStatus});
+      }
+
+      // Update collections
+      if (widget.book.id != null) {
+        await apiService.updateBookCollections(
+          widget.book.id!,
+          _selectedCollections.map((c) => c.id).toList(),
+        );
       }
 
       if (mounted) {
@@ -1064,6 +1093,18 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 ),
                 const SizedBox(height: 24),
               ],
+
+              // Collections
+              CollectionSelector(
+                selectedCollections: _selectedCollections,
+                onChanged: (collections) {
+                  setState(() {
+                    _selectedCollections = collections;
+                    _hasChanges = true;
+                  });
+                },
+              ),
+              const SizedBox(height: 24),
 
               // Tags
               HierarchicalTagSelector(
