@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../services/translation_service.dart';
 import '../services/demo_service.dart';
+import '../services/mdns_service.dart';
 import '../widgets/avatar_customizer.dart';
 import '../themes/base/theme_registry.dart';
 
@@ -792,10 +793,37 @@ class _SetupScreenState extends State<SetupScreen> {
           debugPrint('_finishSetup: Password saved');
         }
 
-        debugPrint('_finishSetup: COMPLETE - Navigating to login...');
-        // Explicitly navigate to login since GoRouter refresh may not trigger automatically
+        // Auto-login the user after setup (no need to go to login page)
+        // In local mode, we just need a token to mark the user as logged in
+        await authService.saveToken(
+          'local-setup-token-${DateTime.now().millisecondsSinceEpoch}',
+        );
+        debugPrint('_finishSetup: User auto-logged in');
+
+        debugPrint('_finishSetup: COMPLETE - Navigating to dashboard...');
+
+        // Restart mDNS with correct library name (was started with default in main)
+        if (themeProvider.networkDiscoveryEnabled) {
+          try {
+            await MdnsService.stop(); // Stop existing announcement
+            final libraryUuid = await authService.getOrCreateLibraryUuid();
+            await MdnsService.startAnnouncing(
+              themeProvider.libraryName,
+              ApiService.httpPort,
+              libraryId: libraryUuid,
+            );
+            await MdnsService.startDiscovery();
+            debugPrint(
+              '_finishSetup: mDNS restarted with name: ${themeProvider.libraryName}',
+            );
+          } catch (e) {
+            debugPrint('_finishSetup: mDNS restart failed: $e');
+          }
+        }
+
+        // Navigate directly to dashboard since user is now logged in
         if (context.mounted) {
-          GoRouter.of(context).go('/login');
+          GoRouter.of(context).go('/dashboard');
         }
       } else {
         debugPrint(

@@ -176,20 +176,25 @@ void main([List<String>? args]) async {
 
       // Auto-initialize mDNS for local network discovery (Native Bonjour)
       // This makes the app discoverable on the local WiFi network
-      try {
-        final authService = AuthService();
-        final libraryUuid = await authService.getOrCreateLibraryUuid();
-        final libraryName = themeProvider.libraryName.isNotEmpty
-            ? themeProvider.libraryName
-            : 'BiblioGenius Library';
-        await MdnsService.startAnnouncing(
-          libraryName,
-          httpPort,
-          libraryId: libraryUuid,
-        );
-        await MdnsService.startDiscovery();
-      } catch (mdnsError) {
-        debugPrint('mDNS: Init failed (non-blocking): $mdnsError');
+      // Only start if user has enabled network discovery in settings
+      if (themeProvider.networkDiscoveryEnabled) {
+        try {
+          final authService = AuthService();
+          final libraryUuid = await authService.getOrCreateLibraryUuid();
+          final libraryName = themeProvider.libraryName.isNotEmpty
+              ? themeProvider.libraryName
+              : 'BiblioGenius Library';
+          await MdnsService.startAnnouncing(
+            libraryName,
+            httpPort,
+            libraryId: libraryUuid,
+          );
+          await MdnsService.startDiscovery();
+        } catch (mdnsError) {
+          debugPrint('mDNS: Init failed (non-blocking): $mdnsError');
+        }
+      } else {
+        debugPrint('mDNS: Disabled by user preference');
       }
     } catch (e, stackTrace) {
       debugPrint('FFI initialization failed: $e');
@@ -273,25 +278,19 @@ class _AppRouterState extends State<AppRouter> {
         final isOnboardingRoute = state.uri.path == '/onboarding';
         final isLoginRoute = state.uri.path == '/login';
 
-        // 1. Setup check
+        // 1. Setup check - if not setup complete, only allow /setup route
         if (!isSetup && !isSetupRoute) return '/setup';
-        if (isSetup && isSetupRoute) {
-          // Allow re-entering setup if explicitly requested
-          return null;
-        }
 
-        // 2. Auth check
+        // 2. If currently on setup route, skip all other checks (allow wizard to complete)
+        if (isSetupRoute) return null;
+
+        // 3. Auth check (only for non-setup routes)
         final authService = Provider.of<AuthService>(context, listen: false);
         final isLoggedIn = await authService.isLoggedIn();
 
         if (!isLoggedIn) {
           if (isLoginRoute) return null; // Allow access to login
-          if (isOnboardingRoute) return null; // Allow onboarding? Maybe.
-          // Usually onboarding is post-setup, pre-login or post-login?
-          // Current logic: `if (isSetup && isSetupRoute)` -> onboarding.
-          // Let's assume onBoarding is accessible or part of the flow.
-          // Re-reading original logic: it redirected to onboarding if setup was JUST done.
-          // Let's keep it simple: Secure the app.
+          if (isOnboardingRoute) return null; // Allow onboarding
           return '/login';
         }
 

@@ -199,7 +199,7 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
                 style: const TextStyle(color: Colors.white),
                 onChanged: _filterBooks,
               )
-            : Text("${widget.peerName}'s Books"),
+            : FittedBox(fit: BoxFit.scaleDown, child: Text(widget.peerName)),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
@@ -395,9 +395,9 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              if (book.summary != null) ...[
+              if (book.summary != null && book.summary!.isNotEmpty) ...[
                 Text(
-                  "Summary",
+                  TranslationService.translate(context, 'book_summary'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

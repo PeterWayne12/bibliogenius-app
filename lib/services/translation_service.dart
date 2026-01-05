@@ -105,6 +105,10 @@ class TranslationService {
       'move': 'Move',
       'no_sub_shelves': 'No sub-shelves',
       'export_backup': 'Export Library Backup',
+      'import_backup': 'Import Backup',
+      'importing_backup': 'Importing backup...',
+      'import_backup_fail': 'Import failed',
+      'books_imported': 'books imported',
       'import_csv': 'Import from Goodreads/LibraryThing',
       'app_settings': 'App Settings',
       'logout': 'Logout',
@@ -1007,6 +1011,10 @@ class TranslationService {
       'enable_gamification': 'Enable Gamification',
       'gamification_desc':
           'Track progress with badges, levels and achievements',
+      // Network Discovery
+      'enable_network_discovery': 'Local Network Discovery',
+      'network_discovery_desc':
+          'Make your library visible to others on the same WiFi network',
       'gamification_how_it_works': 'How does it work?',
       'gamification_collector_desc': 'Add books to your library to level up',
       'gamification_reader_desc': 'Mark books as read to earn badges',
@@ -1171,6 +1179,10 @@ class TranslationService {
       'move': 'Déplacer',
       'no_sub_shelves': 'Aucune sous-étagère',
       'export_backup': 'Exporter une sauvegarde',
+      'import_backup': 'Importer une sauvegarde',
+      'importing_backup': 'Importation en cours...',
+      'import_backup_fail': 'Échec de l\'importation',
+      'books_imported': 'livres importés',
       'import_csv': 'Importer depuis Goodreads/Babelio',
       'app_settings': 'Paramètres de l\'application',
       'logout': 'Se déconnecter',
@@ -2046,6 +2058,10 @@ class TranslationService {
       'enable_gamification': 'Activer la gamification',
       'gamification_desc':
           'Suivez votre progression avec des badges et niveaux',
+      // Découverte réseau
+      'enable_network_discovery': 'Découverte réseau local',
+      'network_discovery_desc':
+          'Rendre votre bibliothèque visible aux autres sur le même WiFi',
       'gamification_how_it_works': 'Comment ça marche ?',
       'gamification_collector_desc': 'Ajoutez des livres pour monter de niveau',
       'gamification_reader_desc':

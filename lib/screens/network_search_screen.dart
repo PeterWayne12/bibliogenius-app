@@ -241,15 +241,19 @@ class _NetworkSearchScreenState extends State<NetworkSearchScreen> {
                                           color: Theme.of(context).primaryColor,
                                         ),
                                         const SizedBox(width: 4),
-                                        Text(
-                                          book['_peer_name'] ??
-                                              'Unknown Library',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(
-                                              context,
-                                            ).primaryColor,
-                                            fontWeight: FontWeight.w500,
+                                        Flexible(
+                                          child: Text(
+                                            book['_peer_name'] ??
+                                                'Unknown Library',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColor,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],

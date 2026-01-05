@@ -269,7 +269,7 @@ class BadgeCollectionWidget extends StatelessWidget {
               final badgeInfo = getBadgeInfo(index);
               final isUnlocked = currentBadgeIndex >= index;
               // Flexible sizing based on available space
-              final badgeIconSize = isDesktop ? 72.0 : 50.0;
+              final badgeIconSize = isDesktop ? 72.0 : 60.0;
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,

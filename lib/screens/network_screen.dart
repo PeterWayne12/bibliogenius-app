@@ -1011,7 +1011,7 @@ class _NetworkScreenState extends State<NetworkScreen>
                         ? Colors.white
                         : Colors.black87,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
@@ -1214,7 +1214,7 @@ class _NetworkScreenState extends State<NetworkScreen>
                     fontSize: 16,
                     color: isPending ? Colors.grey : null,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
@@ -1497,7 +1497,44 @@ class _NetworkScreenState extends State<NetworkScreen>
   Widget _buildScanTab() {
     return Stack(
       children: [
-        MobileScanner(controller: cameraController, onDetect: _onDetect),
+        MobileScanner(
+          controller: cameraController,
+          onDetect: _onDetect,
+          errorBuilder: (context, error, child) {
+            // Handle camera errors gracefully instead of black screen
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.camera_alt, size: 80, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(
+                      TranslationService.translate(context, 'camera_error') ??
+                          'Camera Error',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error.errorDetails?.message ?? error.errorCode.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _tabController.animateTo(0),
+                      icon: const Icon(Icons.arrow_back),
+                      label: Text(
+                        TranslationService.translate(context, 'back') ?? 'Back',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
         Container(
           decoration: ShapeDecoration(
             shape: QrScannerOverlayShape(
@@ -1506,6 +1543,18 @@ class _NetworkScreenState extends State<NetworkScreen>
               borderLength: 30,
               borderWidth: 10,
               cutOutSize: 300,
+            ),
+          ),
+        ),
+        // Back button at the top left
+        Positioned(
+          top: 40,
+          left: 16,
+          child: CircleAvatar(
+            backgroundColor: Colors.black54,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => _tabController.animateTo(0),
             ),
           ),
         ),
@@ -1534,8 +1583,8 @@ class _NetworkScreenState extends State<NetworkScreen>
         ),
         Positioned(
           top: 40,
-          left: 0,
-          right: 0,
+          left: 70,
+          right: 16,
           child: Center(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

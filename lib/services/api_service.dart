@@ -1214,6 +1214,32 @@ class ApiService {
     );
   }
 
+  /// Import a JSON backup file to restore library data
+  Future<Response> importBackup(List<int> jsonBytes) async {
+    // Parse the JSON to send as structured data
+    try {
+      final jsonString = utf8.decode(jsonBytes);
+      final jsonData = jsonDecode(jsonString);
+
+      if (useFfi) {
+        // In FFI mode, POST to local HTTP server
+        final localDio = Dio(
+          BaseOptions(baseUrl: 'http://localhost:${ApiService.httpPort}'),
+        );
+        return await localDio.post('/api/import', data: jsonData);
+      }
+
+      return await _dio.post('/api/import', data: jsonData);
+    } catch (e) {
+      debugPrint('Import backup error: $e');
+      return Response(
+        requestOptions: RequestOptions(path: '/api/import'),
+        statusCode: 500,
+        data: {'error': 'Failed to parse backup file: $e'},
+      );
+    }
+  }
+
   Future<Response> importBooks(dynamic fileSource, {String? filename}) async {
     // FFI mode: Parse CSV and create books locally
     if (useFfi) {

@@ -46,6 +46,10 @@ class ThemeProvider with ChangeNotifier {
       isBookseller && _commerceEnabled; // Commerce module (pricing) active
   bool get hasSales =>
       isBookseller && _commerceEnabled; // Sales/transactions module active
+
+  // Network Discovery (mDNS): allows user to disable local network visibility
+  bool _networkDiscoveryEnabled = true;
+  bool get networkDiscoveryEnabled => _networkDiscoveryEnabled;
   bool get hasLoans =>
       !isBookseller; // Loans disabled by default for booksellers
 
@@ -106,6 +110,7 @@ class ThemeProvider with ChangeNotifier {
     }
 
     _commerceEnabled = prefs.getBool('commerceEnabled') ?? false;
+    _networkDiscoveryEnabled = prefs.getBool('networkDiscoveryEnabled') ?? true;
 
     // Load gamification setting (default based on profile type)
     final savedGamification = prefs.getBool('gamificationEnabled');
@@ -372,6 +377,13 @@ class ThemeProvider with ChangeNotifier {
     _commerceEnabled = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('commerceEnabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setNetworkDiscoveryEnabled(bool enabled) async {
+    _networkDiscoveryEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('networkDiscoveryEnabled', enabled);
     notifyListeners();
   }
 }

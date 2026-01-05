@@ -160,6 +160,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _importBackup() async {
+    try {
+      // Pick a JSON file
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result == null || result.files.isEmpty) {
+        return; // User cancelled
+      }
+
+      final file = result.files.first;
+      List<int> bytes;
+
+      if (kIsWeb) {
+        // Web: use bytes directly
+        if (file.bytes == null) {
+          throw Exception('Could not read file');
+        }
+        bytes = file.bytes!;
+      } else {
+        // Native: read from path
+        if (file.path == null) {
+          throw Exception('File path is null');
+        }
+        final ioFile = io.File(file.path!);
+        bytes = await ioFile.readAsBytes();
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              TranslationService.translate(context, 'importing_backup'),
+            ),
+          ),
+        );
+      }
+
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.importBackup(bytes);
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final booksCount = data['books_imported'] ?? 0;
+        final message = data['message'] ?? 'Import successful';
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '$message - $booksCount ${TranslationService.translate(context, 'books_imported')}',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        throw Exception(response.data['error'] ?? 'Import failed');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'import_backup_fail')}: $e',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _showChangePasswordDialog() async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final hasPassword = await authService.hasPasswordSet();
@@ -1171,6 +1246,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             themeProvider.setGamificationEnabled(value),
                       ),
                     ),
+                    const Divider(),
+                    // Network Discovery Toggle (mDNS)
+                    Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, _) => SwitchListTile(
+                        secondary: const Icon(Icons.wifi_tethering),
+                        title: Text(
+                          TranslationService.translate(
+                            context,
+                            'enable_network_discovery',
+                          ),
+                        ),
+                        subtitle: Text(
+                          TranslationService.translate(
+                            context,
+                            'network_discovery_desc',
+                          ),
+                        ),
+                        value: themeProvider.networkDiscoveryEnabled,
+                        onChanged: (value) async {
+                          await themeProvider.setNetworkDiscoveryEnabled(value);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  TranslationService.translate(
+                                        context,
+                                        'restart_required_for_changes',
+                                      ) ??
+                                      'Please restart the app for changes to take full effect',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
                     // TODO: Re-enable when borrowed books list is needed (currently using filters instead)
                     // if (_config?['profile_type'] == 'individual')
                     //   SwitchListTile(
@@ -1306,6 +1417,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: const Icon(Icons.download),
                 label: Text(
                   TranslationService.translate(context, 'export_backup'),
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: _importBackup,
+                icon: const Icon(Icons.upload),
+                label: Text(
+                  TranslationService.translate(context, 'import_backup'),
                 ),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),

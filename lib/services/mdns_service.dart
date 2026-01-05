@@ -237,21 +237,18 @@ class MdnsService {
               host = ipFromAttrs;
               debugPrint('📚 mDNS: Using IP from attributes: $host');
             } else {
+              // No valid IP in attributes - skip this peer entirely
+              // Hostname resolution (.local) is unreliable on Android
               if (ipFromAttrs != null && _isLinkLocalAddress(ipFromAttrs)) {
                 debugPrint(
-                  '⚠️ mDNS: Peer advertised link-local IP ($ipFromAttrs), trying hostname fallback',
+                  '⚠️ mDNS: Peer advertised link-local IP ($ipFromAttrs), skipping',
+                );
+              } else {
+                debugPrint(
+                  '⚠️ mDNS: No valid IP in attributes for "${service.name}", skipping',
                 );
               }
-              // Fallback: Generate hostname from service name (less reliable)
-              final hostGuess = service.name
-                  .toLowerCase()
-                  .replaceAll(RegExp(r'[^a-z0-9]'), '-')
-                  .replaceAll(RegExp(r'-+'), '-')
-                  .replaceAll(RegExp(r'-$'), ''); // Remove trailing dash
-              host = '$hostGuess.local';
-              debugPrint(
-                '⚠️ mDNS: No valid IP in attributes, guessing hostname: $host',
-              );
+              return; // Don't add this peer without a valid IP
             }
 
             // Use actual port from service (default to 8000 if not available)
