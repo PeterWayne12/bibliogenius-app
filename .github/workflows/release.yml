@@ -358,6 +358,7 @@ jobs:
   release:
     needs: [build-android, build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
+    if: "!contains(github.ref, '-ci')"
     permissions:
       contents: write
       
