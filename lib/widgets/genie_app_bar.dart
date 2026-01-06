@@ -37,10 +37,21 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     // Theme-aware gradient - dark wood for Sorbonne, blue-purple for others
+    // Theme-aware gradient
     final isSorbonne = themeProvider.themeStyle == 'sorbonne';
+    final isDefault = themeProvider.themeStyle == 'default';
+
     final gradientColors = isSorbonne
         ? [const Color(0xFF1A0F0A), const Color(0xFF2D1810)] // Dark wood
-        : [const Color(0xFF667eea), const Color(0xFF764ba2)]; // Blue-purple
+        : isDefault
+        ? [
+            const Color(0xFF6BB0A9),
+            const Color(0xFF5C8C9F),
+          ] // Teal Gradient (6bb0a9 -> 5c8c9f)
+        : [
+            const Color(0xFF667eea),
+            const Color(0xFF764ba2),
+          ]; // Blue-purple (fallback)
 
     return AppBar(
       automaticallyImplyLeading: automaticallyImplyLeading,

@@ -1,6 +1,7 @@
 /// BiblioGenius Default Theme
 ///
 /// The classic BiblioGenius look: warm, inviting with customizable accent color.
+/// Features a green sidebar for an organic, library-inspired feel.
 
 import 'package:flutter/material.dart';
 import '../base/theme_interface.dart';
@@ -13,14 +14,19 @@ class DefaultTheme extends AppTheme {
   String get displayName => 'BiblioGenius Classic';
 
   @override
-  String get description => 'Warm, inviting design with soft colors';
+  String get description => 'Warm, inviting design with organic green sidebar';
 
   @override
-  Color get previewColor => const Color(0xFF6366F1);
+  Color get previewColor => const Color(0xFF4CAF50); // Green preview
+
+  // Theme color constants
+  static const _tealLight = Color(0xFF6BB0A9); // New Gradient Start
+  static const _tealDark = Color(0xFF5C8C9F); // New Gradient End
+  static const _headerBlue = Color(0xFF6366F1); // Keep blue for buttons
 
   @override
   ThemeData buildTheme({Color? accentColor}) {
-    final bannerColor = accentColor ?? const Color(0xFF6366F1);
+    final bannerColor = accentColor ?? _headerBlue;
     final brightness = ThemeData.estimateBrightnessForColor(bannerColor);
     final foregroundColor = brightness == Brightness.dark
         ? Colors.white
@@ -38,19 +44,51 @@ class DefaultTheme extends AppTheme {
       scaffoldBackgroundColor: bgBody,
       fontFamily: 'Inter',
       appBarTheme: AppBarTheme(
-        backgroundColor: bannerColor,
-        foregroundColor: foregroundColor,
+        backgroundColor: _tealDark, // Use teal for app bar background fallback
+        foregroundColor: Colors.white,
         elevation: 0,
-        titleTextStyle: TextStyle(
-          color: foregroundColor,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.5,
         ),
       ),
+      // Sidebar: Reset background, set active indicator to Teal
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: null, // Reset to default (transparent/surface)
+        selectedIconTheme: const IconThemeData(color: _tealDark, size: 24),
+        unselectedIconTheme: const IconThemeData(
+          color: Color(0xFF757575),
+          size: 24,
+        ), // Grey 600
+        selectedLabelTextStyle: const TextStyle(
+          color: _tealDark,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+        unselectedLabelTextStyle: const TextStyle(
+          color: Color(0xFF757575), // Grey 600 for better contrast
+          fontWeight: FontWeight.w500,
+          fontSize: 11,
+        ),
+        indicatorColor: _tealLight.withAlpha(
+          50,
+        ), // Semi-transparent teal for active item bg
+        useIndicator: true,
+      ),
+      // FAB uses primary color (Blue), so no override needed or explicit blue
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: bannerColor, // Blue
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: bannerColor,
         primary: bannerColor,
+        secondary: _tealLight, // Teal as secondary
+
         surface: bgCard,
         onSurface: textMain,
         outline: border,
