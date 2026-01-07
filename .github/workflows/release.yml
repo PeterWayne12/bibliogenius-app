@@ -353,7 +353,8 @@ jobs:
           
           if [ -z "$INSTALLER_IDENTITY" ]; then
             echo "Error: No Installer identity found."
-            security find-identity -v -p codesigning
+            echo "Debugging: Listing ALL identities (including invalid ones):"
+            security find-identity
             exit 1
           fi
           
