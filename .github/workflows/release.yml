@@ -132,7 +132,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
-          packageName: org.bibliogenius.app
+          packageName: com.bibliogenius.app
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
           status: completed
@@ -427,7 +427,16 @@ jobs:
           # Force manual signing and update team ID
           sed -i '' "s/DEVELOPMENT_TEAM = RF374CUSUZ/DEVELOPMENT_TEAM = $APPLE_TEAM_ID/g" ios/Runner.xcodeproj/project.pbxproj
           sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' "s/PROVISIONING_PROFILE_SPECIFIER = \"\"/PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_UUID\"/g" ios/Runner.xcodeproj/project.pbxproj
+          
+          # Insert PROVISIONING_PROFILE_SPECIFIER after DEVELOPMENT_TEAM since it doesn't exist
+          sed -i '' "s/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/DEVELOPMENT_TEAM = $APPLE_TEAM_ID; PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_UUID\";/g" ios/Runner.xcodeproj/project.pbxproj
+
+          # FORCE BUNDLE ID to com.bibliogenius.app (to match Apple ID)
+          sed -i '' 's/org.bibliogenius.app/com.bibliogenius.app/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/PRODUCT_BUNDLE_IDENTIFIER = org.bibliogenius.app;/PRODUCT_BUNDLE_IDENTIFIER = com.bibliogenius.app;/g' ios/Runner.xcodeproj/project.pbxproj
+
+          
+          # Force Distribution Identity
           sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer"/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution"/g' ios/Runner.xcodeproj/project.pbxproj
           sed -i '' 's/CODE_SIGN_IDENTITY = "Apple Development"/CODE_SIGN_IDENTITY = "Apple Distribution"/g' ios/Runner.xcodeproj/project.pbxproj
           sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer"/CODE_SIGN_IDENTITY = "iPhone Distribution"/g' ios/Runner.xcodeproj/project.pbxproj
@@ -435,6 +444,7 @@ jobs:
           # Debug: show what we changed
           echo "Profile UUID: $PROFILE_UUID"
           echo "Team ID: $APPLE_TEAM_ID"
+          grep -C 5 "PROVISIONING_PROFILE_SPECIFIER" ios/Runner.xcodeproj/project.pbxproj || echo "Profile Specifier not found in file!"
           
           # Build IPA
           flutter build ipa --release --export-options-plist=ios/Runner/ExportOptions.plist
