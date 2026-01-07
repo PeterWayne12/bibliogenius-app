@@ -348,8 +348,15 @@ jobs:
           spctl --assess --verbose "$APP_PATH" || echo "spctl assessment failed, but continuing..."
           
           # Create PKG for upload (required for App Store / TestFlight)
+          # Create PKG for upload (required for App Store / TestFlight)
           echo "Finding Installer Identity..."
-          INSTALLER_IDENTITY=$(security find-identity -v -p codesigning | grep -E "Mac Developer Installer|3rd Party Mac Developer Installer|Developer ID Installer" | head -1 | awk -F '"' '{print $2}')
+          
+          # Debug: Show what we are parsing
+          echo "Raw security output:"
+          security find-identity -v -p codesigning
+          
+          # Extract the SHA-1 Hash (2nd column) of the first identity containing "Installer"
+          INSTALLER_IDENTITY=$(security find-identity -v -p codesigning | grep "Installer" | head -1 | awk '{print $2}')
           
           if [ -z "$INSTALLER_IDENTITY" ]; then
             echo "Error: No Installer identity found."

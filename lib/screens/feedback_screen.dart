@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
@@ -34,8 +34,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String _appVersion = 'Unknown';
 
   // Hub URL from environment with production fallback
-  static String get _hubUrl =>
-      dotenv.env['HUB_URL'] ?? 'https://hub.bibliogenius.org';
+  static String get _hubUrl {
+    // Force production URL in release mode to avoid accidental localhost usage
+    if (kReleaseMode) {
+      return 'https://hub.bibliogenius.org';
+    }
+    return dotenv.env['HUB_URL'] ?? 'https://hub.bibliogenius.org';
+  }
 
   @override
   void initState() {
