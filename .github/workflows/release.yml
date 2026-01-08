@@ -191,10 +191,11 @@ jobs:
           name: bibliogenius-macos-arm64
           path: backend-arm64
 
-      - name: Import Apple Certificate
+      - name: Import Developer ID Certificate
         env:
-          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # CRITICAL: Use Developer ID for macOS DMG, separate from iOS Apple Distribution
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_CERT_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERT_PASSWORD }}
         run: |
           # Create temporary keychain
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
@@ -303,11 +304,15 @@ jobs:
           echo "Listing compiled directory:"
           ls -R build/macos/Build/Products/Release/
           
-          # Find the identity dynamically
-          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | awk -F '"' '{print $2}')
+          # Find the Developer ID Application identity
+          # CRITICAL: For Notarization (DMG distribution), we MUST use "Developer ID Application".
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk -F '"' '{print $2}')
           
           if [ -z "$IDENTITY" ]; then
-            echo "Error: No Apple Distribution identity found."
+            echo "❌ Error: 'Developer ID Application' certificate not found in keychain."
+            echo "For macOS Notarization (DMG), you MUST use a Developer ID Application certificate."
+            echo "Please ensure APPLE_CERTIFICATE_BASE64 contains a 'Developer ID Application' certificate, not 'Apple Distribution'."
+            echo "Available identities:"
             security find-identity -v
             exit 1
           fi
@@ -317,14 +322,23 @@ jobs:
           echo "Prepare entitlements..."
           sed "s/\$(AppIdentifierPrefix)/$APPLE_TEAM_ID./g" macos/Runner/Release.entitlements > macos/Runner/Release.processed.entitlements
           
-          echo "Signing backend binary with entitlements..."
-          codesign --force --verbose --sign "$IDENTITY" --entitlements macos/Runner/Release.processed.entitlements "$BACKEND_PATH"
+          echo "Signing inner libraries and frameworks..."
+          # Sign all frameworks and dylibs deep inside the bundle first
+          find "$APP_PATH/Contents/Frameworks" -name "*.framework" -or -name "*.dylib" | while read file; do
+             echo "Signing $file..."
+             codesign --force --verbose --timestamp --sign "$IDENTITY" "$file"
+          done
           
-          echo "Signing main app bundle..."
-          codesign --force --deep --verbose --options runtime --sign "$IDENTITY" --entitlements macos/Runner/Release.processed.entitlements "$APP_PATH"
+          echo "Signing backend binary with hardened runtime and entitlements..."
+          codesign --force --verbose --timestamp --options runtime --sign "$IDENTITY" --entitlements macos/Runner/Release.processed.entitlements "$BACKEND_PATH"
+          
+          echo "Signing main app bundle with hardened runtime and entitlements..."
+          # Note: We use --deep to catch any other nested binaries, but having signed frameworks explicitly above is safer.
+          codesign --force --deep --verbose --timestamp --options runtime --sign "$IDENTITY" --entitlements macos/Runner/Release.processed.entitlements "$APP_PATH"
           
           # Verify signing
-          codesign --verify --verbose "$APP_PATH"
+          echo "Verifying signature..."
+          codesign --verify --verbose --deep --strict "$APP_PATH"
           spctl --assess --verbose "$APP_PATH" || echo "spctl assessment failed (expected before notarization), continuing..."
 
       - name: Create DMG
