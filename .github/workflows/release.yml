@@ -263,9 +263,11 @@ jobs:
           # We will sign manually with Developer ID Application certificate after build
           sed -i '' "s/DEVELOPMENT_TEAM = RF374CUSUZ/DEVELOPMENT_TEAM = $APPLE_TEAM_ID/g" macos/Runner.xcodeproj/project.pbxproj
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' macos/Runner.xcodeproj/project.pbxproj
+          # Set CODE_SIGN_IDENTITY to empty to disable signing during build
+          sed -i '' 's/CODE_SIGN_IDENTITY = ".*";/CODE_SIGN_IDENTITY = "";/g' macos/Runner.xcodeproj/project.pbxproj
           
-          # Build the app without code signing - we'll sign later with Developer ID
-          flutter build macos --release --no-codesign
+          # Build the app - xcodebuild will see empty CODE_SIGN_IDENTITY and skip signing
+          flutter build macos --release
       
       - name: Validate app bundle
         run: |
