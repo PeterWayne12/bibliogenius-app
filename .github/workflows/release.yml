@@ -118,7 +118,8 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           flutter build apk --release
-          flutter build appbundle --release --build-number=${{ github.run_number }}
+          BUILD_NUMBER=$((${{ github.run_number }} + 200))
+          flutter build appbundle --release --build-number=$BUILD_NUMBER
 
       - name: Upload APK & AAB
         uses: actions/upload-artifact@v4
