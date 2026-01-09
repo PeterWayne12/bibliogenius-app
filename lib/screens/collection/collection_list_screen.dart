@@ -109,6 +109,7 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
         title: Text(TranslationService.translate(context, 'collections')),
         actions: [
           TextButton.icon(
+            style: TextButton.styleFrom(foregroundColor: Colors.white),
             icon: const Icon(Icons.auto_awesome),
             label: Text(TranslationService.translate(context, 'discover')),
             onPressed: () async {
