@@ -32,6 +32,8 @@
 	<string>NSApplication</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan barcodes</string>
+	<key>NSCameraUseContinuityCameraDeviceType</key>
+	<true/>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_bibliogenius._tcp</string>
