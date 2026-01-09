@@ -343,12 +343,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               const SizedBox(height: 24),
                             ],
 
-                            // Stats Row - Full Width
-                            Row(
+                            // Stats Row - Responsive Layout (2x2 on small screens)
+                            LayoutBuilder(
                               key: _statsKey,
-                              children: [
-                                Expanded(
-                                  child: _buildStatCard(
+                              builder: (context, constraints) {
+                                // Build list of stat cards based on conditions
+                                final statCards = <Widget>[
+                                  _buildStatCard(
                                     context,
                                     TranslationService.translate(
                                       context,
@@ -357,11 +358,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     (_stats['total_books'] ?? 0).toString(),
                                     Icons.menu_book,
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                // Lent books (prêtés) - visible for all
-                                Expanded(
-                                  child: _buildStatCard(
+                                  _buildStatCard(
                                     context,
                                     TranslationService.translate(
                                       context,
@@ -371,12 +368,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     Icons.arrow_upward,
                                     isAccent: true,
                                   ),
-                                ),
-                                // Borrowed books (empruntés) - hidden for librarians
-                                if (!themeProvider.isLibrarian) ...[
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildStatCard(
+                                  if (!themeProvider.isLibrarian)
+                                    _buildStatCard(
                                       context,
                                       TranslationService.translate(
                                         context,
@@ -386,12 +379,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           .toString(),
                                       Icons.arrow_downward,
                                     ),
-                                  ),
-                                ],
-                                if (!isKid) ...[
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildStatCard(
+                                  if (!isKid)
+                                    _buildStatCard(
                                       context,
                                       themeProvider.isLibrarian
                                           ? TranslationService.translate(
@@ -406,15 +395,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           .toString(),
                                       Icons.people,
                                     ),
-                                  ),
-                                ],
-                              ],
+                                ];
+
+                                // Use 2x2 grid for narrow screens (< 400px)
+                                if (constraints.maxWidth < 400 &&
+                                    statCards.length > 2) {
+                                  // Split into rows of 2
+                                  final firstRow = statCards.take(2).toList();
+                                  final secondRow = statCards.skip(2).toList();
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        children:
+                                            firstRow
+                                                .expand(
+                                                  (w) => [
+                                                    Expanded(child: w),
+                                                    const SizedBox(width: 12),
+                                                  ],
+                                                )
+                                                .toList()
+                                              ..removeLast(),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children:
+                                            secondRow
+                                                .expand(
+                                                  (w) => [
+                                                    Expanded(child: w),
+                                                    const SizedBox(width: 12),
+                                                  ],
+                                                )
+                                                .toList()
+                                              ..removeLast(),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                // Use Row for wide screens
+                                return Row(
+                                  children:
+                                      statCards
+                                          .expand(
+                                            (w) => [
+                                              Expanded(child: w),
+                                              const SizedBox(width: 12),
+                                            ],
+                                          )
+                                          .toList()
+                                        ..removeLast(),
+                                );
+                              },
                             ),
 
                             const SizedBox(height: 24),
 
                             // Gamification Mini-Widget
-                            if (_gamificationStatus != null && !isKid)
+                            if (_gamificationStatus != null &&
+                                !isKid &&
+                                themeProvider.gamificationEnabled)
                               _buildGamificationMini(context),
 
                             const SizedBox(height: 32),
@@ -909,54 +950,117 @@ class _DashboardScreenState extends State<DashboardScreen> {
               builder: (context) {
                 final isDesktop = MediaQuery.of(context).size.width > 600;
                 final trackSize = isDesktop ? 80.0 : 60.0;
-                return Center(
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceAround,
-                    spacing: isDesktop ? 32 : 16,
-                    runSpacing: isDesktop ? 24 : 12,
-                    children: [
-                      TrackProgressWidget(
-                        track: _gamificationStatus!.collector,
-                        trackName: TranslationService.translate(
-                          context,
-                          'track_collector',
-                        ),
-                        icon: Icons.collections_bookmark,
-                        color: Colors.blue,
-                        size: trackSize,
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Use 2x2 grid for narrow screens (< 400px)
+                    if (constraints.maxWidth < 400) {
+                      return Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              TrackProgressWidget(
+                                track: _gamificationStatus!.collector,
+                                trackName: TranslationService.translate(
+                                  context,
+                                  'track_collector',
+                                ),
+                                icon: Icons.collections_bookmark,
+                                color: Colors.blue,
+                                size: trackSize,
+                              ),
+                              TrackProgressWidget(
+                                track: _gamificationStatus!.reader,
+                                trackName: TranslationService.translate(
+                                  context,
+                                  'track_reader',
+                                ),
+                                icon: Icons.menu_book,
+                                color: Colors.green,
+                                size: trackSize,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              TrackProgressWidget(
+                                track: _gamificationStatus!.lender,
+                                trackName: TranslationService.translate(
+                                  context,
+                                  'track_lender',
+                                ),
+                                icon: Icons.volunteer_activism,
+                                color: Colors.orange,
+                                size: trackSize,
+                              ),
+                              TrackProgressWidget(
+                                track: _gamificationStatus!.cataloguer,
+                                trackName: TranslationService.translate(
+                                  context,
+                                  'track_cataloguer',
+                                ),
+                                icon: Icons.list_alt,
+                                color: Colors.purple,
+                                size: trackSize,
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+                    // Use centered Wrap for wide screens
+                    return Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.spaceAround,
+                        spacing: isDesktop ? 32 : 16,
+                        runSpacing: isDesktop ? 24 : 12,
+                        children: [
+                          TrackProgressWidget(
+                            track: _gamificationStatus!.collector,
+                            trackName: TranslationService.translate(
+                              context,
+                              'track_collector',
+                            ),
+                            icon: Icons.collections_bookmark,
+                            color: Colors.blue,
+                            size: trackSize,
+                          ),
+                          TrackProgressWidget(
+                            track: _gamificationStatus!.reader,
+                            trackName: TranslationService.translate(
+                              context,
+                              'track_reader',
+                            ),
+                            icon: Icons.menu_book,
+                            color: Colors.green,
+                            size: trackSize,
+                          ),
+                          TrackProgressWidget(
+                            track: _gamificationStatus!.lender,
+                            trackName: TranslationService.translate(
+                              context,
+                              'track_lender',
+                            ),
+                            icon: Icons.volunteer_activism,
+                            color: Colors.orange,
+                            size: trackSize,
+                          ),
+                          TrackProgressWidget(
+                            track: _gamificationStatus!.cataloguer,
+                            trackName: TranslationService.translate(
+                              context,
+                              'track_cataloguer',
+                            ),
+                            icon: Icons.list_alt,
+                            color: Colors.purple,
+                            size: trackSize,
+                          ),
+                        ],
                       ),
-                      TrackProgressWidget(
-                        track: _gamificationStatus!.reader,
-                        trackName: TranslationService.translate(
-                          context,
-                          'track_reader',
-                        ),
-                        icon: Icons.menu_book,
-                        color: Colors.green,
-                        size: trackSize,
-                      ),
-                      TrackProgressWidget(
-                        track: _gamificationStatus!.lender,
-                        trackName: TranslationService.translate(
-                          context,
-                          'track_lender',
-                        ),
-                        icon: Icons.volunteer_activism,
-                        color: Colors.orange,
-                        size: trackSize,
-                      ),
-                      TrackProgressWidget(
-                        track: _gamificationStatus!.cataloguer,
-                        trackName: TranslationService.translate(
-                          context,
-                          'track_cataloguer',
-                        ),
-                        icon: Icons.list_alt,
-                        color: Colors.purple,
-                        size: trackSize,
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             ),

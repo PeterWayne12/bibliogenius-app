@@ -237,13 +237,19 @@ class MinimalTheme extends AppTheme {
       iconTheme: const IconThemeData(color: textMain, size: 20),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (states) =>
-              states.contains(WidgetState.selected) ? accent : Colors.white,
+          (states) => states.contains(WidgetState.selected)
+              ? accent
+              : const Color(0xFFF5F5F5), // Light grey instead of white
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
               ? accent.withValues(alpha: 0.5)
               : border,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : const Color(0xFFBDBDBD), // Grey border for OFF state
         ),
       ),
       checkboxTheme: CheckboxThemeData(

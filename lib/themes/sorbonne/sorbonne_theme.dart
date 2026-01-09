@@ -444,6 +444,11 @@ class SorbonneTheme extends AppTheme {
               ? SorbonneColors.leather
               : SorbonneColors.darkWood,
         ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : SorbonneColors.lampBrass, // Brass border for OFF state
+        ),
       ),
 
       checkboxTheme: CheckboxThemeData(

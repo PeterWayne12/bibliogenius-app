@@ -148,6 +148,24 @@ class DefaultTheme extends AppTheme {
         ),
         floatingLabelBehavior: FloatingLabelBehavior.auto,
       ),
+      // Switch theme with better contrast for OFF state
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? bannerColor
+              : const Color(0xFFF5F5F5), // Very light grey instead of white
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? bannerColor.withAlpha(128)
+              : const Color(0xFFE0E0E0), // Light grey track
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : const Color(0xFFBDBDBD), // Grey border for OFF state
+        ),
+      ),
     );
   }
 }

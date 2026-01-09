@@ -748,7 +748,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               const SizedBox(height: 8),
-              StatusBadge(level: level, size: 32),
+              // Status Badge (only if gamification enabled)
+              Consumer<ThemeProvider>(
+                builder: (context, themeProvider, _) {
+                  if (!themeProvider.gamificationEnabled) {
+                    return const SizedBox.shrink();
+                  }
+                  return StatusBadge(level: level, size: 32);
+                },
+              ),
               const SizedBox(height: 32),
 
               // Gamification V3 - Track Progress Card (if enabled)

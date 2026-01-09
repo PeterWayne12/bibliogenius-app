@@ -263,102 +263,163 @@ class BadgeCollectionWidget extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(4, (index) {
-              final badgeInfo = getBadgeInfo(index);
-              final isUnlocked = currentBadgeIndex >= index;
-              // Flexible sizing based on available space
-              final badgeIconSize = isDesktop ? 72.0 : 60.0;
-
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Simplified: just the badge icon without heavy outer circle
-                  SizedBox(
-                    width: badgeIconSize + 20,
-                    height: badgeIconSize + 20,
-                    child: Stack(
-                      alignment: Alignment.center,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Use 2x2 grid for narrow screens (< 400px)
+              if (constraints.maxWidth < 400) {
+                return Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        // Badge icon (simplified - no outer circle)
-                        Opacity(
-                          opacity: isUnlocked ? 1.0 : 0.4,
-                          child: SvgPicture.asset(
-                            badgeInfo.assetPath,
-                            width: badgeIconSize,
-                            height: badgeIconSize,
-                            fit: BoxFit.contain,
-                            colorFilter: isUnlocked
-                                ? null
-                                : const ColorFilter.matrix(<double>[
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    1,
-                                    0,
-                                  ]),
-                          ),
+                        _buildBadgeItem(
+                          context,
+                          0,
+                          currentBadgeIndex,
+                          isDesktop,
+                          badgeLabelFontSize,
                         ),
-                        // Lock icon for locked badges
-                        if (!isUnlocked)
-                          Positioned(
-                            bottom: 0,
-                            right: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.lock,
-                                size: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ),
+                        _buildBadgeItem(
+                          context,
+                          1,
+                          currentBadgeIndex,
+                          isDesktop,
+                          badgeLabelFontSize,
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Text(
-                      TranslationService.translate(
-                        context,
-                        badgeInfo.translationKey,
-                      ).split(' ').last,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: badgeLabelFontSize,
-                        fontWeight: isUnlocked
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isUnlocked ? badgeInfo.color : Colors.grey,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildBadgeItem(
+                          context,
+                          2,
+                          currentBadgeIndex,
+                          isDesktop,
+                          badgeLabelFontSize,
+                        ),
+                        _buildBadgeItem(
+                          context,
+                          3,
+                          currentBadgeIndex,
+                          isDesktop,
+                          badgeLabelFontSize,
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                );
+              }
+              // Use Row for wide screens
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(4, (index) {
+                  return _buildBadgeItem(
+                    context,
+                    index,
+                    currentBadgeIndex,
+                    isDesktop,
+                    badgeLabelFontSize,
+                  );
+                }),
               );
-            }),
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadgeItem(
+    BuildContext context,
+    int index,
+    int currentBadgeIndex,
+    bool isDesktop,
+    double badgeLabelFontSize,
+  ) {
+    final badgeInfo = getBadgeInfo(index);
+    final isUnlocked = currentBadgeIndex >= index;
+    // Flexible sizing based on available space
+    final badgeIconSize = isDesktop ? 72.0 : 60.0;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Simplified: just the badge icon without heavy outer circle
+        SizedBox(
+          width: badgeIconSize + 20,
+          height: badgeIconSize + 20,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Badge icon (simplified - no outer circle)
+              Opacity(
+                opacity: isUnlocked ? 1.0 : 0.4,
+                child: SvgPicture.asset(
+                  badgeInfo.assetPath,
+                  width: badgeIconSize,
+                  height: badgeIconSize,
+                  fit: BoxFit.contain,
+                  colorFilter: isUnlocked
+                      ? null
+                      : const ColorFilter.matrix(<double>[
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0,
+                          1,
+                          0,
+                        ]),
+                ),
+              ),
+              // Lock icon for locked badges
+              if (!isUnlocked)
+                Positioned(
+                  bottom: 0,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.lock, size: 12, color: Colors.grey[600]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Text(
+            TranslationService.translate(
+              context,
+              badgeInfo.translationKey,
+            ).split(' ').last,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: badgeLabelFontSize,
+              fontWeight: isUnlocked ? FontWeight.bold : FontWeight.normal,
+              color: isUnlocked ? badgeInfo.color : Colors.grey,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

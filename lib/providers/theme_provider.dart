@@ -197,6 +197,12 @@ class ThemeProvider with ChangeNotifier {
       _canBorrowBooks = !isLibrarian;
     }
 
+    // Auto-enable commerce module for bookseller profile
+    if (type == 'bookseller') {
+      _commerceEnabled = true;
+      await prefs.setBool('commerceEnabled', true);
+    }
+
     notifyListeners();
 
     if (apiService != null) {
@@ -267,12 +273,21 @@ class ThemeProvider with ChangeNotifier {
     _libraryName = libraryName;
     _isSetupComplete = true;
 
+    // Auto-enable commerce module for bookseller profile
+    if (profileType == 'bookseller') {
+      _commerceEnabled = true;
+    }
+
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('profileType', profileType);
     await prefs.setString('avatarConfig', jsonEncode(avatarConfig.toJson()));
     await prefs.setString('libraryName', libraryName);
     await prefs.setBool('isSetupComplete', true);
+    // Save commerce enabled state for bookseller
+    if (profileType == 'bookseller') {
+      await prefs.setBool('commerceEnabled', true);
+    }
 
     // Sync with backend if ApiService provided
     if (apiService != null) {

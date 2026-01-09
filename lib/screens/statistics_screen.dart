@@ -168,7 +168,10 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       _buildSalesStatisticsSection(),
                     ],
                     const SizedBox(height: 32),
-                    if (_userStatus != null) ...[
+                    if (_userStatus != null &&
+                        Provider.of<ThemeProvider>(
+                          context,
+                        ).gamificationEnabled) ...[
                       _buildSectionTitle(
                         TranslationService.translate(context, 'your_progress'),
                         Icons.emoji_events,
@@ -851,38 +854,59 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildCircularTrack(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final collectors = _buildCircularTrack(
                   context,
                   TranslationService.translate(context, 'track_collector'),
                   _userStatus!.collector,
                   Icons.collections_bookmark,
                   const Color(0xFFD4A855), // Bronze instead of blue
-                ),
-                _buildCircularTrack(
+                );
+                final reader = _buildCircularTrack(
                   context,
                   TranslationService.translate(context, 'track_reader'),
                   _userStatus!.reader,
                   Icons.menu_book,
                   Colors.green,
-                ),
-                _buildCircularTrack(
+                );
+                final lender = _buildCircularTrack(
                   context,
                   TranslationService.translate(context, 'track_lender'),
                   _userStatus!.lender,
                   Icons.volunteer_activism,
                   Colors.orange,
-                ),
-                _buildCircularTrack(
+                );
+                final cataloguer = _buildCircularTrack(
                   context,
                   TranslationService.translate(context, 'track_cataloguer'),
                   _userStatus!.cataloguer,
                   Icons.list_alt,
                   const Color(0xFF8B4513), // Bronze instead of purple
-                ),
-              ],
+                );
+
+                // Use 2x2 grid for narrow screens (< 400px)
+                if (constraints.maxWidth < 400) {
+                  return Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [collectors, reader],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [lender, cataloguer],
+                      ),
+                    ],
+                  );
+                }
+                // Use Row for wide screens
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [collectors, reader, lender, cataloguer],
+                );
+              },
             ),
           ),
         ],
