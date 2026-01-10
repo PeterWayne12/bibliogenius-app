@@ -2486,11 +2486,13 @@ class ApiService {
     Locale? locale,
   }) async {
     // Use backend API for lookup to respect enabled sources (OpenLibrary, Inventaire, etc.)
-    // Even in FFI mode, the local HTTP server handles these requests.
+    // In FFI mode, use the local HTTP server directly.
 
     try {
       final currentLang = locale?.languageCode ?? 'en';
-      final response = await _dio.get(
+      // Use _getLocalDio() in FFI mode to ensure correct base URL
+      final dio = useFfi ? await _getLocalDio() : _dio;
+      final response = await dio.get(
         '/api/lookup/$isbn',
         queryParameters: {'lang': currentLang},
       );
