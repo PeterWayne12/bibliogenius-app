@@ -263,7 +263,7 @@ class _BookListScreenState extends State<BookListScreen>
             // Online search - show on all devices
             IconButton(
               key: _externalSearchKey,
-              icon: const Icon(Icons.public, color: Colors.white),
+              icon: const Icon(Icons.travel_explore, color: Colors.white),
               tooltip: TranslationService.translate(
                 context,
                 'btn_search_online',

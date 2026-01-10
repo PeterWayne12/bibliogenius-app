@@ -238,19 +238,20 @@ class AvatarOptions {
   static Map<String, String> getMouthOptions(String lang) {
     if (lang == 'fr') {
       return {
-        'smile': 'Sourire',
+        'twinkle': 'Sourire',
+        'smile': 'Sourire léger',
         'default': 'Neutre',
-        'twinkle': 'Ravi',
-        'tongue': 'Grimace',
+        'tongue': 'Tirer la langue',
+        'grimace': 'Grimace',
         'serious': 'Sérieux',
       };
     }
-    // Add other languages... defaulting to English for brevity/fallback
     return {
-      'smile': 'Smile',
+      'twinkle': 'Smile',
+      'smile': 'Slight Smile',
       'default': 'Neutral',
-      'twinkle': 'Happy',
-      'tongue': 'Silly',
+      'tongue': 'Tongue Out',
+      'grimace': 'Grimace',
       'serious': 'Serious',
     };
   }

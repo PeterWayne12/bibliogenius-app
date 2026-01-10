@@ -2626,10 +2626,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 16),
                     Text(
                       TranslationService.translate(
-                            builderContext,
-                            'lang_title',
-                          ) ??
-                          'Language',
+                        builderContext,
+                        'lang_title',
+                      ),
                     ),
                     DropdownButton<String>(
                       value: selectedLocale,
@@ -2946,8 +2945,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const Divider(),
                   // Network Discovery
                   SwitchListTile(
-                    title: Text(
-                      TranslationService.translate(context, 'module_network'),
+                    title: Row(
+                      children: [
+                        Text(
+                          TranslationService.translate(
+                            context,
+                            'module_network',
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            TranslationService.translate(
+                              context,
+                              'tag_beta',
+                            ).toUpperCase(),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
                     subtitle: Text(
                       TranslationService.translate(
@@ -2958,18 +2991,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     secondary: const Icon(Icons.wifi_tethering),
                     value: theme.networkDiscoveryEnabled,
                     onChanged: (val) async {
-                      await theme.setNetworkDiscoveryEnabled(val);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              TranslationService.translate(
-                                context,
-                                'restart_required_for_changes',
-                              ),
-                            ),
-                          ),
+                      if (val) {
+                        final authService = Provider.of<AuthService>(
+                          context,
+                          listen: false,
                         );
+                        final uuid = await authService.getOrCreateLibraryUuid();
+                        await theme.setNetworkDiscoveryEnabled(
+                          val,
+                          libraryId: uuid,
+                          port: ApiService.httpPort,
+                        );
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                TranslationService.translate(
+                                  context,
+                                  'network_discovery_enabled',
+                                ),
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      } else {
+                        await theme.setNetworkDiscoveryEnabled(val);
                       }
                     },
                   ),

@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../utils/avatars.dart';
 import '../models/avatar_config.dart';
 import '../services/api_service.dart';
+import '../services/mdns_service.dart';
 import '../themes/base/theme_registry.dart';
 
 class ThemeProvider with ChangeNotifier {
@@ -48,7 +49,8 @@ class ThemeProvider with ChangeNotifier {
       isBookseller && _commerceEnabled; // Sales/transactions module active
 
   // Network Discovery (mDNS): allows user to disable local network visibility
-  bool _networkDiscoveryEnabled = true;
+  // Disabled by default for privacy (opt-in)
+  bool _networkDiscoveryEnabled = false;
   bool get networkDiscoveryEnabled => _networkDiscoveryEnabled;
   bool get hasLoans =>
       !isBookseller; // Loans disabled by default for booksellers
@@ -113,7 +115,9 @@ class ThemeProvider with ChangeNotifier {
     }
 
     _commerceEnabled = prefs.getBool('commerceEnabled') ?? false;
-    _networkDiscoveryEnabled = prefs.getBool('networkDiscoveryEnabled') ?? true;
+    // Default to false (opt-in) for privacy
+    _networkDiscoveryEnabled =
+        prefs.getBool('networkDiscoveryEnabled') ?? false;
     _collectionsEnabled = prefs.getBool('collectionsEnabled') ?? true;
     _quotesEnabled = prefs.getBool('quotesEnabled') ?? true;
     _editionBrowserEnabled = prefs.getBool('editionBrowserEnabled') ?? true;
@@ -409,11 +413,40 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setNetworkDiscoveryEnabled(bool enabled) async {
+  Future<void> setNetworkDiscoveryEnabled(
+    bool enabled, {
+    String? libraryId,
+    int? port,
+  }) async {
     _networkDiscoveryEnabled = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('networkDiscoveryEnabled', enabled);
     notifyListeners();
+
+    if (enabled) {
+      if (libraryId != null && port != null) {
+        try {
+          await MdnsService.startAnnouncing(
+            _libraryName.isNotEmpty ? _libraryName : 'BiblioGenius Library',
+            port,
+            libraryId: libraryId,
+          );
+          await MdnsService.startDiscovery();
+        } catch (e) {
+          debugPrint('Error starting mDNS from settings: $e');
+        }
+      } else {
+        debugPrint(
+          'Cannot start mDNS: libraryId or port missing in setNetworkDiscoveryEnabled',
+        );
+      }
+    } else {
+      try {
+        await MdnsService.stop();
+      } catch (e) {
+        debugPrint('Error stopping mDNS: $e');
+      }
+    }
   }
 
   // Collections Module

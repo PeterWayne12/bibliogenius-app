@@ -52,7 +52,9 @@ class _NetworkScreenState extends State<NetworkScreen>
   String? _libraryName;
   bool _isLoadingQR = true;
   String? _qrData;
-  MobileScannerController cameraController = MobileScannerController();
+  MobileScannerController cameraController = MobileScannerController(
+    autoStart: false, // Handle lifecycle manually to prevent crashes
+  );
 
   @override
   void initState() {
@@ -62,6 +64,10 @@ class _NetworkScreenState extends State<NetworkScreen>
       length: AppConstants.enableP2PFeatures ? 3 : 1,
       vsync: this,
     );
+
+    // Add listener to manage camera lifecycle
+    _tabController.addListener(_handleTabSelection);
+
     _loadAllMembers();
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted && _tabController.index == 0) _loadAllMembers(silent: true);
@@ -70,9 +76,21 @@ class _NetworkScreenState extends State<NetworkScreen>
     _checkWifiStatus();
   }
 
+  void _handleTabSelection() {
+    if (!mounted) return;
+    if (_tabController.index == 1) {
+      // Scan tab selected
+      cameraController.start();
+    } else {
+      // Navigate away from scan tab
+      cameraController.stop();
+    }
+  }
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
     cameraController.dispose();
     super.dispose();
@@ -326,7 +344,7 @@ class _NetworkScreenState extends State<NetworkScreen>
       final url = 'http://${addresses.first}:$port';
 
       // Check connectivity in parallel (don't await each one)
-      api.checkPeerConnectivity(url, timeoutMs: 2000).then((isOnline) {
+      api.checkPeerConnectivity(url, timeoutMs: 4000).then((isOnline) {
         if (mounted) {
           setState(() {
             _mdnsPeerConnectivity[url] = isOnline;
@@ -509,6 +527,9 @@ class _NetworkScreenState extends State<NetworkScreen>
             duration: const Duration(seconds: 2),
           ),
         );
+
+        // Stop camera before navigating to list
+        await cameraController.stop();
         _tabController.animateTo(0);
         _loadAllMembers();
 

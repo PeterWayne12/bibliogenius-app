@@ -105,23 +105,25 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final bool isMobile = width <= 600;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GenieAppBar(
         title: TranslationService.translate(context, 'collections'),
+        leading: isMobile
+            ? IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              )
+            : null,
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // TODO: Implement collection search
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    TranslationService.translate(context, 'coming_soon'),
-                  ),
-                ),
-              );
-            },
+            icon: const Icon(Icons.travel_explore, color: Colors.white),
+            tooltip: TranslationService.translate(context, 'btn_search_online'),
+            onPressed: () => context.push('/search/external'),
           ),
           TextButton.icon(
             style: TextButton.styleFrom(
@@ -157,8 +159,16 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            // Calculate top padding for app bar + status bar
+            final topPadding =
+                MediaQuery.of(context).padding.top + kToolbarHeight + 24;
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.only(
+                top: topPadding,
+                left: 24,
+                right: 24,
+                bottom: 24,
+              ),
               child: Column(
                 children: [
                   // Promotional banner
@@ -262,7 +272,10 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
           }
 
           final collections = snapshot.data!;
+          final topPadding =
+              MediaQuery.of(context).padding.top + kToolbarHeight;
           return ListView.builder(
+            padding: EdgeInsets.only(top: topPadding + 8, bottom: 80),
             itemCount: collections.length,
             itemBuilder: (context, index) {
               final collection = collections[index];

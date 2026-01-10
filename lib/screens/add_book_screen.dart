@@ -408,7 +408,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
           // Online search button - icon only on mobile, with label on desktop
           if (isMobile)
             IconButton(
-              icon: const Icon(Icons.public),
+              icon: const Icon(Icons.travel_explore),
               tooltip: TranslationService.translate(
                 context,
                 'btn_search_online',
@@ -419,7 +419,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
             TextButton.icon(
               onPressed: () => context.push('/search/external'),
               icon: Icon(
-                Icons.public,
+                Icons.travel_explore,
                 color: Theme.of(context).appBarTheme.foregroundColor,
               ),
               label: Text(

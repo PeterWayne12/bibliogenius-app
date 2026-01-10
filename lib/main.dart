@@ -1,12 +1,10 @@
-import 'dart:io' show Platform;
+import 'config/platform_init.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'services/auth_service.dart';
 import 'services/api_service.dart';
 import 'services/sync_service.dart';
@@ -52,10 +50,6 @@ import 'services/wizard_service.dart';
 import 'widgets/scaffold_with_nav.dart';
 
 import 'package:flutter/gestures.dart';
-
-// FFI imports for native platforms
-import 'src/rust/frb_generated.dart';
-import 'src/rust/api/frb.dart' as frb;
 
 import 'screens/collection/collection_detail_screen.dart';
 import 'models/collection.dart';
@@ -134,77 +128,43 @@ void main([List<String>? args]) async {
     debugPrint('Error loading settings early: $e');
   }
 
-  // Initialize FFI for native platforms
-  bool useFfi = false;
+  // Initialize FFI for native platforms using conditional imports (Web friendly)
+  bool useFfi = await initializePlatform();
 
-  if (!kIsWeb) {
-    // FFI enabled for all native platforms (macOS, iOS, Android, Linux, Windows)
+  if (useFfi) {
+    int httpPort = 8000;
     try {
-      debugPrint('FFI: Starting RustLib.init()...');
-      // Initialize Flutter-Rust bridge
-      // On iOS/macOS, the library is statically linked, so use DynamicLibrary.process()
-      // On Android/Linux/Windows, load the dynamic library from the bundle
-      if (Platform.isIOS || Platform.isMacOS) {
-        debugPrint('FFI: Using DynamicLibrary.process() for iOS/macOS...');
-        await RustLib.init(
-          externalLibrary: ExternalLibrary.process(iKnowHowToUseIt: true),
-        );
-      } else {
-        await RustLib.init();
+      final startedPort = await FfiService().startServer(8000);
+      if (startedPort != null) {
+        httpPort = startedPort;
+        ApiService.setHttpPort(httpPort); // Store the actual port globally
+        debugPrint('FFI: HTTP server confirmed running on port $httpPort');
       }
-      debugPrint('FFI: RustLib.init() succeeded');
+    } catch (e) {
+      debugPrint('FFI: Failed to start HTTP server: $e');
+    }
 
-      // Get database path
-      debugPrint('FFI: Getting application documents directory...');
-      final appDocDir = await getApplicationDocumentsDirectory();
-      final dbPath = '${appDocDir.path}/bibliogenius.db';
-      debugPrint('FFI: Database path: $dbPath');
-
-      // Initialize Rust backend with database
-      debugPrint('FFI: Calling initBackend...');
-      final result = await frb.initBackend(dbPath: dbPath);
-      debugPrint('FFI Backend initialized: $result');
-      useFfi = true;
-      debugPrint('FFI: useFfi set to TRUE');
-
-      int httpPort = 8000;
+    // Auto-initialize mDNS for local network discovery (Native Bonjour)
+    // This makes the app discoverable on the local WiFi network
+    // Only start if user has enabled network discovery in settings
+    if (themeProvider.networkDiscoveryEnabled) {
       try {
-        final startedPort = await FfiService().startServer(8000);
-        if (startedPort != null) {
-          httpPort = startedPort;
-          ApiService.setHttpPort(httpPort); // Store the actual port globally
-          debugPrint('FFI: HTTP server confirmed running on port $httpPort');
-        }
-      } catch (e) {
-        debugPrint('FFI: Failed to start HTTP server: $e');
+        final authService = AuthService();
+        final libraryUuid = await authService.getOrCreateLibraryUuid();
+        final libraryName = themeProvider.libraryName.isNotEmpty
+            ? themeProvider.libraryName
+            : 'BiblioGenius Library';
+        await MdnsService.startAnnouncing(
+          libraryName,
+          httpPort,
+          libraryId: libraryUuid,
+        );
+        await MdnsService.startDiscovery();
+      } catch (mdnsError) {
+        debugPrint('mDNS: Init failed (non-blocking): $mdnsError');
       }
-
-      // Auto-initialize mDNS for local network discovery (Native Bonjour)
-      // This makes the app discoverable on the local WiFi network
-      // Only start if user has enabled network discovery in settings
-      if (themeProvider.networkDiscoveryEnabled) {
-        try {
-          final authService = AuthService();
-          final libraryUuid = await authService.getOrCreateLibraryUuid();
-          final libraryName = themeProvider.libraryName.isNotEmpty
-              ? themeProvider.libraryName
-              : 'BiblioGenius Library';
-          await MdnsService.startAnnouncing(
-            libraryName,
-            httpPort,
-            libraryId: libraryUuid,
-          );
-          await MdnsService.startDiscovery();
-        } catch (mdnsError) {
-          debugPrint('mDNS: Init failed (non-blocking): $mdnsError');
-        }
-      } else {
-        debugPrint('mDNS: Disabled by user preference');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('FFI initialization failed: $e');
-      debugPrint('FFI stack trace: $stackTrace');
-      // FFI initialization failed, will fall back to configured HTTP URL or default
+    } else {
+      debugPrint('mDNS: Disabled by user preference');
     }
   }
 

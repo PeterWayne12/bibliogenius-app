@@ -1,4 +1,4 @@
-import 'dart:io' show File;
+import 'dart:io' show File, SocketException;
 import 'dart:ui';
 import 'dart:convert';
 import 'package:dio/dio.dart';
@@ -420,11 +420,59 @@ class ApiService {
     return await _dio.post('/api/loans/$loanId/return');
   }
 
+  // Helper to get a Dio instance for local FFI server with retry logic
+  // This handles the race condition where the server might still be binding
+  Future<Dio> _getLocalDio() async {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://127.0.0.1:$httpPort',
+        connectTimeout: const Duration(milliseconds: 5000),
+        receiveTimeout: const Duration(milliseconds: 5000),
+      ),
+    );
+
+    // Add immediate retry for connection refused
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (DioException e, ErrorInterceptorHandler handler) async {
+          if (e.type == DioExceptionType.connectionError ||
+              (e.error is SocketException &&
+                  (e.error as SocketException).osError?.errorCode == 61)) {
+            // 61 = Connection refused
+            debugPrint(
+              '⚠️ Local server connection refused, retrying in 500ms...',
+            );
+            await Future.delayed(const Duration(milliseconds: 500));
+            try {
+              // Retry the request with the same options
+              final response = await dio.request(
+                e.requestOptions.path,
+                data: e.requestOptions.data,
+                queryParameters: e.requestOptions.queryParameters,
+                options: Options(
+                  method: e.requestOptions.method,
+                  headers: e.requestOptions.headers,
+                ),
+              );
+              return handler.resolve(response);
+            } catch (e2) {
+              debugPrint('❌ Retry failed: $e2');
+              return handler.next(e);
+            }
+          }
+          return handler.next(e);
+        },
+      ),
+    );
+
+    return dio;
+  }
+
   // Collection methods
   Future<List<Collection>> getCollections() async {
     if (useFfi) {
-      // TODO: Implement FFI for collections or use local HTTP
-      final localDio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'));
+      // Use local HTTP with retry logic
+      final localDio = await _getLocalDio();
       final response = await localDio.get('/api/collections');
       final List<dynamic> data = response.data;
       return data.map((json) => Collection.fromJson(json)).toList();
@@ -435,9 +483,7 @@ class ApiService {
   }
 
   Future<List<Collection>> getBookCollections(int bookId) async {
-    final dio = useFfi
-        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
-        : _dio;
+    final dio = useFfi ? await _getLocalDio() : _dio;
     final response = await dio.get('/api/books/$bookId/collections');
     final List<dynamic> data = response.data;
     return data.map((json) => Collection.fromJson(json)).toList();
@@ -447,9 +493,7 @@ class ApiService {
     int bookId,
     List<String> collectionIds,
   ) async {
-    final dio = useFfi
-        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
-        : _dio;
+    final dio = useFfi ? await _getLocalDio() : _dio;
     await dio.put(
       '/api/books/$bookId/collections',
       data: {'collection_ids': collectionIds},
@@ -462,7 +506,7 @@ class ApiService {
   }) async {
     final data = {'name': name, 'description': description, 'source': 'manual'};
     if (useFfi) {
-      final localDio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'));
+      final localDio = await _getLocalDio();
       final response = await localDio.post('/api/collections', data: data);
       return Collection.fromJson(response.data);
     }
@@ -472,7 +516,7 @@ class ApiService {
 
   Future<void> deleteCollection(String id) async {
     if (useFfi) {
-      final localDio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'));
+      final localDio = await _getLocalDio();
       await localDio.delete('/api/collections/$id');
       return;
     }
@@ -483,9 +527,7 @@ class ApiService {
     // Returns List<CollectionBook> but keeping dynamic for flexibility if needed,
     // or better perform conversion here.
     // Let's return List<CollectionBook> actually.
-    final dio = useFfi
-        ? Dio(BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'))
-        : _dio;
+    final dio = useFfi ? await _getLocalDio() : _dio;
     final response = await dio.get('/api/collections/$id/books');
     return (response.data as List)
         .map((e) => e)
@@ -1958,16 +2000,23 @@ class ApiService {
 
   /// Check if a peer is reachable by performing a quick health check
   /// Returns true if the peer responds within the timeout, false otherwise
-  Future<bool> checkPeerConnectivity(String url, {int timeoutMs = 2000}) async {
+  /// Returns true if the peer responds within the timeout, false otherwise
+  Future<bool> checkPeerConnectivity(String url, {int timeoutMs = 3000}) async {
     try {
       final dio = Dio(
         BaseOptions(
           connectTimeout: Duration(milliseconds: timeoutMs),
           receiveTimeout: Duration(milliseconds: timeoutMs),
+          validateStatus: (status) {
+            // Consider 401/403 as "Online" (reachable but auth required)
+            // Consider 200-299 as success
+            return status != null && (status < 500);
+          },
         ),
       );
-      final response = await dio.get('$url/api/books?limit=1');
-      return response.statusCode == 200;
+      // Try a public endpoint or root. /api/books requires auth, but if we get 401/403, it means it's ALIVE.
+      await dio.get('$url/api/books?limit=1');
+      return true; // If no exception (due to validateStatus), it's reachable
     } catch (e) {
       debugPrint('⚠️ Peer connectivity check failed for $url: $e');
       return false;

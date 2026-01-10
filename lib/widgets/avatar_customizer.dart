@@ -3,7 +3,6 @@ import '../models/avatar_config.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/translation_service.dart';
-import '../services/translation_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class AvatarCustomizer extends StatefulWidget {

@@ -296,7 +296,6 @@ class TranslationService {
       'delete_book_title': 'Delete Book',
       'delete_book_confirm': 'Are you sure you want to delete this book?',
       'delete_book_btn': 'Delete Book',
-      'cancel': 'Cancel',
       // Sales
       'recent_sales': 'Recent Sales',
       'enter_sale_price': 'Enter sale price',
@@ -341,9 +340,6 @@ class TranslationService {
       'rating_label': 'My Rating',
       'year_hint': 'YYYY',
       'summary_hint': 'Brief summary of the book',
-      'status_label': 'Status',
-      'save_changes': 'Save Changes',
-      'saving_changes': 'Saving Changes...',
       'commerce_module_label': 'Commerce Module',
       'commerce_module_subtitle': 'Enable pricing and sales tracking',
       // Commerce (Bookseller profile)
@@ -391,12 +387,10 @@ class TranslationService {
       'is_temporary_copy': 'Temporary copy',
       'copy_status': 'Status',
       'acquisition_date': 'Acquisition Date',
-      'notes_label': 'Notes',
       'book_summary': 'Summary',
       'book_deleted': 'Book deleted',
       'mark_as_finished': 'Mark as Finished',
       'finished_on': 'Finished on',
-      'to_read_status': 'To Read',
       'reading_status_wanting': 'Want to Read',
       'reading_status_reading': 'Reading',
       'reading_status_read': 'Read',
@@ -637,6 +631,7 @@ class TranslationService {
       'profile_bookseller': 'Bookseller',
       'profile_bookseller_desc':
           'Track inventory, prices, and sales for your bookstore.',
+      'network_discovery_enabled': 'Network Discovery Enabled',
       // Avatars
       'avatar_junior_reader': 'Junior Reader',
       'avatar_bookworm': 'Bookworm',
@@ -745,8 +740,10 @@ class TranslationService {
       // Onboarding Tour
       'onboarding_skip': 'Skip',
       'onboarding_next': 'Continue',
-      'onboarding_finish': 'Get Started!',
-      'onboarding_tap_continue': 'Tap anywhere to continue',
+      'network_discovery_desc':
+          'Make your library discoverable by others on the same WiFi',
+      'network_discovery_enabled': 'Network Discovery Enabled',
+      'gamification_how_it_works': 'How it works',
       'onboarding_swipe_hint': 'Swipe or use buttons to navigate',
       'menu_tutorial': 'Tutorial',
 
@@ -1080,8 +1077,10 @@ class TranslationService {
           'Track progress with badges, levels and achievements',
       // Network Discovery
       'enable_network_discovery': 'Local Network Discovery',
+      'tag_beta': 'Beta',
       'network_discovery_desc':
           'Make your library visible to others on the same WiFi network',
+      'network_discovery_enabled': 'Network Discovery Enabled',
       'gamification_how_it_works': 'How does it work?',
       'gamification_collector_desc': 'Add books to your library to level up',
       'gamification_reader_desc': 'Mark books as read to earn badges',
@@ -1450,13 +1449,11 @@ class TranslationService {
       'delete_book_title': 'Supprimer le livre',
       'delete_book_confirm': 'Êtes-vous sûr de vouloir supprimer ce livre ?',
       'delete_book_btn': 'Supprimer le livre',
-      'cancel': 'Annuler',
       'error_deleting_book': 'Erreur lors de la suppression du livre',
       'summary_label': 'Résumé',
       'publisher_label': 'Éditeur',
       'year_label': 'Année',
       'rating_label': 'Ma Note',
-      'status_label': 'Statut',
       'no_summary': 'Aucun résumé disponible.',
       'borrowed': 'Emprunté',
       'borrowed_label': 'Prêté',
@@ -1475,6 +1472,7 @@ class TranslationService {
       'sales_count': 'Nombre de ventes',
       'commerce_module_label': 'Module Commerce',
       'commerce_module_subtitle': 'Activer la gestion des prix et des ventes',
+      'network_discovery_enabled': 'Découverte réseau activée',
 
       // Sales recording
       'record_sale_title': 'Enregistrer une vente',
@@ -2113,7 +2111,6 @@ class TranslationService {
       'city_label': 'Ville',
       'country_label': 'Pays',
 
-      'status_label': 'Statut',
       'status_active': 'Actif',
       'status_inactive': 'Inactif',
       // Login Screen
@@ -2202,8 +2199,10 @@ class TranslationService {
           'Suivez votre progression avec des badges et niveaux',
       // Découverte réseau
       'enable_network_discovery': 'Découverte réseau local',
+      'tag_beta': 'Bêta',
       'network_discovery_desc':
           'Rendre votre bibliothèque visible aux autres sur le même WiFi',
+      'network_discovery_enabled': 'Découverte réseau activée',
       'gamification_how_it_works': 'Comment ça marche ?',
       'gamification_collector_desc': 'Ajoutez des livres pour monter de niveau',
       'gamification_reader_desc':
@@ -2252,6 +2251,7 @@ class TranslationService {
       'min_one_source_error': 'Au moins une source de recherche est requise',
     },
     'es': {
+      'tag_beta': 'Beta',
       'app_title': 'BiblioGenius',
       'app_subtitle': 'Gestor de biblioteca inteligente',
       'dashboard': 'Tablero',
@@ -2420,7 +2420,6 @@ class TranslationService {
       'delete_book_confirm':
           '¿Estás seguro de que quieres eliminar este libro?',
       'delete_book_btn': 'Eliminar libro',
-      'cancel': 'Cancelar',
       'error_deleting_book': 'Error al eliminar el libro',
       'summary_label': 'Resumen',
       'no_summary': 'No hay resumen disponible.',
@@ -2808,11 +2807,13 @@ class TranslationService {
       // Taxonomy / Hierarchical Tags
       'enable_taxonomy': 'Etiquetas jerárquicas',
       'enable_taxonomy_subtitle': 'Use "Padre > Hijo" para crear sub-etiquetas',
+      'network_discovery_enabled': 'Descubrimiento de red habilitado',
       'restart_required_for_changes':
           'Reinicie la app para aplicar los cambios',
       'view': 'Ver',
     },
     'de': {
+      'tag_beta': 'Beta',
       'app_title': 'BiblioGenius',
       'app_subtitle': 'Intelligenter Bibliotheksmanager',
       'dashboard': 'Dashboard',
@@ -3051,7 +3052,6 @@ class TranslationService {
       'delete_book_confirm':
           'Sind Sie sicher, dass Sie dieses Buch löschen möchten?',
       'delete_book_btn': 'Buch löschen',
-      'cancel': 'Abbrechen',
       'error_deleting_book': 'Fehler beim Löschen des Buches',
       'summary_label': 'Zusammenfassung',
       'no_summary': 'Keine Zusammenfassung verfügbar.',
@@ -3273,6 +3273,7 @@ class TranslationService {
       'enable_taxonomy': 'Hierarchische Tags',
       'enable_taxonomy_subtitle':
           'Verwenden Sie "Eltern > Kind" um Unter-Tags zu erstellen',
+      'network_discovery_enabled': 'Netzwerkerkennung aktiviert',
       'restart_required_for_changes':
           'Starten Sie die App neu um Änderungen anzuwenden',
       'view': 'Ansehen',
