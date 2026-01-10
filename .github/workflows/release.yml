@@ -340,7 +340,7 @@ jobs:
           echo "Signing backend with Apple Distribution for TestFlight: $APPLE_DIST"
           
           # Prepare entitlements
-          sed "s/\$(AppIdentifierPrefix)/$APPLE_TEAM_ID./g" macos/Runner/Release.entitlements > macos/Runner/Release.processed.entitlements
+          sed "s/\$(AppIdentifierPrefix)/$APPLE_TEAM_ID./g; s/\$(CFBundleIdentifier)/com.bibliogenius.app/g" macos/Runner/Release.entitlements > macos/Runner/Release.processed.entitlements
           
           # Sign the injected backend binary with Apple Distribution
           codesign --force --verbose --timestamp --options runtime --sign "$APPLE_DIST" --entitlements macos/Runner/Release.processed.entitlements "$BACKEND_PATH"
@@ -425,7 +425,7 @@ jobs:
           echo "Using identity: $IDENTITY"
           
           echo "Prepare entitlements..."
-          sed "s/\$(AppIdentifierPrefix)/$APPLE_TEAM_ID./g" macos/Runner/Release.entitlements > macos/Runner/Release.processed.entitlements
+          sed "s/\$(AppIdentifierPrefix)/$APPLE_TEAM_ID./g; s/\$(CFBundleIdentifier)/com.bibliogenius.app/g" macos/Runner/Release.entitlements > macos/Runner/Release.processed.entitlements
           
           echo "Signing inner libraries and frameworks..."
           find "$APP_PATH/Contents/Frameworks" -depth \( -name "*.framework" -o -name "*.dylib" \) | while read file; do
