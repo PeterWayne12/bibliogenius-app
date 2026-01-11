@@ -73,7 +73,9 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
     if (_selectedLanguage == null) {
       final userLang = Localizations.localeOf(context).languageCode;
       // Check if user's language is in our options
-      final hasUserLang = _languageOptions.any((opt) => opt['value'] == userLang);
+      final hasUserLang = _languageOptions.any(
+        (opt) => opt['value'] == userLang,
+      );
       _selectedLanguage = hasUserLang ? userLang : null;
     }
   }
@@ -378,6 +380,9 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
         'cover_url': doc['cover_url'],
       };
 
+      debugPrint(
+        '📚 Creating book with ISBN: ${doc['isbn']} | Title: ${doc['title']}',
+      );
       await api.createBook(bookData);
 
       // Mark as modified so we can refresh the list on return
@@ -548,14 +553,16 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                                 color: isSelected ? Colors.white : null,
                                 fontSize: 12,
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
                               visualDensity: VisualDensity.compact,
                             ),
                           );
-                      }).toList(),
+                        }).toList(),
+                      ),
                     ),
                   ),
-                ),
                 // Collapsible advanced filters
                 AnimatedCrossFade(
                   firstChild: const SizedBox.shrink(),
@@ -685,7 +692,8 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final book = _searchResults[index];
-        final author = book['author'] ??
+        final author =
+            book['author'] ??
             TranslationService.translate(context, 'unknown_author');
         final language = _getLanguageLabel(book['language'] as String?);
         final subtitle = language.isNotEmpty ? '$author • $language' : author;
@@ -717,16 +725,40 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
     if (langCode == null || langCode.isEmpty) return '';
     final code = langCode.toLowerCase();
     const langMap = {
-      'fr': 'FR', 'fre': 'FR', 'fra': 'FR', 'french': 'FR',
-      'en': 'EN', 'eng': 'EN', 'english': 'EN',
-      'es': 'ES', 'spa': 'ES', 'spanish': 'ES',
-      'de': 'DE', 'ger': 'DE', 'deu': 'DE', 'german': 'DE',
-      'it': 'IT', 'ita': 'IT', 'italian': 'IT',
-      'pt': 'PT', 'por': 'PT', 'portuguese': 'PT',
-      'nl': 'NL', 'dut': 'NL', 'nld': 'NL', 'dutch': 'NL',
-      'ru': 'RU', 'rus': 'RU', 'russian': 'RU',
-      'ja': 'JA', 'jpn': 'JA', 'japanese': 'JA',
-      'zh': 'ZH', 'chi': 'ZH', 'zho': 'ZH', 'chinese': 'ZH',
+      'fr': 'FR',
+      'fre': 'FR',
+      'fra': 'FR',
+      'french': 'FR',
+      'en': 'EN',
+      'eng': 'EN',
+      'english': 'EN',
+      'es': 'ES',
+      'spa': 'ES',
+      'spanish': 'ES',
+      'de': 'DE',
+      'ger': 'DE',
+      'deu': 'DE',
+      'german': 'DE',
+      'it': 'IT',
+      'ita': 'IT',
+      'italian': 'IT',
+      'pt': 'PT',
+      'por': 'PT',
+      'portuguese': 'PT',
+      'nl': 'NL',
+      'dut': 'NL',
+      'nld': 'NL',
+      'dutch': 'NL',
+      'ru': 'RU',
+      'rus': 'RU',
+      'russian': 'RU',
+      'ja': 'JA',
+      'jpn': 'JA',
+      'japanese': 'JA',
+      'zh': 'ZH',
+      'chi': 'ZH',
+      'zho': 'ZH',
+      'chinese': 'ZH',
     };
     return langMap[code] ?? code.toUpperCase().substring(0, 2);
   }
