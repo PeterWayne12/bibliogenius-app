@@ -28,6 +28,7 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
   bool _isSearching = false;
   String? _error;
   bool _booksAdded = false;
+  bool _showAdvancedFilters = false; // Collapsed by default on mobile
 
   @override
   void dispose() {
@@ -307,24 +308,87 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
         ),
         body: Column(
           children: [
+            // Compact search bar - always visible
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Form(
                 key: _formKey,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _titleController,
+                        decoration: InputDecoration(
+                          hintText: TranslationService.translate(
+                            context,
+                            'search_placeholder',
+                          ),
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          isDense: true,
+                        ),
+                        textInputAction: TextInputAction.search,
+                        onFieldSubmitted: (_) => _search(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Filter toggle button
+                    IconButton(
+                      icon: Icon(
+                        _showAdvancedFilters
+                            ? Icons.filter_list_off
+                            : Icons.filter_list,
+                        color: _showAdvancedFilters
+                            ? Theme.of(context).primaryColor
+                            : null,
+                      ),
+                      tooltip: TranslationService.translate(
+                        context,
+                        'advanced_filters',
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showAdvancedFilters = !_showAdvancedFilters;
+                        });
+                      },
+                    ),
+                    // Search button
+                    FilledButton(
+                      onPressed: _isSearching ? null : _search,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: _isSearching
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.search),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Collapsible advanced filters
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Column(
                   children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: TranslationService.translate(
-                          context,
-                          'search_title_label',
-                        ),
-                        prefixIcon: const Icon(Icons.book),
-                      ),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 8),
                     TextFormField(
                       controller: _authorController,
                       decoration: InputDecoration(
@@ -332,7 +396,13 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                           context,
                           'author_label',
                         ),
-                        prefixIcon: const Icon(Icons.person),
+                        prefixIcon: const Icon(Icons.person, size: 20),
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        isDense: true,
                       ),
                       textInputAction: TextInputAction.next,
                     ),
@@ -340,40 +410,27 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                     TextFormField(
                       controller: _subjectController,
                       decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
                         labelText: TranslationService.translate(
                           context,
                           'subject_label',
                         ),
-                        prefixIcon: const Icon(Icons.category),
+                        prefixIcon: const Icon(Icons.category, size: 20),
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        isDense: true,
                       ),
                       onFieldSubmitted: (_) => _search(),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _isSearching ? null : _search,
-                        icon: _isSearching
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.search),
-                        label: Text(
-                          TranslationService.translate(
-                            context,
-                            'search_open_library',
-                          ),
-                        ),
-                      ),
                     ),
                   ],
                 ),
               ),
+              crossFadeState: _showAdvancedFilters
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 200),
             ),
             if (_error != null)
               Padding(

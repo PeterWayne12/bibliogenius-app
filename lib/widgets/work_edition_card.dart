@@ -62,6 +62,17 @@ class _WorkEditionCardState extends State<WorkEditionCard> {
     );
   }
 
+  /// Truncate summary at word boundary for clean display
+  String _truncateSummary(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    final truncated = text.substring(0, maxLength);
+    final lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > maxLength * 0.7) {
+      return '${truncated.substring(0, lastSpace)}...';
+    }
+    return '$truncated...';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -324,17 +335,19 @@ class _WorkEditionCardState extends State<WorkEditionCard> {
 
                 const Spacer(),
 
-                // Format/Pages placeholder (if we had data)
+                // Display truncated summary
                 if (edition['summary'] != null &&
                     (edition['summary'] as String).isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      'Un résumé est disponible',
+                      _truncateSummary(edition['summary'] as String, 120),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontStyle: FontStyle.italic,
-                        color: Colors.green,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
               ],

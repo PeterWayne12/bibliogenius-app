@@ -35,7 +35,7 @@ class _ImportFromSearchScreenState extends State<ImportFromSearchScreen>
   bool _isLoading = false;
   bool _isImporting = false;
   bool _importAsOwned = false;
-  bool _showOptions = true;
+  bool _showOptions = false; // Collapsed by default on mobile
   String? _errorMessage;
 
   TabController? _tabController;
