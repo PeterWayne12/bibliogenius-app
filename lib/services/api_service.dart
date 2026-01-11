@@ -438,13 +438,20 @@ class ApiService {
           if (e.type == DioExceptionType.connectionError ||
               (e.error is SocketException &&
                   (e.error as SocketException).osError?.errorCode == 61)) {
+            // Check retry count
+            int retries = e.requestOptions.extra['retries'] as int? ?? 0;
+            if (retries >= 5) {
+              debugPrint('❌ Local server connection failed after 5 retries.');
+              return handler.next(e);
+            }
+
             // 61 = Connection refused
             debugPrint(
-              '⚠️ Local server connection refused, retrying in 500ms...',
+              '⚠️ Local server connection refused, retrying in 500ms... (Attempt ${retries + 1}/5)',
             );
             await Future.delayed(const Duration(milliseconds: 500));
             try {
-              // Retry the request with the same options
+              // Retry the request with the same options but incremented retry count
               final response = await dio.request(
                 e.requestOptions.path,
                 data: e.requestOptions.data,
@@ -452,6 +459,7 @@ class ApiService {
                 options: Options(
                   method: e.requestOptions.method,
                   headers: e.requestOptions.headers,
+                  extra: {...e.requestOptions.extra, 'retries': retries + 1},
                 ),
               );
               return handler.resolve(response);
@@ -2551,16 +2559,20 @@ class ApiService {
       // Use a new Dio instance with longer timeout for external search
       // External sources (Inventaire, OpenLibrary, BNF) can take 10+ seconds
       final searchDio = useFfi
-          ? Dio(BaseOptions(
-              baseUrl: 'http://127.0.0.1:$httpPort',
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 15),
-            ))
-          : Dio(BaseOptions(
-              baseUrl: _dio.options.baseUrl,
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 15),
-            ));
+          ? Dio(
+              BaseOptions(
+                baseUrl: 'http://127.0.0.1:$httpPort',
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 15),
+              ),
+            )
+          : Dio(
+              BaseOptions(
+                baseUrl: _dio.options.baseUrl,
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 15),
+              ),
+            );
 
       final response = await searchDio.get(
         '/api/integrations/search_unified',

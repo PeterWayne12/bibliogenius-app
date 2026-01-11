@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:provider/provider.dart';
+import '../services/api_service.dart';
 
 /// Custom Cache Manager for Book Covers
 /// Retains images for 30 days and handles up to 500 images.
@@ -49,8 +51,19 @@ class CachedBookCover extends StatelessWidget {
       return _buildFallback();
     }
 
+    String resolvedUrl = imageUrl!;
+    if (resolvedUrl.startsWith('/')) {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      String baseUrl = apiService.baseUrl;
+      // Remove trailing slash from base if present
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
+      resolvedUrl = '$baseUrl$resolvedUrl';
+    }
+
     Widget image = CachedNetworkImage(
-      imageUrl: imageUrl!,
+      imageUrl: resolvedUrl,
       cacheManager: BookCoverCacheManager.instance,
       width: width,
       height: height,
