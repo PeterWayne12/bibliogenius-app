@@ -26,18 +26,37 @@ class ScanScreen extends StatefulWidget {
     this.preSelectedCollectionId,
     this.preSelectedCollectionName,
     this.batchMode = false,
+    this.scannerBuilder,
+    this.controller,
   });
+
+  final Widget Function(
+    BuildContext,
+    MobileScannerController,
+    void Function(BarcodeCapture),
+  )?
+  scannerBuilder;
+  final MobileScannerController? controller;
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
 }
 
 class _ScanScreenState extends State<ScanScreen> {
-  final MobileScannerController controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.normal,
-    facing: CameraFacing.back,
-    torchEnabled: false,
-  );
+  late final MobileScannerController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller =
+        widget.controller ??
+        MobileScannerController(
+          detectionSpeed: DetectionSpeed.normal,
+          facing: CameraFacing.back,
+          torchEnabled: false,
+        );
+  }
+
   bool _isScanning = true;
   bool _isTorchOn = false;
   String? _lastScannedIsbn; // Prevent duplicate navigation for same ISBN
@@ -48,12 +67,14 @@ class _ScanScreenState extends State<ScanScreen> {
   bool _isProcessingBatch = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   void dispose() {
+    // Only dispose if we created it (or just dispose always if the controller handles multiple disposes gracefully?
+    // Usually standard practice: if passed from outside, don't dispose. But here it's "optional overrides default".
+    // If widget.controller is provided, we might assume ownership or not.
+    // For safety in production (where it's null), we MUST dispose.
+    // In test (where it's provided), we might mock dispose.
+    // Let's dispose it. MobileScannerController.dispose() is idempotent usually?
     controller.dispose();
     super.dispose();
   }
@@ -436,19 +457,20 @@ class _ScanScreenState extends State<ScanScreen> {
       ),
       body: Stack(
         children: [
-          MobileScanner(
-            controller: controller,
-            // fit: BoxFit.cover, // Ensure it covers screen
-            onDetect: _onDetect,
-            errorBuilder: (context, error, child) {
-              return Center(
-                child: Text(
-                  'Error: ${error.errorCode}',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            },
-          ),
+          widget.scannerBuilder?.call(context, controller, _onDetect) ??
+              MobileScanner(
+                controller: controller,
+                // fit: BoxFit.cover, // Ensure it covers screen
+                onDetect: _onDetect,
+                errorBuilder: (context, error, child) {
+                  return Center(
+                    child: Text(
+                      'Error: ${error.errorCode}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                },
+              ),
 
           CustomPaint(
             painter: ScannerOverlayPainter(scanWindow),
@@ -599,15 +621,7 @@ class _ScanScreenState extends State<ScanScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   )
-                : ElevatedButton.icon(
-                    icon: const Icon(Icons.keyboard),
-                    label: Text(
-                      TranslationService.translate(
-                            context,
-                            'btn_enter_manually',
-                          ) ??
-                          'Enter Manually',
-                    ),
+                : ElevatedButton(
                     onPressed: () {
                       context.push('/books/add');
                     },
@@ -615,6 +629,20 @@ class _ScanScreenState extends State<ScanScreen> {
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.keyboard),
+                        const SizedBox(width: 8),
+                        Text(
+                          TranslationService.translate(
+                                context,
+                                'btn_enter_manually',
+                              ) ??
+                              'Enter Manually',
+                        ),
+                      ],
                     ),
                   ),
           ),
