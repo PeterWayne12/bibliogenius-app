@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/genie_app_bar.dart';
-import '../widgets/cached_book_cover.dart';
+
 import '../widgets/plus_one_animation.dart';
 import '../widgets/work_edition_card.dart';
+import '../widgets/search_result_card.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../services/translation_service.dart';
@@ -268,8 +269,10 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       final langForBoost = _selectedLanguage ?? userLang;
 
       // Use unified search (Inventaire + OpenLibrary + BNF)
+      // Send the main input as 'query' (q) to allow for ISBNs and general search
       final results = await api.searchBooks(
-        title: _titleController.text,
+        query: _titleController.text, // Main input mapped to 'query' (q)
+        // title: _titleController.text, // REMOVED: Don't send as title
         author: _authorController.text,
         subject: _subjectController.text,
         lang: langForBoost, // Boost results in this language
@@ -294,6 +297,9 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
         for (final work in _groupedWorks) {
           final editions = work['editions'] as List;
           debugPrint('  - "${work['title']}": ${editions.length} edition(s)');
+          for (final ed in editions) {
+            debugPrint('    > Publisher: ${ed['publisher']}');
+          }
         }
       });
     } catch (e) {
@@ -746,126 +752,18 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
     );
   }
 
-  /// Classic flat list view
-  Color _getSourceColor(String? source) {
-    if (source == null) return Colors.blue;
-    if (source.contains('Inventaire')) return Colors.green;
-    if (source.toLowerCase().contains('bnf')) return Colors.orange;
-    if (source.contains('Google')) return Colors.red;
-    return Colors.blue; // OpenLibrary or default
-  }
-
-  String _getSourceLabel(String? source) {
-    if (source == null) return 'OL';
-    if (source.contains('Inventaire')) return 'INV';
-    if (source.toLowerCase().contains('bnf')) return 'BNF';
-    if (source.contains('Google')) return 'GB';
-    return 'OL';
-  }
-
   Widget _buildFlatListView() {
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 20),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final book = _searchResults[index];
-        final author =
-            book['author'] ??
-            TranslationService.translate(context, 'unknown_author');
-        final language = _getLanguageLabel(book['language'] as String?);
-        final publisher = book['publisher'] as String?;
-
-        final List<String> subtitleParts = [author];
-        if (publisher != null && publisher.isNotEmpty) {
-          subtitleParts.add(publisher);
-        }
-        if (language.isNotEmpty) {
-          subtitleParts.add(language);
-        }
-        final subtitle = subtitleParts.join(' • ');
-
-        return ListTile(
-          leading: CompactBookCover(imageUrl: book['cover_url'], size: 50),
-          title: Text(
-            book['title'] ??
-                TranslationService.translate(context, 'unknown_title'),
-          ),
-          subtitle: Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _getSourceColor(book['source']),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  _getSourceLabel(book['source']),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => _addBook(book),
-              ),
-            ],
-          ),
-          onTap: () {
-            // Show details?
-          },
+        return SearchResultCard(
+          book: book,
+          onAdd: () => _addBook(book),
+          onOpenUrl: () => _openUrl(book),
         );
       },
     );
   }
-
-  String _getLanguageLabel(String? langCode) {
-    if (langCode == null || langCode.isEmpty) return '';
-    final code = langCode.toLowerCase();
-    const langMap = {
-      'fr': 'FR',
-      'fre': 'FR',
-      'fra': 'FR',
-      'french': 'FR',
-      'en': 'EN',
-      'eng': 'EN',
-      'english': 'EN',
-      'es': 'ES',
-      'spa': 'ES',
-      'spanish': 'ES',
-      'de': 'DE',
-      'ger': 'DE',
-      'deu': 'DE',
-      'german': 'DE',
-      'it': 'IT',
-      'ita': 'IT',
-      'italian': 'IT',
-      'pt': 'PT',
-      'por': 'PT',
-      'portuguese': 'PT',
-      'nl': 'NL',
-      'dut': 'NL',
-      'nld': 'NL',
-      'dutch': 'NL',
-      'ru': 'RU',
-      'rus': 'RU',
-      'russian': 'RU',
-      'ja': 'JA',
-      'jpn': 'JA',
-      'japanese': 'JA',
-      'zh': 'ZH',
-      'chi': 'ZH',
-      'zho': 'ZH',
-      'chinese': 'ZH',
-    };
-    return langMap[code] ?? code.toUpperCase().substring(0, 2);
-  }
-}
+} // End State
