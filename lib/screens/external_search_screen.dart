@@ -312,7 +312,7 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       if ((edition['isbn'] as String?)?.isNotEmpty == true) score += 10;
 
       // De-prioritize Google Books (tie-breaker for same quality)
-      if ((edition['source'] as String?) == 'Google') score -= 5;
+      if ((edition['source'] as String?) == 'Google') score -= 25;
 
       return score;
     }
