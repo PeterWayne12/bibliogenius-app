@@ -649,6 +649,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           key: _addKey,
                                           testKey: const Key('addBookButton'),
                                         ),
+                                        // New: Search in Library
+                                        _buildActionButton(
+                                          context,
+                                          TranslationService.translate(
+                                            context,
+                                            'search_books',
+                                          ),
+                                          Icons.search,
+                                          () => context.push('/books'),
+                                        ),
+                                        // New: Scan Book
+                                        _buildActionButton(
+                                          context,
+                                          TranslationService.translate(
+                                            context,
+                                            'action_scan_barcode',
+                                          ),
+                                          Icons.qr_code_scanner,
+                                          () async {
+                                            final isbn = await context
+                                                .push<String>('/scan');
+                                            if (isbn != null &&
+                                                context.mounted) {
+                                              context.push(
+                                                '/books/add',
+                                                extra: {'isbn': isbn},
+                                              );
+                                            }
+                                          },
+                                        ),
                                         _buildActionButton(
                                           context,
                                           TranslationService.translate(

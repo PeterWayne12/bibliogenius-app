@@ -71,6 +71,7 @@ class TranslationService {
       'individual_reader': 'Individual Reader',
       'professional': 'Professional',
       'loans': 'Loans',
+      'loans_and_borrowings': 'Loans & Borrowing',
       'edits': 'Edits',
       'next_level_progress': 'Next Level Progress',
       'to_next_level': 'to next level',
@@ -93,6 +94,7 @@ class TranslationService {
       'shelf_name_hint': 'e.g. Science Fiction',
       'no_shelves_title': 'No shelves yet',
       'create_first_shelf': 'Create your first shelf to organize your books',
+      'scan_first_book': 'Scan my first book',
       'shelf_management_hint':
           'Tap a shelf to edit. Long press to move or delete.',
       'select_new_parent': 'Select new parent:',
@@ -195,6 +197,8 @@ class TranslationService {
       'invalid_isbn_scanned': 'Not a valid book barcode',
       'enter_isbn_manually': 'Enter ISBN manually',
       'add_book_manually': 'Add book manually',
+      'btn_scan_book': 'Scan Book',
+      'btn_search_online_cta': 'Search Online',
       'connected_to': 'Connected to',
       'connection_failed': 'Failed to connect',
       'sending_request': 'Sending request...',
@@ -269,8 +273,9 @@ class TranslationService {
       'backup_reminder_export': 'Export Now',
       'welcome_title': 'Welcome to BiblioGenius!',
       'welcome_subtitle':
-          'Your library is looking a bit empty. Start by adding your first book or searching online.',
+          'Your library is looking a bit empty. Start by adding your first book.',
       'btn_add_manually': 'Add Manually',
+      'btn_search_book_online': 'Search for a book online',
       'btn_search_online': 'Search Online',
       'quick_actions': 'Quick Actions',
       'action_add_book': 'Add Book',
@@ -764,8 +769,7 @@ class TranslationService {
       'menu_tutorial': 'Tutorial',
 
       'onboarding_welcome_title': 'Welcome to BiblioGenius!',
-      'onboarding_welcome_desc':
-          'Your personal library management app. Organize, share, and discover books with a community of readers.',
+      'onboarding_welcome_desc': 'An app to catalog and organize your books.',
 
       'onboarding_books_title': 'Build Your Library',
       'onboarding_books_desc':
@@ -798,6 +802,31 @@ class TranslationService {
       'feature_borrow': 'Borrow',
       'feature_track': 'Track Loans',
       'feature_stats': 'Statistics',
+
+      // Setup Wizard
+      'setup_welcome_title': 'Welcome',
+      'setup_library_info_title': 'Library Info',
+      'setup_library_name_label': 'Library Name',
+      'setup_library_name_hint': 'e.g. The Book Cave',
+      'setup_profile_type_label': 'Profile Type',
+      'setup_demo_title': 'Demo Content',
+      'setup_demo_header': 'Start with some books?',
+      'setup_demo_body':
+          'We can add a few classic books to your library so you can explore the features immediately.',
+      'setup_demo_yes': 'Yes, import demo books',
+      'setup_demo_no': 'No, start empty',
+      'setup_lang_title': 'Select Language',
+      'setup_lang_label': 'Choose your preferred language:',
+      'setup_theme_title': 'Customize Theme',
+      'setup_theme_label': 'Choose a color for your app banner:',
+      'setup_finish_title': 'Ready to Go!',
+      'setup_finish_header': 'You are all set!',
+      'setup_finish_body':
+          'Click "Finish" to start adding books to your library.',
+      'setup_btn_next': 'Next',
+      'setup_btn_back': 'Back',
+      'setup_btn_finish': 'Finish',
+      'setup_progress': 'Setting up your library...',
       'feature_goals': 'Reading Goals',
       'feature_history': 'History',
 
@@ -1316,7 +1345,7 @@ class TranslationService {
           'Vous devrez définir un nouveau nom d\'utilisateur et mot de passe',
       'import_success': 'Livres importés avec succès !',
       'import_fail': 'Échec de l\'importation',
-      'import_success': 'Importation réussie :',
+      'loans_and_borrowings': 'Prêts & Emprunts',
       'export_success': 'Sauvegarde prête',
       'export_fail': 'Échec de l\'exportation',
       'import': 'Importer',
@@ -1446,8 +1475,11 @@ class TranslationService {
       'backup_reminder_export': 'Exporter maintenant',
       'welcome_title': 'Bienvenue sur BiblioGenius !',
       'welcome_subtitle':
-          'Votre bibliothèque semble un peu vide. Commencez par ajouter votre premier livre ou faites une recherche en ligne.',
+          'Votre bibliothèque semble un peu vide. Commencez par ajouter votre premier livre.',
       'btn_add_manually': 'Ajouter manuellement',
+      'btn_scan_book': 'Scanner un livre',
+      'btn_search_online_cta': 'Rechercher en ligne',
+      'btn_search_book_online': 'Rechercher un livre en ligne',
       'btn_search_online': 'Rechercher en ligne',
       'quick_actions': 'Actions rapides',
       'action_add_book': 'Ajouter un livre',
@@ -1468,7 +1500,7 @@ class TranslationService {
       'scan_isbn': 'Scanner un ISBN',
       'search_hint': 'Rechercher des livres...',
       'my_library_title': 'Ma Bibliothèque',
-      'search_books': 'Rechercher des livres',
+      'search_books': 'Rechercher dans ma bibliothèque',
       'book_details_found': 'Détails du livre trouvés !',
       'book_updated': 'Livre mis à jour avec succès',
       'error_updating_book': 'Erreur lors de la mise à jour du livre',
@@ -1612,8 +1644,10 @@ class TranslationService {
       'shelves': 'Étagères',
       'no_shelves_title': 'Pas encore d\'étagères',
       'no_shelves_hint':
-          'Ajoutez des étagères à vos livres pour les organiser.',
+          'Classez vos livres dans des étagères pour mieux vous y retrouver',
       'go_to_library': 'Aller à la bibliothèque',
+      'create_first_shelf': 'Créer ma première étagère',
+      'scan_first_book': 'Scanner mon premier livre',
       'add_tag_hint': 'Ajouter une étagère...',
       'hierarchical_tag_hint':
           'Astuce : Utilisez "Parent > Enfant" pour créer des sous-étagères',
@@ -1673,7 +1707,10 @@ class TranslationService {
       'nav_my_library': 'Ma Bibliothèque',
       'nav_contacts': 'Contacts',
       'nav_p2p': 'Connexion',
-      'nav_network': 'Réseau de bibliothèques',
+      'nav_network': 'Réseau',
+      'btn_scan_book': 'Scanner un livre',
+      'btn_search_online_cta': 'Rechercher en ligne',
+      'tab_members': 'Contacts',
       'nav_requests': 'Demandes d\'emprunt',
       'nav_profile': 'Mon Profil',
       'nav_statistics': 'Statistiques',
@@ -1955,15 +1992,15 @@ class TranslationService {
 
       'onboarding_welcome_title': 'Bienvenue dans BiblioGenius !',
       'onboarding_welcome_desc':
-          'Votre application de gestion de bibliothèque personnelle. Organisez, partagez et découvrez des livres avec une communauté de lecteurs.',
+          'Une application pour inventorier et organiser vos livres.',
 
-      'onboarding_books_title': 'Construisez Votre Bibliothèque',
+      'onboarding_books_title': 'Créez votre bibliothèque virtuelle',
       'onboarding_books_desc':
-          'Ajoutez des livres instantanément en scannant les codes-barres, en cherchant en ligne ou en saisissant les détails manuellement.',
+          'Ajoutez des livres en scannant des codes-barres ou en cherchant en ligne.',
 
-      'onboarding_network_title': 'Connectez Votre Réseau',
+      'onboarding_network_title': 'Ne perdez plus vos livres',
       'onboarding_network_desc':
-          'Reliez-vous avec vos amis et votre famille pour partager vos bibliothèques, emprunter des livres et suivre qui a quoi.',
+          'Reliez-vous avec vos contacts pour savoir à qui vous avez prêté des livres.',
 
       'onboarding_p2p_title': 'Connectez & Partagez',
       'onboarding_p2p_desc':
@@ -1977,10 +2014,18 @@ class TranslationService {
       'onboarding_stats_desc':
           'Suivez vos habitudes de lecture, fixez des objectifs et regardez votre collection grandir avec de belles analyses.',
 
+      'onboarding_slogan_1':
+          'Votre bibliothèque universelle, au creux de votre poche.',
+      'onboarding_slogan_2':
+          'Ajoutez des livres en scannant des codes-barres ou en cherchant en ligne.',
+      'onboarding_slogan_3': 'Connectez vos savoirs. Partagez vos mondes.',
+      'onboarding_slogan_4':
+          'Visualisez votre passion. Mesurez votre érudition.',
+
       // Feature chips
       'feature_organize': 'Organiser',
       'feature_discover': 'Découvrir',
-      'feature_share': 'Partager',
+      'feature_share': 'Échanger',
       'feature_scan': 'Scanner ISBN',
       'feature_search': 'Rechercher en ligne',
       'feature_manual': 'Ajouter manuellement',
@@ -1988,6 +2033,30 @@ class TranslationService {
       'feature_borrow': 'Emprunter',
       'feature_track': 'Suivre les prêts',
       'feature_stats': 'Statistiques',
+
+      // Setup Wizard
+      'setup_welcome_title': 'Bienvenue',
+      'setup_library_info_title': 'Infos Bibliothèque',
+      'setup_library_name_label': 'Nom de la bibliothèque',
+      'setup_library_name_hint': 'ex: La Caverne aux Livres',
+      'setup_profile_type_label': 'Type de profil',
+      'setup_demo_title': 'Contenu Démo',
+      'setup_demo_header': 'Commencer avec des livres ?',
+      'setup_demo_body':
+          'Nous pouvons ajouter quelques classiques pour vous permettre de tester les fonctionnalités.',
+      'setup_demo_yes': 'Oui, importer des livres démo',
+      'setup_demo_no': 'Non, commencer vide',
+      'setup_lang_title': 'Langue',
+      'setup_lang_label': 'Choisissez votre langue :',
+      'setup_theme_title': 'Thème',
+      'setup_theme_label': 'Choisissez la couleur de la bannière :',
+      'setup_finish_title': 'C\'est prêt !',
+      'setup_finish_header': 'Tout est configuré !',
+      'setup_finish_body': 'Cliquez sur "Terminer" pour commencer.',
+      'setup_btn_next': 'Suivant',
+      'setup_btn_back': 'Retour',
+      'setup_btn_finish': 'Terminer',
+      'setup_progress': 'Configuration en cours...',
       'feature_goals': 'Objectifs lecture',
       'feature_history': 'Historique',
 
@@ -2101,7 +2170,7 @@ class TranslationService {
       'books_per_month': 'livres/mois',
       'books_read': 'livres lus',
       'book': 'livre',
-      'books': 'livres',
+      'books': 'Livres',
       'edit_yearly_goal': 'Définir votre objectif de lecture',
       'edit_monthly_goal': 'Définir votre objectif mensuel',
       'not_set': 'Non défini',
@@ -2646,6 +2715,30 @@ class TranslationService {
           'Mira cuántos libros tienes y quién los ha tomado prestados.',
       'wizard_skip': 'Saltar',
 
+      // Setup Wizard
+      'setup_welcome_title': 'Bienvenido',
+      'setup_library_info_title': 'Info Biblioteca',
+      'setup_library_name_label': 'Nombre de la biblioteca',
+      'setup_library_name_hint': 'ej: La Cueva de los Libros',
+      'setup_profile_type_label': 'Tipo de perfil',
+      'setup_demo_title': 'Contenido Demo',
+      'setup_demo_header': '¿Empezar con libros?',
+      'setup_demo_body':
+          'Podemos añadir algunos clásicos para que pruebes las funciones.',
+      'setup_demo_yes': 'Sí, importar libros demo',
+      'setup_demo_no': 'No, empezar vacío',
+      'setup_lang_title': 'Idioma',
+      'setup_lang_label': 'Elige tu idioma:',
+      'setup_theme_title': 'Tema',
+      'setup_theme_label': 'Elige el color del banner:',
+      'setup_finish_title': '¡Listo!',
+      'setup_finish_header': '¡Todo listo!',
+      'setup_finish_body': 'Haz clic en "Terminar" para empezar.',
+      'setup_btn_next': 'Siguiente',
+      'setup_btn_back': 'Atrás',
+      'setup_btn_finish': 'Terminar',
+      'setup_progress': 'Configurando...',
+
       // Onboarding Tour
       'onboarding_skip': 'Saltar',
       'onboarding_next': 'Siguiente',
@@ -2655,7 +2748,7 @@ class TranslationService {
 
       'onboarding_welcome_title': '¡Bienvenido a BiblioGenius!',
       'onboarding_welcome_desc':
-          'Tu gestor de biblioteca personal. Organiza tus libros, conéctate con amigos y sigue tu trayectoria de lectura.',
+          'Una aplicación para catalogar y organizar tus libros.',
 
       'onboarding_books_title': 'Gestiona Tu Biblioteca',
       'onboarding_books_desc':
@@ -3336,6 +3429,55 @@ class TranslationService {
       'restart_required_for_changes':
           'Starten Sie die App neu um Änderungen anzuwenden',
       'view': 'Ansehen',
+
+      // Onboarding Tour
+      'onboarding_skip': 'Überspringen',
+      'onboarding_next': 'Weiter',
+      'onboarding_finish': 'Starten',
+      'onboarding_tap_continue': 'Tippen Sie irgendwo, um fortzufahren',
+      'menu_tutorial': 'Tutorial',
+      'onboarding_welcome_title': 'Willkommen bei BiblioGenius!',
+      'onboarding_welcome_desc':
+          'Eine App zum Katalogisieren und Organisieren Ihrer Bücher.',
+      'onboarding_books_title': 'Bauen Sie Ihre Bibliothek auf',
+      'onboarding_books_desc':
+          'Fügen Sie Bücher hinzu, indem Sie Barcodes scannen oder online suchen.',
+      'onboarding_network_title': 'Verbinden Sie Ihr Netzwerk',
+      'onboarding_network_desc':
+          'Verbinden Sie sich mit Freunden, um Bibliotheken zu teilen und Bücher auszuleihen.',
+      'onboarding_p2p_title': 'Verbinden & Teilen',
+      'onboarding_p2p_desc':
+          'Sehen Sie, was Ihre Freunde lesen, und entdecken Sie neue Bücher.',
+      'onboarding_contacts_title': 'Ausleiher verfolgen',
+      'onboarding_contacts_desc':
+          'Verwalten Sie Ihre Kontakte und behalten Sie den Überblick über ausgeliehene Bücher.',
+      'onboarding_stats_title': 'Einblicke & Statistiken',
+      'onboarding_stats_desc':
+          'Verfolgen Sie Ihre Lesegewohnheiten mit schönen Analysen.',
+
+      // Setup Wizard
+      'setup_welcome_title': 'Willkommen',
+      'setup_library_info_title': 'Bibliotheksinfo',
+      'setup_library_name_label': 'Bibliotheksname',
+      'setup_library_name_hint': 'z.B. Die Bücherhöhle',
+      'setup_profile_type_label': 'Profiltyp',
+      'setup_demo_title': 'Demo-Inhalt',
+      'setup_demo_header': 'Mit Büchern starten?',
+      'setup_demo_body':
+          'Wir können einige Klassiker hinzufügen, damit Sie die Funktionen testen können.',
+      'setup_demo_yes': 'Ja, Demo-Bücher importieren',
+      'setup_demo_no': 'Nein, leer starten',
+      'setup_lang_title': 'Sprache',
+      'setup_lang_label': 'Wählen Sie Ihre Sprache:',
+      'setup_theme_title': 'Thema',
+      'setup_theme_label': 'Wählen Sie eine Bannerfarbe:',
+      'setup_finish_title': 'Fertig!',
+      'setup_finish_header': 'Alles bereit!',
+      'setup_finish_body': 'Klicken Sie auf "Fertigstellen", um zu beginnen.',
+      'setup_btn_next': 'Weiter',
+      'setup_btn_back': 'Zurück',
+      'setup_btn_finish': 'Fertigstellen',
+      'setup_progress': 'Einrichtung läuft...',
     },
   };
 

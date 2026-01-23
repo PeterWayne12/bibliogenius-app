@@ -16,8 +16,8 @@ import 'utils/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/theme_provider.dart';
 import 'audio/audio_module.dart'; // Audio module (decoupled)
+
 import 'screens/login_screen.dart';
-import 'screens/book_list_screen.dart';
 import 'screens/add_book_screen.dart';
 import 'screens/book_copies_screen.dart';
 import 'screens/book_details_screen.dart';
@@ -30,7 +30,6 @@ import 'screens/scan_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/setup_screen.dart';
 
-import 'screens/borrow_requests_screen.dart';
 import 'screens/peer_book_list_screen.dart';
 import 'screens/shelf_management_screen.dart';
 import 'screens/search_peer_screen.dart';
@@ -40,13 +39,13 @@ import 'screens/statistics_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/network_search_screen.dart';
 import 'screens/onboarding_tour_screen.dart';
-import 'screens/shelves_screen.dart';
 import 'screens/network_screen.dart';
+import 'screens/library_screen.dart';
 import 'screens/feedback_screen.dart';
 
 import 'screens/link_device_screen.dart';
 import 'screens/external_search_screen.dart';
-import 'screens/collection/collection_list_screen.dart'; // Collection module
+
 import 'services/wizard_service.dart';
 import 'widgets/scaffold_with_nav.dart';
 
@@ -348,7 +347,7 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/books',
-              builder: (context, state) => const BookListScreen(),
+              builder: (context, state) => const LibraryScreen(initialIndex: 0),
               routes: [
                 GoRoute(
                   path: 'add',
@@ -434,7 +433,7 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/network',
-              builder: (context, state) => const NetworkScreen(),
+              builder: (context, state) => const NetworkScreen(initialIndex: 0),
               routes: [
                 GoRoute(
                   path: 'contact/:id',
@@ -520,7 +519,7 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             GoRoute(path: '/p2p', redirect: (context, state) => '/network'),
             GoRoute(
               path: '/requests',
-              builder: (context, state) => const BorrowRequestsScreen(),
+              builder: (context, state) => const NetworkScreen(initialIndex: 1),
             ),
             GoRoute(
               path: '/profile',
@@ -538,7 +537,7 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             GoRoute(
               path: '/peers',
               builder: (context, state) =>
-                  const NetworkScreen(), // Fallback to network
+                  const NetworkScreen(initialIndex: 0), // Fallback to network
               routes: [
                 GoRoute(
                   path: ':id/books',
@@ -571,7 +570,7 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/shelves',
-              builder: (context, state) => const ShelvesScreen(),
+              builder: (context, state) => const LibraryScreen(initialIndex: 1),
             ),
             GoRoute(
               path: '/feedback',
@@ -579,7 +578,7 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/collections',
-              builder: (context, state) => const CollectionListScreen(),
+              builder: (context, state) => const LibraryScreen(initialIndex: 2),
               routes: [
                 GoRoute(
                   path: ':id',

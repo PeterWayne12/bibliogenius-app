@@ -23,8 +23,15 @@ enum ViewMode {
 
 class BookListScreen extends StatefulWidget {
   final String? initialSearchQuery;
+  final bool isTabView;
+  final ValueNotifier<int>? refreshNotifier;
 
-  const BookListScreen({super.key, this.initialSearchQuery});
+  const BookListScreen({
+    super.key,
+    this.initialSearchQuery,
+    this.isTabView = false,
+    this.refreshNotifier,
+  });
 
   @override
   State<BookListScreen> createState() => _BookListScreenState();
@@ -66,9 +73,15 @@ class _BookListScreenState extends State<BookListScreen>
     if (_searchQuery.isNotEmpty) {
       _isSearching = true;
     }
+
+    // Listen to refresh trigger
+    widget.refreshNotifier?.addListener(_handleRefreshTrigger);
+
     _fetchBooks();
-    // Trigger background sync
+
+    // Trigger background sync and context-dependent initialization manually
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       Provider.of<SyncService>(context, listen: false).syncAllPeers();
       _checkWizard();
 
@@ -111,8 +124,13 @@ class _BookListScreenState extends State<BookListScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.refreshNotifier?.removeListener(_handleRefreshTrigger);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _handleRefreshTrigger() {
+    _fetchBooks();
   }
 
   @override
@@ -132,6 +150,92 @@ class _BookListScreenState extends State<BookListScreen>
         TranslationService.translate(context, 'reordering_shelf') ??
             'Reordering Shelf...',
         style: const TextStyle(color: Colors.white, fontSize: 18),
+      );
+    }
+
+    if (widget.isTabView) {
+      // Just return the body content for tab view
+      return Container(
+        decoration: BoxDecoration(
+          gradient: AppDesign.pageGradientForTheme(
+            Provider.of<ThemeProvider>(context).themeStyle,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom header for tab view if needed, or reuse parts
+              if (_isReordering)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: Theme.of(context).primaryColor,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          TranslationService.translate(
+                                context,
+                                'reordering_shelf',
+                              ) ??
+                              'Reordering Shelf...',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.sort_by_alpha,
+                          color: Colors.white,
+                        ),
+                        onPressed: _autoSortByAuthor,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.check, color: Colors.white),
+                        onPressed: _saveOrder,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () {
+                          setState(() {
+                            _isReordering = false;
+                            _fetchBooks();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Title / Search Bar for Tab View
+              if (!_isReordering)
+                Container(
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(child: _buildSearchField()),
+
+                      // Action buttons removed (Moved to LibraryScreen AppBar)
+                    ],
+                  ),
+                ),
+
+              _buildFilterBar(),
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black54,
+                          ),
+                        ),
+                      )
+                    : _buildBody(),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -633,18 +737,61 @@ class _BookListScreenState extends State<BookListScreen>
   // Header removed - Avatar is now in GenieAppBar
 
   Widget _buildFilterBar() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // determine active label for status filter
+    String filterLabel = TranslationService.translate(context, 'filter_all');
+    IconData filterIcon = Icons.filter_list;
+
+    bool isFilterActive = false;
+
+    if (_showAllBooks) {
+      filterLabel = TranslationService.translate(context, 'filter_all');
+      filterIcon = Icons.visibility;
+      isFilterActive = true;
+    } else if (_selectedStatus != null) {
+      isFilterActive = true;
+      // Map status to label
+      if (_selectedStatus == 'reading') {
+        filterLabel = TranslationService.translate(
+          context,
+          'reading_status_reading',
+        );
+      } else if (_selectedStatus == 'to_read') {
+        filterLabel = TranslationService.translate(
+          context,
+          'reading_status_to_read',
+        );
+      } else if (_selectedStatus == 'wanting') {
+        filterLabel = TranslationService.translate(
+          context,
+          'reading_status_wanting',
+        );
+      } else if (_selectedStatus == 'read') {
+        filterLabel = TranslationService.translate(
+          context,
+          'reading_status_read',
+        );
+      } else if (_selectedStatus == 'owned') {
+        filterLabel = TranslationService.translate(context, 'owned_status');
+      }
+    }
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: [
-          // View Mode Toggles
+          // 1. View Mode Toggles (Left aligned)
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
+              color: isDark ? Colors.white10 : Colors.grey.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(
+                color: isDark ? Colors.white24 : Colors.grey.withOpacity(0.2),
+              ),
             ),
             child: Row(
               children: [
@@ -656,47 +803,44 @@ class _BookListScreenState extends State<BookListScreen>
           ),
           const SizedBox(width: 12),
 
-          // Tag Filter (if active)
+          // 2. Tag Filter Trigger
+          // If a tag is selected, show it as a clearable chip
           if (_tagFilter != null) ...[
             _buildFilterPill(
-              status: 'tag_filter', // A dummy status to identify this pill
+              status: 'tag_filter',
               label: '#$_tagFilter',
               isClearAction: true,
             ),
-            const SizedBox(width: 8),
-          ],
-
-          // Tag Filter Button (to select a tag)
-          if (_tagFilter == null)
+          ] else
+            // Otherwise show "Shelves" button
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ScaleOnTap(
                 onTap: () => _showTagFilterDialog(),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    color: isDark ? theme.cardColor : Colors.white,
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: isDark
+                          ? Colors.white24
+                          : Colors.grey.withOpacity(0.3),
                     ),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.label_outline,
                         size: 16,
-                        color: Theme.of(context).primaryColor,
+                        color: theme.primaryColor,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 6),
                       Text(
                         TranslationService.translate(context, 'tags'),
                         style: TextStyle(
-                          color: Colors.black87,
+                          color: isDark ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -706,88 +850,184 @@ class _BookListScreenState extends State<BookListScreen>
               ),
             ),
 
-          // Show All Toggle (before status filters)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ScaleOnTap(
-              onTap: () {
-                setState(() {
+          const SizedBox(width: 4),
+
+          // 3. Consolidated Status Filter Dropdown
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              setState(() {
+                if (value == 'all_visibility') {
                   _showAllBooks = !_showAllBooks;
-                  _filterBooks();
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: _showAllBooks
-                      ? Theme.of(context).primaryColor
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _showAllBooks
-                        ? Colors.transparent
-                        : Colors.grey.withOpacity(0.3),
-                  ),
-                ),
+                  _selectedStatus =
+                      null; // Reset specific status if toggling "All"
+                } else if (value == 'clear') {
+                  _showAllBooks = false;
+                  _selectedStatus = null;
+                } else {
+                  _showAllBooks = false;
+                  _selectedStatus = value;
+                }
+                _filterBooks();
+              });
+            },
+            offset: const Offset(0, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'clear',
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      _showAllBooks ? Icons.visibility : Icons.visibility_off,
-                      size: 16,
-                      color: _showAllBooks ? Colors.white : Colors.grey,
+                      Icons.filter_list_off,
+                      color: theme.disabledColor,
+                      size: 20,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      TranslationService.translate(context, 'filter_all'),
-                      style: TextStyle(
-                        color: _showAllBooks ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
-                    ),
+                    const SizedBox(width: 12),
+                    Text(TranslationService.translate(context, 'filter_all')),
                   ],
                 ),
               ),
+              const PopupMenuDivider(),
+              _buildPopupItem(
+                'reading',
+                Icons.menu_book,
+                TranslationService.translate(context, 'reading_status_reading'),
+                Colors.blue,
+              ),
+              _buildPopupItem(
+                'to_read',
+                Icons.bookmark_border,
+                TranslationService.translate(context, 'reading_status_to_read'),
+                Colors.orange,
+              ),
+              _buildPopupItem(
+                'wanting',
+                Icons.favorite_border,
+                TranslationService.translate(context, 'reading_status_wanting'),
+                Colors.pink,
+              ),
+              _buildPopupItem(
+                'read',
+                Icons.check_circle_outline,
+                TranslationService.translate(context, 'reading_status_read'),
+                Colors.green,
+              ),
+              _buildPopupItem(
+                'owned',
+                Icons.inventory_2_outlined,
+                TranslationService.translate(context, 'owned_status'),
+                Colors.purple,
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'all_visibility',
+                child: Row(
+                  children: [
+                    Icon(
+                      _showAllBooks ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      TranslationService.translate(
+                        context,
+                        'show_borrowed_books',
+                      ),
+                    ), // Reuse 'Show borrowed' or 'All'
+                  ],
+                ),
+              ),
+            ],
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isFilterActive
+                    ? theme.primaryColor
+                    : (isDark ? theme.cardColor : Colors.white),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: isFilterActive
+                      ? Colors.transparent
+                      : (isDark
+                            ? Colors.white24
+                            : Colors.grey.withOpacity(0.3)),
+                ),
+                boxShadow: isFilterActive
+                    ? [
+                        BoxShadow(
+                          color: theme.primaryColor.withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    filterIcon,
+                    size: 16,
+                    color: isFilterActive
+                        ? Colors.white
+                        : (isDark ? Colors.white : Colors.black87),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    filterLabel,
+                    style: TextStyle(
+                      color: isFilterActive
+                          ? Colors.white
+                          : (isDark ? Colors.white : Colors.black87),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    size: 18,
+                    color: isFilterActive ? Colors.white70 : Colors.grey,
+                  ),
+                ],
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          // Status Filters
-          _buildFilterPillIcon(status: null, icon: Icons.library_books),
-          _buildFilterPill(
-            status: 'reading',
-            label: TranslationService.translate(
-              context,
-              'reading_status_reading',
+  PopupMenuItem<String> _buildPopupItem(
+    String value,
+    IconData icon,
+    String label,
+    Color color,
+  ) {
+    final isSelected = _selectedStatus == value;
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? color : color.withOpacity(0.7),
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? color : null,
             ),
           ),
-          _buildFilterPill(
-            status: 'to_read',
-            label: TranslationService.translate(
-              context,
-              'reading_status_to_read',
-            ),
-          ),
-          _buildFilterPill(
-            status: 'wanting',
-            label: TranslationService.translate(
-              context,
-              'reading_status_wanting',
-            ),
-          ),
-          _buildFilterPill(
-            status: 'read',
-            label: TranslationService.translate(context, 'reading_status_read'),
-          ),
-          _buildFilterPill(
-            status: 'owned',
-            label: TranslationService.translate(context, 'owned_status'),
-          ),
-          // Note: lent/borrowed filters removed - these are now copy-level concepts
-          // Users can view loan status via copy management
+          if (isSelected) ...[
+            const Spacer(),
+            Icon(Icons.check, color: color, size: 18),
+          ],
         ],
       ),
     );
@@ -924,63 +1164,6 @@ class _BookListScreenState extends State<BookListScreen>
     );
   }
 
-  Widget _buildFilterPillIcon({
-    required String? status,
-    required IconData icon,
-  }) {
-    final bool isSelected = _selectedStatus == status;
-    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ScaleOnTap(
-        onTap: () {
-          setState(() {
-            _selectedStatus = isSelected ? null : status;
-            _filterBooks();
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Theme.of(context).primaryColor
-                : isDarkTheme
-                ? Theme.of(context).cardColor.withOpacity(0.8)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected
-                  ? Colors.transparent
-                  : isDarkTheme
-                  ? Theme.of(context).colorScheme.outline
-                  : Colors.grey.withOpacity(0.3),
-              width: isDarkTheme ? 1.5 : 1.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Theme.of(context).primaryColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: isSelected
-                ? Colors.white
-                : isDarkTheme
-                ? Colors.white70
-                : Colors.black54,
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _onBookTap(Book book) async {
     if (book.id == null) return;
     final result = await context.push('/books/${book.id}', extra: book);
@@ -1012,6 +1195,114 @@ class _BookListScreenState extends State<BookListScreen>
   }
 
   Widget _buildBody() {
+    // 1. Zero State: No books in the library at all (not just filtered out)
+    if (_books.isEmpty &&
+        !_isLoading &&
+        _searchQuery.isEmpty &&
+        _tagFilter == null &&
+        _selectedStatus == null) {
+      return RefreshIndicator(
+        onRefresh: _fetchBooks,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.menu_book_rounded,
+                      size: 80,
+                      color: Theme.of(context).disabledColor.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      TranslationService.translate(context, 'welcome_subtitle'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.color?.withOpacity(0.8),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final isbn = await context.push<String>('/scan');
+                        if (isbn != null && mounted) {
+                          final result = await context.push(
+                            '/books/add',
+                            extra: {'isbn': isbn},
+                          );
+                          if (result == true && mounted) {
+                            _fetchBooks(); // Refresh list after book was added
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.qr_code_scanner),
+                      label: Text(
+                        TranslationService.translate(
+                          context,
+                          'scan_first_book',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final result = await context.push('/search/external');
+                        if (result == true) {
+                          _fetchBooks();
+                        }
+                      },
+                      icon: const Icon(Icons.travel_explore),
+                      label: Text(
+                        TranslationService.translate(
+                          context,
+                          'btn_search_book_online',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 2. No Results: Books exist but filters/search removed them
     if (_filteredBooks.isEmpty && !_isLoading) {
       return RefreshIndicator(
         onRefresh: _fetchBooks,

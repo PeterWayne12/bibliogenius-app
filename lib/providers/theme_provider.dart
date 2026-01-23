@@ -81,6 +81,33 @@ class ThemeProvider with ChangeNotifier {
     return theme.buildTheme(accentColor: _bannerColor);
   }
 
+  /// Normalize profile type values to handle legacy formats
+  /// Maps old values like 'individual_reader' to current valid values
+  String _normalizeProfileType(String profileType) {
+    // Map old/legacy values to new values
+    const Map<String, String> legacyMapping = {
+      'individual_reader': 'individual',
+      'professional': 'librarian',
+    };
+
+    // Check if it's a legacy value that needs mapping
+    if (legacyMapping.containsKey(profileType)) {
+      return legacyMapping[profileType]!;
+    }
+
+    // Validate it's a known current value
+    const validTypes = {'individual', 'librarian', 'kid', 'bookseller'};
+    if (validTypes.contains(profileType)) {
+      return profileType;
+    }
+
+    // Default fallback if unknown value
+    debugPrint(
+      '⚠️ Unknown profile type: $profileType, defaulting to individual',
+    );
+    return 'individual';
+  }
+
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final colorValue = prefs.getInt('bannerColor');
@@ -106,7 +133,18 @@ class ThemeProvider with ChangeNotifier {
 
     _currentAvatarId = prefs.getString('avatarId') ?? 'individual';
     _currency = prefs.getString('currency') ?? 'EUR';
-    _profileType = prefs.getString('profileType') ?? 'individual';
+
+    // Load and normalize profile type to handle legacy values
+    String rawProfileType = prefs.getString('profileType') ?? 'individual';
+    _profileType = _normalizeProfileType(rawProfileType);
+
+    // If normalized value differs from stored value, update SharedPreferences
+    if (_profileType != rawProfileType) {
+      await prefs.setString('profileType', _profileType);
+      debugPrint(
+        '✅ Migrated legacy profile type: $rawProfileType → $_profileType',
+      );
+    }
 
     // Load borrowing capability setting (default based on profile type)
     final savedCanBorrow = prefs.getBool('canBorrowBooks');

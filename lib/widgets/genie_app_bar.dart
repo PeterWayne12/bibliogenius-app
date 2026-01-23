@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/theme_provider.dart';
-import '../utils/avatars.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 
 class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -34,12 +34,8 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
     // Use provided subtitle, or fallback to library name from provider
     final displaySubtitle = subtitle ?? themeProvider.libraryName;
 
-    // Get avatar info
+    // Get avatar info from provider (customizable avatar system)
     final avatarConfig = themeProvider.avatarConfig;
-    final avatar = availableAvatars.firstWhere(
-      (a) => a.id == themeProvider.currentAvatarId,
-      orElse: () => availableAvatars.first,
-    );
 
     // Theme-aware gradient - dark wood for Sorbonne, blue-purple for others
     // Theme-aware gradient
@@ -97,27 +93,34 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
           final logoRadius = isCompact ? 8.0 : 12.0;
           final spacing = isCompact ? 6.0 : 12.0;
 
+          // Mobile check: If screen width is small, hide the spark icon explicitly
+          // constraints.maxWidth refers to the Title widget constraint, not screen width.
+          // Using MediaQuery from parent context is safer for overall device type check.
+          final screenWidth = MediaQuery.of(context).size.width;
+          final isMobile = screenWidth <= 600;
+
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: EdgeInsets.all(logoPadding),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(logoRadius),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
+              if (!isMobile)
+                Container(
+                  padding: EdgeInsets.all(logoPadding),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(logoRadius),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.auto_awesome, // "Spark" / Magic
+                    color: Colors.white,
+                    size: logoSize,
                   ),
                 ),
-                child: Icon(
-                  Icons.auto_awesome, // "Spark" / Magic
-                  color: Colors.white,
-                  size: logoSize,
-                ),
-              ),
               // Hide text entirely if space is too tight (don't truncate)
               if (!hideTitle) ...[
-                SizedBox(width: spacing),
+                if (!isMobile) SizedBox(width: spacing),
                 Flexible(
                   child: title is Widget
                       ? title
@@ -212,7 +215,7 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
                             avatarConfig?.toUrl(size: 32, format: 'png') ?? '',
                         fit: BoxFit.cover,
                         errorWidget: (_, __, ___) =>
-                            Image.asset(avatar.assetPath, fit: BoxFit.cover),
+                            const Icon(Icons.person, color: Colors.grey),
                       ),
               ),
             ),

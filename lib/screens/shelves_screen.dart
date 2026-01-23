@@ -9,7 +9,9 @@ import '../theme/app_design.dart';
 import '../providers/theme_provider.dart';
 
 class ShelvesScreen extends StatefulWidget {
-  const ShelvesScreen({super.key});
+  final bool isTabView;
+
+  const ShelvesScreen({super.key, this.isTabView = false});
 
   @override
   State<ShelvesScreen> createState() => _ShelvesScreenState();
@@ -86,6 +88,73 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
     final width = MediaQuery.of(context).size.width;
     final bool isMobile = width <= 600;
     final themeStyle = Provider.of<ThemeProvider>(context).themeStyle;
+
+    if (widget.isTabView) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: AppDesign.pageGradientForTheme(themeStyle),
+          ),
+          child: SafeArea(
+            child: FutureBuilder<List<Tag>>(
+              future: _tagsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return _buildErrorState(snapshot.error.toString());
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return _buildEmptyState(context);
+                }
+
+                _allTags = snapshot.data!;
+                final visibleTags = _visibleTags;
+
+                if (visibleTags.isEmpty && _currentParent != null) {
+                  // Navigate logic handled in post frame
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.go('/books?tag=${_currentParent!.name}');
+                  });
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async => _refreshTags(),
+                  child: Column(
+                    children: [
+                      // Always show breadcrumb if parent != null, or even if root for consistency?
+                      // Original code only showed if _currentParent != null
+                      if (_currentParent != null) _buildBreadcrumb(context),
+
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: isMobile ? 2 : 3,
+                                  childAspectRatio: 1.2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                ),
+                            itemCount: visibleTags.length,
+                            itemBuilder: (context, index) {
+                              final tag = visibleTags[index];
+                              return _buildShelfCard(context, tag, index);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: GenieAppBar(
@@ -275,10 +344,10 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => context.go('/books'),
-              icon: const Icon(Icons.library_books),
+              onPressed: _showCreateShelfDialog,
+              icon: const Icon(Icons.add),
               label: Text(
-                TranslationService.translate(context, 'go_to_library'),
+                TranslationService.translate(context, 'create_first_shelf'),
               ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
@@ -531,6 +600,113 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // Methods for direct shelf creation (copied/adapted from ShelfManagementScreen)
+  Future<void> _createShelf(String name) async {
+    try {
+      final api = Provider.of<ApiService>(context, listen: false);
+      await api.createTag(name, parentId: _currentParent?.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              TranslationService.translate(context, 'shelf_created') ??
+                  'Shelf created',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _refreshTags();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _showCreateShelfDialog() {
+    final controller = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            TranslationService.translate(context, 'create_shelf') ??
+                'Create Shelf',
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_currentParent != null) ...[
+                  Text(
+                    '${TranslationService.translate(context, 'parent') ?? 'Parent'}: ${_currentParent!.name}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                TextFormField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText:
+                        TranslationService.translate(context, 'shelf_name') ??
+                        'Shelf Name',
+                    hintText:
+                        TranslationService.translate(
+                          context,
+                          'shelf_name_hint',
+                        ) ??
+                        'e.g. Science Fiction',
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return TranslationService.translate(
+                            context,
+                            'field_required',
+                          ) ??
+                          'This field is required';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                TranslationService.translate(context, 'cancel') ?? 'Cancel',
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(context);
+                  await _createShelf(controller.text.trim());
+                }
+              },
+              child: Text(
+                TranslationService.translate(context, 'create') ?? 'Create',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

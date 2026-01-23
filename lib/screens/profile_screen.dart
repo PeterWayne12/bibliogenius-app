@@ -11,7 +11,7 @@ import '../services/auth_service.dart';
 import '../widgets/status_badge.dart';
 import '../providers/theme_provider.dart';
 import 'package:go_router/go_router.dart';
-import '../utils/avatars.dart';
+
 import '../widgets/avatar_customizer.dart';
 import '../models/avatar_config.dart';
 import '../services/translation_service.dart';
@@ -666,10 +666,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 20),
               Consumer<ThemeProvider>(
                 builder: (context, themeProvider, _) {
-                  final avatar = availableAvatars.firstWhere(
-                    (a) => a.id == themeProvider.currentAvatarId,
-                    orElse: () => availableAvatars.first,
-                  );
+                  // Use default theme color since legacy avatars are removed
+                  final themeColor = Theme.of(context).primaryColor;
 
                   return Stack(
                     children: [
@@ -678,10 +676,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 140,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: avatar.themeColor,
-                            width: 4,
-                          ),
+                          border: Border.all(color: themeColor, width: 4),
                           color: themeProvider.avatarConfig?.style == 'genie'
                               ? Color(
                                   int.parse(
@@ -707,7 +702,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       '',
                                   fit: BoxFit.cover,
                                   errorWidget: (context, url, error) =>
-                                      Image.asset(avatar.assetPath),
+                                      const Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
                                 ),
                         ),
                       ),
@@ -2544,6 +2543,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// Normalize profile type values to handle legacy formats
+  /// Maps old values like 'individual_reader' to current valid values
+  String _normalizeProfileType(String profileType) {
+    // Map old/legacy values to new values
+    const Map<String, String> legacyMapping = {
+      'individual_reader': 'individual',
+      'professional': 'librarian',
+      // Add any other legacy mappings as needed
+    };
+
+    // Check if it's a legacy value that needs mapping
+    if (legacyMapping.containsKey(profileType)) {
+      return legacyMapping[profileType]!;
+    }
+
+    // Validate it's a known current value
+    const validTypes = {'individual', 'librarian', 'kid', 'bookseller'};
+    if (validTypes.contains(profileType)) {
+      return profileType;
+    }
+
+    // Default fallback if unknown value
+    debugPrint(
+      '⚠️ Unknown profile type: $profileType, defaulting to individual',
+    );
+    return 'individual';
+  }
+
   void _showSettingsDialog(BuildContext context) {
     final libraryNameController = TextEditingController(
       text: _config?['library_name'] ?? _config?['name'] ?? '',
@@ -2557,7 +2584,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Use local state to defer changes until Save
     String selectedLocale = themeProvider.locale.languageCode;
     String selectedTheme = themeProvider.themeStyle;
-    String selectedProfileType = themeProvider.profileType;
+
+    // Normalize profile type to handle legacy values (e.g., 'individual_reader' → 'individual')
+    String rawProfileType = themeProvider.profileType;
+    String selectedProfileType = _normalizeProfileType(rawProfileType);
 
     showDialog(
       context: context,

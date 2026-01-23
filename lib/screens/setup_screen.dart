@@ -44,121 +44,6 @@ class _SetupScreenState extends State<SetupScreen> {
     super.dispose();
   }
 
-  Map<String, Map<String, String>> get _t => {
-    'en': {
-      'welcome_title': 'Welcome',
-      'welcome_header': 'Welcome to BiblioGenius!',
-      'welcome_body':
-          'This app helps you manage your personal library, track loans, and connect with other book lovers.',
-      'welcome_footer': 'Let\'s get you set up in just a few steps.',
-      'library_info_title': 'Library Info',
-      'library_name_label': 'Library Name',
-      'library_name_hint': 'e.g. The Book Cave',
-      'profile_type_label': 'Profile Type',
-      'demo_title': 'Demo Content',
-      'demo_header': 'Start with some books?',
-      'demo_body':
-          'We can add a few classic books to your library so you can explore the features immediately.',
-      'demo_option_yes': 'Yes, import demo books',
-      'demo_option_no': 'No, start empty',
-      'lang_title': 'Select Language',
-      'lang_label': 'Choose your preferred language:',
-      'theme_title': 'Customize Theme',
-      'theme_label': 'Choose a color for your app banner:',
-      'finish_title': 'Ready to Go!',
-      'finish_header': 'You are all set!',
-      'finish_body': 'Click "Finish" to start adding books to your library.',
-      'btn_next': 'Next',
-      'btn_back': 'Back',
-      'btn_finish': 'Finish',
-      'setup_progress': 'Setting up your library...',
-    },
-    'fr': {
-      'welcome_title': 'Bienvenue',
-      'welcome_header': 'Bienvenue sur BiblioGenius !',
-      'welcome_body':
-          'Gérez votre bibliothèque, suivez vos prêts et connectez-vous avec d\'autres passionnés.',
-      'welcome_footer': 'Commençons la configuration.',
-      'library_info_title': 'Infos Bibliothèque',
-      'library_name_label': 'Nom de la bibliothèque',
-      'library_name_hint': 'ex: La Caverne aux Livres',
-      'profile_type_label': 'Type de profil',
-      'demo_title': 'Contenu Démo',
-      'demo_header': 'Commencer avec des livres ?',
-      'demo_body':
-          'Nous pouvons ajouter quelques classiques pour vous permettre de tester les fonctionnalités.',
-      'demo_option_yes': 'Oui, importer des livres démo',
-      'demo_option_no': 'Non, commencer vide',
-      'lang_title': 'Langue',
-      'lang_label': 'Choisissez votre langue :',
-      'theme_title': 'Thème',
-      'theme_label': 'Choisissez la couleur de la bannière :',
-      'finish_title': 'C\'est prêt !',
-      'finish_header': 'Tout est configuré !',
-      'finish_body': 'Cliquez sur "Terminer" pour commencer.',
-      'btn_next': 'Suivant',
-      'btn_back': 'Retour',
-      'btn_finish': 'Terminer',
-      'setup_progress': 'Configuration en cours...',
-    },
-    'es': {
-      'welcome_title': 'Bienvenido',
-      'welcome_header': '¡Bienvenido a BiblioGenius!',
-      'welcome_body':
-          'Gestiona tu biblioteca, sigue tus préstamos y conecta con otros lectores.',
-      'welcome_footer': 'Empecemos la configuración.',
-      'library_info_title': 'Info Biblioteca',
-      'library_name_label': 'Nombre de la biblioteca',
-      'library_name_hint': 'ej: La Cueva de los Libros',
-      'profile_type_label': 'Tipo de perfil',
-      'demo_title': 'Contenido Demo',
-      'demo_header': '¿Empezar con libros?',
-      'demo_body':
-          'Podemos añadir algunos clásicos para que pruebes las funciones.',
-      'demo_option_yes': 'Sí, importar libros demo',
-      'demo_option_no': 'No, empezar vacío',
-      'lang_title': 'Idioma',
-      'lang_label': 'Elige tu idioma:',
-      'theme_title': 'Tema',
-      'theme_label': 'Elige el color del banner:',
-      'finish_title': '¡Listo!',
-      'finish_header': '¡Todo listo!',
-      'finish_body': 'Haz clic en "Terminar" para empezar.',
-      'btn_next': 'Siguiente',
-      'btn_back': 'Atrás',
-      'btn_finish': 'Terminar',
-      'setup_progress': 'Configurando...',
-    },
-    'de': {
-      'welcome_title': 'Willkommen',
-      'welcome_header': 'Willkommen bei BiblioGenius!',
-      'welcome_body':
-          'Verwalten Sie Ihre Bibliothek, verfolgen Sie Ausleihen und verbinden Sie sich mit anderen.',
-      'welcome_footer': 'Lassen Sie uns beginnen.',
-      'library_info_title': 'Bibliotheksinfo',
-      'library_name_label': 'Bibliotheksname',
-      'library_name_hint': 'z.B. Die Bücherhöhle',
-      'profile_type_label': 'Profiltyp',
-      'demo_title': 'Demo-Inhalt',
-      'demo_header': 'Mit Büchern starten?',
-      'demo_body':
-          'Wir können einige Klassiker hinzufügen, damit Sie die Funktionen testen können.',
-      'demo_option_yes': 'Ja, Demo-Bücher importieren',
-      'demo_option_no': 'Nein, leer starten',
-      'lang_title': 'Sprache',
-      'lang_label': 'Wählen Sie Ihre Sprache:',
-      'theme_title': 'Thema',
-      'theme_label': 'Wählen Sie eine Bannerfarbe:',
-      'finish_title': 'Fertig!',
-      'finish_header': 'Alles bereit!',
-      'finish_body': 'Klicken Sie auf "Fertigstellen", um zu beginnen.',
-      'btn_next': 'Weiter',
-      'btn_back': 'Zurück',
-      'btn_finish': 'Fertigstellen',
-      'setup_progress': 'Einrichtung läuft...',
-    },
-  };
-
   @override
   Widget build(BuildContext context) {
     // Ensure themes are initialized
@@ -167,13 +52,12 @@ class _SetupScreenState extends State<SetupScreen> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         // Get locale and step
-        final lang = themeProvider.locale.languageCode;
-        final strings = _t[lang] ?? _t['en']!;
+        String t(String key) => TranslationService.translate(context, key);
         final currentStep = themeProvider.setupStep;
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(strings['welcome_header']!),
+            title: Text(t('onboarding_welcome_title')),
             automaticallyImplyLeading: false, // Hide back button
           ),
           body: Stepper(
@@ -227,7 +111,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 themeProvider.setSetupStep(currentStep + 1);
               } else {
                 debugPrint('Calling _finishSetup...');
-                _finishSetup(context, strings);
+                _finishSetup(context);
               }
             },
             onStepTapped: (step) {
@@ -267,8 +151,8 @@ class _SetupScreenState extends State<SetupScreen> {
                           ),
                           child: Text(
                             isLastStep
-                                ? strings['btn_finish']!
-                                : strings['btn_next']!,
+                                ? t('setup_btn_finish')
+                                : t('setup_btn_next'),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -291,7 +175,7 @@ class _SetupScreenState extends State<SetupScreen> {
                             vertical: 12,
                           ),
                           child: Text(
-                            strings['btn_back']!,
+                            t('setup_btn_back'),
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.w600,
@@ -307,21 +191,19 @@ class _SetupScreenState extends State<SetupScreen> {
             steps: [
               // Step 0: Welcome
               Step(
-                title: Text(strings['welcome_title']!),
+                title: Text(t('setup_welcome_title')),
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      strings['welcome_header']!,
+                      t('onboarding_welcome_title'),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(strings['welcome_body']!),
-                    const SizedBox(height: 10),
-                    Text(strings['welcome_footer']!),
+                    Text(t('onboarding_welcome_desc')),
                   ],
                 ),
                 isActive: currentStep >= 0,
@@ -329,12 +211,12 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               // Step 1: Profile & Library Info
               Step(
-                title: Text(strings['library_info_title']!),
+                title: Text(t('setup_library_info_title')),
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      strings['library_name_label']!,
+                      t('setup_library_name_label'),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -346,7 +228,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       key: const Key('setupLibraryNameField'),
                       controller: _libraryNameController,
                       decoration: InputDecoration(
-                        hintText: strings['library_name_hint'],
+                        hintText: t('setup_library_name_hint'),
                         border: const OutlineInputBorder(),
                       ),
                     ),
@@ -412,19 +294,19 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               // Step 2: Demo Content (was Step 3)
               Step(
-                title: Text(strings['demo_title']!),
+                title: Text(t('setup_demo_title')),
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      strings['demo_header']!,
+                      t('setup_demo_header'),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
-                    Text(strings['demo_body']!),
+                    Text(t('setup_demo_body')),
                     const SizedBox(height: 16),
                     RadioListTile<bool>(
-                      title: Text(strings['demo_option_yes']!),
+                      title: Text(t('setup_demo_yes')),
                       value: true,
                       groupValue: themeProvider.setupImportDemo,
                       onChanged: (val) =>
@@ -432,7 +314,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                     RadioListTile<bool>(
                       key: const Key('setupDemoNo'),
-                      title: Text(strings['demo_option_no']!),
+                      title: Text(t('setup_demo_no')),
                       value: false,
                       groupValue: themeProvider.setupImportDemo,
                       onChanged: (val) =>
@@ -524,19 +406,19 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               // Step 4: Finish
               Step(
-                title: Text(strings['finish_title']!),
+                title: Text(t('setup_finish_title')),
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      strings['finish_header']!,
+                      t('setup_finish_header'),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(strings['finish_body']!),
+                    Text(t('setup_finish_body')),
                   ],
                 ),
                 isActive: currentStep >= 4,
@@ -551,10 +433,7 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Future<void> _finishSetup(
-    BuildContext context,
-    Map<String, String> strings,
-  ) async {
+  Future<void> _finishSetup(BuildContext context) async {
     debugPrint('_finishSetup: Starting...');
 
     // Show loading indicator

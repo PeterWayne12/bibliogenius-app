@@ -9,7 +9,9 @@ import 'import_shared_list_screen.dart';
 import '../../widgets/genie_app_bar.dart';
 
 class CollectionListScreen extends StatefulWidget {
-  const CollectionListScreen({super.key});
+  final bool isTabView;
+
+  const CollectionListScreen({super.key, this.isTabView = false});
 
   @override
   State<CollectionListScreen> createState() => _CollectionListScreenState();
@@ -109,9 +111,9 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
     final width = MediaQuery.of(context).size.width;
     final bool isMobile = width <= 600;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GenieAppBar(
+    PreferredSizeWidget? appBar;
+    if (!widget.isTabView) {
+      appBar = GenieAppBar(
         title: TranslationService.translate(context, 'collections'),
         leading: isMobile
             ? IconButton(
@@ -164,7 +166,12 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
           ),
           const SizedBox(width: 8),
         ],
-      ),
+      );
+    }
+
+    return Scaffold(
+      extendBodyBehindAppBar: !widget.isTabView,
+      appBar: appBar,
       body: FutureBuilder<List<Collection>>(
         future: _collectionsFuture,
         builder: (context, snapshot) {
@@ -174,120 +181,141 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             // Calculate top padding for app bar + status bar
-            final topPadding =
-                MediaQuery.of(context).padding.top + kToolbarHeight + 24;
-            return SingleChildScrollView(
-              padding: EdgeInsets.only(
-                top: topPadding,
-                left: 24,
-                right: 24,
-                bottom: 24,
-              ),
-              child: Column(
-                children: [
-                  // Promotional banner
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).primaryColor.withValues(alpha: 0.8),
-                          Theme.of(context).primaryColor,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.auto_awesome,
-                          size: 48,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          TranslationService.translate(
-                            context,
-                            'discover_collections_title',
-                          ),
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+            final topPadding = widget.isTabView
+                ? 24.0
+                : MediaQuery.of(context).padding.top + kToolbarHeight + 24;
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                    top: topPadding,
+                    left: 24,
+                    right: 24,
+                    bottom: 24,
+                  ),
+                  sliver: SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Promotional banner
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(
+                                    context,
+                                  ).primaryColor.withValues(alpha: 0.8),
+                                  Theme.of(context).primaryColor,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          TranslationService.translate(
-                            context,
-                            'discover_collections_subtitle',
-                          ),
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton.tonal(
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const import_curated.ImportCuratedListScreen(),
-                              ),
-                            );
-                            if (result == true) {
-                              _refreshCollections();
-                            }
-                          },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Theme.of(context).primaryColor,
-                          ),
-                          child: Text(
-                            TranslationService.translate(
-                              context,
-                              'explore_collections',
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  size: 48,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  TranslationService.translate(
+                                    context,
+                                    'discover_collections_title',
+                                  ),
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  TranslationService.translate(
+                                    context,
+                                    'discover_collections_subtitle',
+                                  ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                FilledButton.tonal(
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const import_curated.ImportCuratedListScreen(),
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      _refreshCollections();
+                                    }
+                                  },
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Theme.of(
+                                      context,
+                                    ).primaryColor,
+                                  ),
+                                  child: Text(
+                                    TranslationService.translate(
+                                      context,
+                                      'explore_collections',
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 32),
+                          // Empty state
+                          const Icon(
+                            Icons.collections_bookmark,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            TranslationService.translate(
+                              context,
+                              'no_collections',
+                            ),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            TranslationService.translate(
+                              context,
+                              'create_collection_hint',
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  // Empty state
-                  const Icon(
-                    Icons.collections_bookmark,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    TranslationService.translate(context, 'no_collections'),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    TranslationService.translate(
-                      context,
-                      'create_collection_hint',
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+                ),
+              ],
             );
           }
 
           final collections = snapshot.data!;
-          final topPadding =
-              MediaQuery.of(context).padding.top + kToolbarHeight;
+          final topPadding = widget.isTabView
+              ? 8.0
+              : MediaQuery.of(context).padding.top + kToolbarHeight;
           return ListView.builder(
             padding: EdgeInsets.only(top: topPadding + 8, bottom: 80),
             itemCount: collections.length,

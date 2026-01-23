@@ -59,8 +59,6 @@ void main() {
         ],
       );
 
-      debugDumpApp(); // Print tree to debug missing widgets
-
       await tester.pumpWidget(
         MultiProvider(
           providers: [

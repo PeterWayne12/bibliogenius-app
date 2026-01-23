@@ -51,28 +51,18 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen>
         gradient: gradients[0],
         titleKey: 'onboarding_welcome_title',
         descKey: 'onboarding_welcome_desc',
-        features: ['feature_organize', 'feature_discover', 'feature_share'],
       ),
       _SlideData(
         icon: Icons.library_books,
         gradient: gradients[1],
         titleKey: 'onboarding_books_title',
         descKey: 'onboarding_books_desc',
-        features: ['feature_scan', 'feature_search', 'feature_manual'],
       ),
       _SlideData(
         icon: Icons.cloud_sync,
         gradient: gradients[2],
         titleKey: 'onboarding_network_title',
         descKey: 'onboarding_network_desc',
-        features: ['feature_connect', 'feature_borrow', 'feature_track'],
-      ),
-      _SlideData(
-        icon: Icons.insights,
-        gradient: gradients[3],
-        titleKey: 'onboarding_stats_title',
-        descKey: 'onboarding_stats_desc',
-        features: ['feature_stats', 'feature_goals', 'feature_history'],
       ),
     ];
   }
@@ -281,88 +271,22 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen>
             TranslationService.translate(context, slide.descKey),
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 19,
               color: Colors.white.withValues(alpha: 0.9),
               height: 1.6,
             ),
           ),
           const SizedBox(height: 36),
-          // Feature chips
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: slide.features.map((featureKey) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getFeatureIcon(featureKey),
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      TranslationService.translate(context, featureKey),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 40),
+          // Slogan (Impact phrase) - REMOVED per user request
+          // Container(
+          //   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          //   ...
+          //   child: Text(...)
+          // ),
+          const SizedBox(height: 20),
         ],
       ),
     );
-  }
-
-  IconData _getFeatureIcon(String featureKey) {
-    switch (featureKey) {
-      case 'feature_organize':
-        return Icons.folder_outlined;
-      case 'feature_discover':
-        return Icons.explore_outlined;
-      case 'feature_share':
-        return Icons.share_outlined;
-      case 'feature_scan':
-        return Icons.qr_code_scanner;
-      case 'feature_search':
-        return Icons.search;
-      case 'feature_manual':
-        return Icons.edit_outlined;
-      case 'feature_connect':
-        return Icons.link;
-      case 'feature_borrow':
-        return Icons.swap_horiz;
-      case 'feature_track':
-        return Icons.track_changes;
-      case 'feature_stats':
-        return Icons.bar_chart;
-      case 'feature_goals':
-        return Icons.flag_outlined;
-      case 'feature_history':
-        return Icons.history;
-      default:
-        return Icons.check_circle_outline;
-    }
   }
 
   Widget _buildFooter() {
@@ -456,13 +380,11 @@ class _SlideData {
   final List<Color> gradient;
   final String titleKey;
   final String descKey;
-  final List<String> features;
 
   const _SlideData({
     required this.icon,
     required this.gradient,
     required this.titleKey,
     required this.descKey,
-    required this.features,
   });
 }

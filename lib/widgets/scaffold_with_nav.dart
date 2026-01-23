@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/translation_service.dart';
-import 'package:provider/provider.dart';
 import 'app_drawer.dart';
 import '../utils/global_keys.dart';
-import '../providers/theme_provider.dart';
 
 class ScaffoldWithNav extends StatelessWidget {
   final Widget child;
@@ -78,42 +76,19 @@ class ScaffoldWithNav extends StatelessWidget {
       ),
       _NavItem(
         route: '/books',
+        matchPrefixes: ['/books', '/shelves', '/collections'],
         destination: NavigationRailDestination(
           icon: const Icon(Icons.book),
           label: Text(TranslationService.translate(context, 'library')),
         ),
       ),
-      _NavItem(
-        route: '/shelves',
-        destination: NavigationRailDestination(
-          icon: const Icon(Icons.shelves),
-          label: Text(
-            TranslationService.translate(context, 'shelves') ?? 'Shelves',
-          ),
-        ),
-      ),
-      if (Provider.of<ThemeProvider>(context).collectionsEnabled)
-        _NavItem(
-          route: '/collections',
-          destination: NavigationRailDestination(
-            icon: const Icon(Icons.collections_bookmark),
-            label: Text(TranslationService.translate(context, 'collections')),
-          ),
-        ),
+
       _NavItem(
         route: '/network',
-        matchPrefixes: ['/network', '/contacts', '/peers'],
+        matchPrefixes: ['/network', '/contacts', '/peers', '/requests'],
         destination: NavigationRailDestination(
           icon: const Icon(Icons.cloud_sync),
           label: Text(TranslationService.translate(context, 'network')),
-        ),
-      ),
-      // Loans menu always visible (borrowing capability controlled in the screen)
-      _NavItem(
-        route: '/requests',
-        destination: NavigationRailDestination(
-          icon: const Icon(Icons.swap_horiz),
-          label: Text(TranslationService.translate(context, 'loans_menu')),
         ),
       ),
       _NavItem(

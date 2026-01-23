@@ -1087,8 +1087,7 @@ class ApiService {
           'show_borrowed_books':
               prefs.getBool('ffi_show_borrowed_books') ?? true,
           'share_location': prefs.getBool('ffi_share_location') ?? false,
-          'profile_type':
-              prefs.getString('ffi_profile_type') ?? 'individual_reader',
+          'profile_type': prefs.getString('ffi_profile_type') ?? 'individual',
           'latitude': prefs.getDouble('ffi_latitude'),
           'longitude': prefs.getDouble('ffi_longitude'),
           'tags': (prefs.getStringList('ffi_tags') ?? []),

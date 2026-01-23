@@ -13,7 +13,9 @@ import '../providers/theme_provider.dart';
 /// - Prêtés (Lent): Books you lent to others
 /// - Empruntés (Borrowed): Books you borrowed from others (hidden if canBorrowBooks=false)
 class LoansScreen extends StatefulWidget {
-  const LoansScreen({super.key});
+  final bool isTabView;
+
+  const LoansScreen({super.key, this.isTabView = false});
 
   @override
   State<LoansScreen> createState() => _LoansScreenState();
@@ -145,6 +147,52 @@ class _LoansScreenState extends State<LoansScreen>
     final bool isMobile = width <= 600;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final canBorrow = themeProvider.canBorrowBooks;
+
+    if (widget.isTabView) {
+      return Column(
+        children: [
+          Container(
+            color: Theme.of(context).primaryColor,
+            child: TabBar(
+              controller: _mainTabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              indicatorColor: Colors.white,
+              tabs: [
+                Tab(
+                  key: const Key('requestsTab'),
+                  icon: const Icon(Icons.mail_outline),
+                  text: TranslationService.translate(context, 'tab_requests'),
+                ),
+                Tab(
+                  key: const Key('lentTab'),
+                  icon: const Icon(Icons.arrow_upward),
+                  text: TranslationService.translate(context, 'tab_lent'),
+                ),
+                if (canBorrow)
+                  Tab(
+                    key: const Key('borrowedTab'),
+                    icon: const Icon(Icons.arrow_downward),
+                    text: TranslationService.translate(context, 'tab_borrowed'),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _mainTabController,
+                    children: [
+                      _buildRequestsTab(),
+                      _buildLentTab(),
+                      if (canBorrow) _buildBorrowedTab(),
+                    ],
+                  ),
+          ),
+        ],
+      );
+    }
 
     return Scaffold(
       appBar: GenieAppBar(
