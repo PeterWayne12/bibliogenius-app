@@ -70,7 +70,6 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEnabledSources();
   }
 
   @override
@@ -91,7 +90,8 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       if (supportedLangs.contains(deviceLang)) {
         _selectedLanguage = deviceLang;
       }
-      // If user's language isn't supported, keep null (All Languages)
+
+      _loadEnabledSources();
     }
   }
 
@@ -101,7 +101,11 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
     // Default: all sources enabled except BNF (beta)
     bool inventaireEnabled = true;
     bool openLibraryEnabled = true;
-    bool bnfEnabled = false; // BNF is beta, disabled by default
+
+    // User Request: BNF enabled only for French users by default
+    final deviceLang = Localizations.localeOf(context).languageCode;
+    bool bnfEnabled = deviceLang == 'fr';
+
     bool googleBooksEnabled = false; // Disabled by default
 
     try {
@@ -121,16 +125,17 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
           bnfEnabled = prefs['bnf'] == true;
         }
 
-        // Check enabled modules for Google Books
-        final modules = config['enabled_modules'];
-        // Could be List<String> or comma-separated string
-        if (modules is List) {
-          googleBooksEnabled = modules.contains('enable_google_books');
-        } else if (modules is String) {
-          googleBooksEnabled = modules.contains('enable_google_books');
-        } else if (prefs.containsKey('google_books')) {
-          // Fallback to legacy pref if needed
+        // Fix: Prioritize explicit preference over modules list
+        if (prefs.containsKey('google_books')) {
           googleBooksEnabled = prefs['google_books'] == true;
+        } else {
+          // Fallback: Check enabled modules if no specific pref exists
+          final modules = config['enabled_modules'];
+          if (modules is List) {
+            googleBooksEnabled = modules.contains('enable_google_books');
+          } else if (modules is String) {
+            googleBooksEnabled = modules.contains('enable_google_books');
+          }
         }
       }
     } catch (e) {
@@ -691,9 +696,13 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
 
     final isOnline = await BookUrlHelper.isOnline();
     if (!isOnline && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(TranslationService.translate(context, 'no_internet_connection'))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            TranslationService.translate(context, 'no_internet_connection'),
+          ),
+        ),
+      );
       return;
     }
 
@@ -959,7 +968,11 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                     ),
                   ),
                 Expanded(
-                  child: useEditionBrowser
+                  child: _isSearching
+                      ? const Center(child: CircularProgressIndicator())
+                      : _searchResults.isEmpty
+                      ? _buildEmptyState()
+                      : useEditionBrowser
                       ? _buildGroupedView()
                       : _buildFlatListView(),
                 ),
@@ -1009,6 +1022,57 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
           onOpenUrl: () => _openUrl(book),
         );
       },
+    );
+  }
+
+  /// Green empty state matching NetworkSearchScreen
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.search,
+                size: 64,
+                color: Color(0xFF4CAF50),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              TranslationService.translate(
+                context,
+                'feature_search',
+              ), // "Rechercher en ligne"
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF2E7D32),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              TranslationService.translate(
+                context,
+                'external_search_empty_hint',
+              ),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 } // End State

@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
-import 'package:app/screens/setup_screen.dart';
-import 'package:app/providers/theme_provider.dart';
-import 'package:app/services/api_service.dart';
-import 'package:app/services/auth_service.dart';
-import 'package:app/themes/base/theme_registry.dart';
+import 'package:bibliogenius/screens/setup_screen.dart';
+import 'package:bibliogenius/providers/theme_provider.dart';
+import 'package:bibliogenius/services/api_service.dart';
+import 'package:bibliogenius/services/auth_service.dart';
+import 'package:bibliogenius/themes/base/theme_registry.dart';
 
 // ----------------------------------------------------------------------
 // Mocks & Fakes

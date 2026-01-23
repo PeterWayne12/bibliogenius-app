@@ -71,9 +71,13 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_reading_file')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_reading_file')}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -85,16 +89,24 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
         _processYaml(data.text!);
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(TranslationService.translate(context, 'clipboard_empty'))));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                TranslationService.translate(context, 'clipboard_empty'),
+              ),
+            ),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_reading_clipboard')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_reading_clipboard')}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -126,7 +138,8 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
           },
         );
         if (result.errorCount > 0) {
-          message += ' ${TranslationService.translate(context, 'books_skipped_count', params: {'count': result.errorCount.toString()})}';
+          message +=
+              ' ${TranslationService.translate(context, 'books_skipped_count', params: {'count': result.errorCount.toString()})}';
         }
 
         ScaffoldMessenger.of(
@@ -139,7 +152,9 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${TranslationService.translate(context, 'import_error')}: $e'),
+            content: Text(
+              '${TranslationService.translate(context, 'import_error')}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -156,7 +171,11 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TranslationService.translate(context, 'import_shared_list'))),
+      appBar: AppBar(
+        title: Text(
+          TranslationService.translate(context, 'import_shared_list'),
+        ),
+      ),
       body: _isImporting
           ? Center(
               child: Column(
@@ -164,7 +183,12 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
                 children: [
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
-                  Text(TranslationService.translate(context, 'importing_collection')),
+                  Text(
+                    TranslationService.translate(
+                      context,
+                      'importing_collection',
+                    ),
+                  ),
                 ],
               ),
             )
@@ -188,7 +212,12 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
                     OutlinedButton.icon(
                       onPressed: _pickFile,
                       icon: const Icon(Icons.file_open),
-                      label: Text(TranslationService.translate(context, 'select_bibliogenius_file')),
+                      label: Text(
+                        TranslationService.translate(
+                          context,
+                          'select_bibliogenius_file',
+                        ),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.all(16),
                       ),
@@ -200,7 +229,12 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
                     OutlinedButton.icon(
                       onPressed: _pasteFromClipboard,
                       icon: const Icon(Icons.paste),
-                      label: Text(TranslationService.translate(context, 'paste_from_clipboard')),
+                      label: Text(
+                        TranslationService.translate(
+                          context,
+                          'paste_from_clipboard',
+                        ),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.all(16),
                       ),
@@ -385,7 +419,12 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
                       FilledButton.icon(
                         onPressed: _importCollection,
                         icon: const Icon(Icons.download),
-                        label: Text(TranslationService.translate(context, 'import_collection')),
+                        label: Text(
+                          TranslationService.translate(
+                            context,
+                            'import_collection',
+                          ),
+                        ),
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.all(16),
                         ),
@@ -402,7 +441,12 @@ class _ImportSharedListScreenState extends State<ImportSharedListScreen> {
                             _validationError = null;
                           });
                         },
-                        child: Text(TranslationService.translate(context, 'choose_different_file')),
+                        child: Text(
+                          TranslationService.translate(
+                            context,
+                            'choose_different_file',
+                          ),
+                        ),
                       ),
                     ],
                   ],

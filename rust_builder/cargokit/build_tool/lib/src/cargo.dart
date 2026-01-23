@@ -27,7 +27,7 @@ class CrateInfo {
 
   final String packageName;
   final String? libName;
-  
+
   /// Returns the library name to use for artifact naming.
   /// Uses [lib].name if specified, otherwise falls back to package name.
   String get effectiveLibName => libName ?? packageName;

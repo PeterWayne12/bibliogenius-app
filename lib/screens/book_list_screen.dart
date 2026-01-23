@@ -128,6 +128,21 @@ class _BookListScreenState extends State<BookListScreen>
         });
       }
     }
+
+    final searchQuery =
+        state.uri.queryParameters['q'] ?? state.uri.queryParameters['search'];
+    if (searchQuery != null &&
+        searchQuery.isNotEmpty &&
+        searchQuery != _searchQuery) {
+      if (mounted) {
+        setState(() {
+          _searchQuery = searchQuery;
+          _isSearching = true;
+          _searchController.text = searchQuery;
+          _filterBooks();
+        });
+      }
+    }
   }
 
   @override
@@ -398,6 +413,19 @@ class _BookListScreenState extends State<BookListScreen>
             ),
           ],
         ],
+        contextualQuickActions: [
+          ListTile(
+            leading: const Icon(Icons.filter_list),
+            title: Text(
+              TranslationService.translate(context, 'filter_books') ??
+                  'Filter Books',
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close Quick Actions sheet
+              _showTagFilterDialog();
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -426,6 +454,7 @@ class _BookListScreenState extends State<BookListScreen>
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_book_fab',
         key: const Key('addBookButton'),
         onPressed: () async {
           final result = await context.push('/books/add');

@@ -45,7 +45,9 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(TranslationService.translate(context, 'delete_collection_title')),
+        title: Text(
+          TranslationService.translate(context, 'delete_collection_title'),
+        ),
         content: Text(
           TranslationService.translate(context, 'delete_collection_warning'),
         ),
@@ -76,7 +78,11 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${TranslationService.translate(context, 'error_deleting_collection')}: $e')),
+            SnackBar(
+              content: Text(
+                '${TranslationService.translate(context, 'error_deleting_collection')}: $e',
+              ),
+            ),
           );
         }
       }
@@ -110,18 +116,27 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
             return StatefulBuilder(
               builder: (context, setState) {
                 return AlertDialog(
-                  title: Text(TranslationService.translate(context, 'import_books')),
+                  title: Text(
+                    TranslationService.translate(context, 'import_books'),
+                  ),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${TranslationService.translate(context, 'selected_file')} ${platformFile.name}'),
+                      Text(
+                        '${TranslationService.translate(context, 'selected_file')} ${platformFile.name}',
+                      ),
                       const SizedBox(height: 16),
                       CheckboxListTile(
                         title: Text(
                           TranslationService.translate(context, 'status_owned'),
                         ),
-                        subtitle: Text(TranslationService.translate(context, 'add_to_library_copies')),
+                        subtitle: Text(
+                          TranslationService.translate(
+                            context,
+                            'add_to_library_copies',
+                          ),
+                        ),
                         value: importAsOwned,
                         onChanged: (val) {
                           setState(() => importAsOwned = val ?? false);
@@ -139,7 +154,9 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                     ),
                     FilledButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: Text(TranslationService.translate(context, 'import')),
+                      child: Text(
+                        TranslationService.translate(context, 'import'),
+                      ),
                     ),
                   ],
                 );
@@ -151,9 +168,13 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
         if (shouldImport != true) return;
 
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(TranslationService.translate(context, 'importing_books'))));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                TranslationService.translate(context, 'importing_books'),
+              ),
+            ),
+          );
         }
 
         final response = await Provider.of<ApiService>(context, listen: false)
@@ -170,9 +191,14 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
           final errors = data['errors']; // Optional list of errors
 
           if (mounted) {
-            String msg = TranslationService.translate(context, 'books_imported_count', params: {'count': imported.toString()});
+            String msg = TranslationService.translate(
+              context,
+              'books_imported_count',
+              params: {'count': imported.toString()},
+            );
             if (errors != null && (errors as List).isNotEmpty) {
-              msg += ' ${TranslationService.translate(context, 'books_skipped_count', params: {'count': errors.length.toString()})}';
+              msg +=
+                  ' ${TranslationService.translate(context, 'books_skipped_count', params: {'count': errors.length.toString()})}';
             }
             ScaffoldMessenger.of(
               context,
@@ -185,9 +211,13 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_importing_books')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_importing_books')}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -200,13 +230,21 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       ).removeBookFromCollection(widget.collection.id, book.bookId);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"${book.title}" ${TranslationService.translate(context, 'removed_from_collection')}')),
+        SnackBar(
+          content: Text(
+            '"${book.title}" ${TranslationService.translate(context, 'removed_from_collection')}',
+          ),
+        ),
       );
       _refreshBooks();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_removing_book')}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${TranslationService.translate(context, 'error_removing_book')}: $e',
+          ),
+        ),
+      );
     }
   }
 
@@ -218,15 +256,21 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       await exportService.shareCollection(widget.collection);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(TranslationService.translate(context, 'collection_exported'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              TranslationService.translate(context, 'collection_exported'),
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${TranslationService.translate(context, 'error_sharing_collection')}: $e'),
+            content: Text(
+              '${TranslationService.translate(context, 'error_sharing_collection')}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -393,7 +437,11 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                 child: loading
                     ? const Center(child: CircularProgressIndicator())
                     : snapshot.hasError
-                    ? Center(child: Text('${TranslationService.translate(context, 'error')}: ${snapshot.error}'))
+                    ? Center(
+                        child: Text(
+                          '${TranslationService.translate(context, 'error')}: ${snapshot.error}',
+                        ),
+                      )
                     : books.isEmpty
                     ? Center(
                         child: Column(
@@ -406,7 +454,10 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              TranslationService.translate(context, 'no_books_yet'),
+                              TranslationService.translate(
+                                context,
+                                'no_books_yet',
+                              ),
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 16,
@@ -416,7 +467,12 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                             FilledButton.icon(
                               onPressed: _importBooks,
                               icon: const Icon(Icons.add),
-                              label: Text(TranslationService.translate(context, 'add_books')),
+                              label: Text(
+                                TranslationService.translate(
+                                  context,
+                                  'add_books',
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -452,7 +508,12 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                               return await showDialog(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
-                                  title: Text(TranslationService.translate(context, 'remove_book_title')),
+                                  title: Text(
+                                    TranslationService.translate(
+                                      context,
+                                      'remove_book_title',
+                                    ),
+                                  ),
                                   content: Text(
                                     '${TranslationService.translate(context, 'remove_book_confirm')} "${book.title}"',
                                   ),
@@ -460,14 +521,24 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.pop(ctx, false),
-                                      child: Text(TranslationService.translate(context, 'cancel')),
+                                      child: Text(
+                                        TranslationService.translate(
+                                          context,
+                                          'cancel',
+                                        ),
+                                      ),
                                     ),
                                     TextButton(
                                       onPressed: () => Navigator.pop(ctx, true),
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.red,
                                       ),
-                                      child: Text(TranslationService.translate(context, 'remove')),
+                                      child: Text(
+                                        TranslationService.translate(
+                                          context,
+                                          'remove',
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -740,9 +811,13 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_updating_status')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_updating_status')}: $e',
+            ),
+          ),
+        );
       }
     }
   }

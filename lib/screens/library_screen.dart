@@ -134,6 +134,7 @@ class _LibraryScreenState extends State<LibraryScreen>
       ),
       floatingActionButton: _tabController.index == 0
           ? FloatingActionButton(
+              heroTag: 'library_add_fab',
               key: const Key('addBookButton'),
               onPressed: () async {
                 final result = await context.push('/books/add');

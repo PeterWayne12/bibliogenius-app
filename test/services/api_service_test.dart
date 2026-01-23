@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dio/dio.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:app/services/api_service.dart';
-import 'package:app/services/auth_service.dart';
-import 'package:app/models/book.dart';
+import 'package:bibliogenius/services/api_service.dart';
+import 'package:bibliogenius/services/auth_service.dart';
+import 'package:bibliogenius/models/book.dart';
 
 // Simple mock for AuthService
 class MockAuthService extends AuthService {

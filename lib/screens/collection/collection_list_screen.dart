@@ -577,6 +577,7 @@ class _CollectionListScreenState extends State<CollectionListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'collection_add_fab',
         onPressed: _createCollection,
         child: const Icon(Icons.add),
       ),

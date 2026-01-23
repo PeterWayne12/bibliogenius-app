@@ -275,20 +275,51 @@ class _NetworkSearchScreenState extends State<NetworkSearchScreen> {
                           },
                         )
                 : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.search, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text(
-                          TranslationService.translate(
-                            context,
-                            'network_search_prompt',
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4CAF50).withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.search,
+                              size: 64,
+                              color: Color(0xFF4CAF50),
+                            ),
                           ),
-                          style: TextStyle(color: Colors.grey[600]),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                          const SizedBox(height: 24),
+                          Text(
+                            TranslationService.translate(
+                              context,
+                              'network_search_prompt',
+                            ),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF2E7D32),
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            TranslationService.translate(
+                              context,
+                              'network_search_hint',
+                            ),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
           ),

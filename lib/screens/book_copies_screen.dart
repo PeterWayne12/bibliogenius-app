@@ -94,9 +94,13 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
         _fetchCopies();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error')}: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${TranslationService.translate(context, 'error')}: $e',
+              ),
+            ),
+          );
         }
       }
     }
@@ -116,9 +120,13 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
         _fetchCopies();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error')}: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${TranslationService.translate(context, 'error')}: $e',
+              ),
+            ),
+          );
         }
       }
     }
@@ -144,9 +152,13 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
         _fetchCopies();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_updating_copy')}: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${TranslationService.translate(context, 'error_updating_copy')}: $e',
+              ),
+            ),
+          );
         }
       }
     }
@@ -167,6 +179,7 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'copies_add_fab',
         key: const Key('addCopyFab'),
         onPressed: _addCopy,
         child: const Icon(Icons.add),
@@ -218,6 +231,7 @@ class _BookCopiesScreenState extends State<BookCopiesScreen>
         ],
       ),
       child: FloatingActionButton.extended(
+        heroTag: 'copies_add_vintage_fab',
         key: const Key('addCopyFab'),
         onPressed: _addCopy,
         backgroundColor: leather,

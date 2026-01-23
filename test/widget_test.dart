@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:app/main.dart';
-import 'package:app/providers/theme_provider.dart';
+import 'package:bibliogenius/main.dart';
+import 'package:bibliogenius/providers/theme_provider.dart';
 
 import 'dart:io';
 import 'package:network_image_mock/network_image_mock.dart';

@@ -1308,6 +1308,17 @@ class TranslationService {
       'how_to_show_code_help_title': 'Show My QR Code',
       'how_to_show_code_help_desc':
           'Go to "Network" tab, then tap "Show My Code". Your friends can scan this code to connect to your library.',
+      // Quick Actions
+      'quick_actions_title': 'Quick Actions',
+      'search_library_placeholder': 'Search my library...',
+      'add_book_button': 'Add a book',
+      'quick_scan_barcode': 'Scan barcode',
+      'quick_search_online': 'Search online',
+      'external_search_empty_hint':
+          'Search for a book reference on the web to add it to your library',
+      'quick_borrow_book': 'Borrow a book',
+      'filter_books': 'Filter Books',
+      'create_shelf': 'Create Shelf',
     },
     'fr': {
       'app_title': 'BiblioGenius',
@@ -1600,10 +1611,19 @@ class TranslationService {
       'how_to_add_contact_help_desc':
           'Demandez à votre ami d\'ouvrir son application, d\'aller dans "Réseau" et de cliquer sur "Partager le code". Scannez ensuite ce code pour l\'ajouter instantanément.',
       'understood': 'Compris',
+      'filter_books': 'Filtrer les livres',
+      'create_shelf': 'Créer une étagère',
       'how_to_show_code_label': 'Comment afficher mon code',
       'how_to_show_code_help_title': 'Afficher mon code QR',
       'how_to_show_code_help_desc':
           'Allez dans l\'onglet "Réseau" et appuyez sur "Partager le code". Vos amis pourront le scanner pour se connecter à votre bibliothèque.',
+      // Quick Actions
+      'quick_actions_title': 'Actions rapides',
+      'search_library_placeholder': 'Rechercher dans ma bibliothèque...',
+      'add_book_button': 'Ajouter un livre',
+      'quick_scan_barcode': 'Scanner code-barres',
+      'quick_search_online': 'Recherche en ligne',
+      'quick_borrow_book': 'Emprunter un livre',
       // Owned checkbox
       'own_this_book': 'Je possède ce livre',
       'own_this_book_hint':
@@ -2203,6 +2223,8 @@ class TranslationService {
       'feature_share': 'Échanger',
       'feature_scan': 'Scanner ISBN',
       'feature_search': 'Rechercher en ligne',
+      'external_search_empty_hint':
+          'Cherchez une référence de livre sur le web pour l\'ajouter à votre bibliothèque',
       'feature_manual': 'Ajouter manuellement',
       'feature_connect': 'Connecter',
       'feature_borrow': 'Emprunter',

@@ -214,8 +214,10 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                                   CachedNetworkImage(
                                     imageUrl: widget.book.coverUrl!,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => const SizedBox.shrink(),
-                                    errorWidget: (context, url, error) => const SizedBox.shrink(),
+                                    placeholder: (context, url) =>
+                                        const SizedBox.shrink(),
+                                    errorWidget: (context, url, error) =>
+                                        const SizedBox.shrink(),
                                   ),
                               ],
                             ),
@@ -365,8 +367,10 @@ class _PremiumBookCardState extends State<PremiumBookCard>
                             CachedNetworkImage(
                               imageUrl: widget.book.coverUrl!,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => const SizedBox.shrink(),
-                              errorWidget: (context, url, error) => const SizedBox.shrink(),
+                              placeholder: (context, url) =>
+                                  const SizedBox.shrink(),
+                              errorWidget: (context, url, error) =>
+                                  const SizedBox.shrink(),
                             ),
                         ],
                       ),

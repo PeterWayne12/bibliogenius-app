@@ -147,9 +147,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_updating_rating')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_updating_rating')}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -1174,9 +1178,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_updating_status')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error_updating_status')}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -1230,9 +1238,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error_deleting_book')}: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${TranslationService.translate(context, 'error_deleting_book')}: $e',
+              ),
+            ),
+          );
         }
       }
     }

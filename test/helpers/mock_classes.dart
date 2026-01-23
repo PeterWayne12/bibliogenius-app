@@ -1,6 +1,6 @@
-import 'package:app/services/api_service.dart';
-import 'package:app/services/auth_service.dart';
-import 'package:app/models/book.dart';
+import 'package:bibliogenius/services/api_service.dart';
+import 'package:bibliogenius/services/auth_service.dart';
+import 'package:bibliogenius/models/book.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';

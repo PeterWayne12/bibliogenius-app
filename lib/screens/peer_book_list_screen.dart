@@ -105,7 +105,9 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${TranslationService.translate(context, 'error_loading_library')}: $e'),
+            content: Text(
+              '${TranslationService.translate(context, 'error_loading_library')}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -144,15 +146,23 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(TranslationService.translate(context, 'library_synced'))),
+          SnackBar(
+            content: Text(
+              TranslationService.translate(context, 'library_synced'),
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'sync_failed')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'sync_failed')}: $e',
+            ),
+          ),
+        );
       }
     }
   }
@@ -255,7 +265,9 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
                   ElevatedButton.icon(
                     onPressed: _syncBooks,
                     icon: const Icon(Icons.sync),
-                    label: Text(TranslationService.translate(context, 'sync_library')),
+                    label: Text(
+                      TranslationService.translate(context, 'sync_library'),
+                    ),
                   ),
                 ],
               ),
@@ -321,7 +333,9 @@ class _PeerBookListScreenState extends State<PeerBookListScreen> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: Text(TranslationService.translate(context, 'borrow')),
+                    child: Text(
+                      TranslationService.translate(context, 'borrow'),
+                    ),
                   ),
                   onTap: () => _showBookDetails(book),
                 );

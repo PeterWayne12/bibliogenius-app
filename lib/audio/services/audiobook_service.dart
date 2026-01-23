@@ -105,7 +105,11 @@ class AudiobookService {
     // since Archive doesn't provide language info)
     if (preferredLanguage == null || preferredLanguage.isEmpty) {
       try {
-        final archiveResult = await _searchInternetArchive(bookId, title, author);
+        final archiveResult = await _searchInternetArchive(
+          bookId,
+          title,
+          author,
+        );
         if (archiveResult != null) {
           debugPrint('[AudiobookService] Found on Internet Archive: $title');
           return archiveResult;
@@ -114,7 +118,9 @@ class AudiobookService {
         debugPrint('[AudiobookService] Internet Archive error: $e');
       }
     } else {
-      debugPrint('[AudiobookService] Skipping Internet Archive (language filter active)');
+      debugPrint(
+        '[AudiobookService] Skipping Internet Archive (language filter active)',
+      );
     }
 
     // Cache negative result
@@ -822,7 +828,10 @@ class AudiobookService {
     }
 
     // Word-based matching for cases like "Lettres à un jeune poète" vs "Lettres de mon moulin"
-    final searchWords = searchTitle.split(' ').where((w) => w.length > 2).toSet();
+    final searchWords = searchTitle
+        .split(' ')
+        .where((w) => w.length > 2)
+        .toSet();
     final bookWords = bookTitle.split(' ').where((w) => w.length > 2).toSet();
 
     if (searchWords.isEmpty || bookWords.isEmpty) return false;

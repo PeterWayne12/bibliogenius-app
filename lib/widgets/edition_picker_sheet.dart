@@ -128,7 +128,8 @@ class _EditionPickerSheetState extends State<EditionPickerSheet> {
       'pt': 'PT',
       'por': 'PT',
     };
-    return langMap[code] ?? code.toUpperCase().substring(0, min(2, code.length));
+    return langMap[code] ??
+        code.toUpperCase().substring(0, min(2, code.length));
   }
 
   Color _getCoverColor(String title) {
@@ -149,9 +150,7 @@ class _EditionPickerSheetState extends State<EditionPickerSheet> {
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: mediaQuery.size.height * 0.7,
-      ),
+      constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.7),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -257,7 +256,12 @@ class _EditionPickerSheetState extends State<EditionPickerSheet> {
 
           // Select Button
           Padding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, mediaQuery.padding.bottom + 16),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              16,
+              20,
+              mediaQuery.padding.bottom + 16,
+            ),
             child: SizedBox(
               width: double.infinity,
               child: FilledButton.icon(

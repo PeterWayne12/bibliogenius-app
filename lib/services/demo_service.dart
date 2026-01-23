@@ -58,7 +58,7 @@ class DemoService {
       try {
         // Create the book
         final response = await apiService.createBook(bookData);
-        
+
         // Extract book ID from response and create a copy
         if (response.data != null) {
           int? bookId;
@@ -67,7 +67,7 @@ class DemoService {
           } else if (response.data is Book) {
             bookId = (response.data as Book).id;
           }
-          
+
           if (bookId != null) {
             // Create a default copy for this book
             await apiService.createCopy({
@@ -86,4 +86,3 @@ class DemoService {
     }
   }
 }
-

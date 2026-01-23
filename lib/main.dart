@@ -347,7 +347,8 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/books',
-              builder: (context, state) => LibraryScreen(initialIndex: 0),
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(child: LibraryScreen(initialIndex: 0)),
               routes: [
                 GoRoute(
                   path: 'add',
@@ -570,7 +571,8 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/shelves',
-              builder: (context, state) => const LibraryScreen(initialIndex: 1),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: LibraryScreen(initialIndex: 1)),
             ),
             GoRoute(
               path: '/feedback',
@@ -578,7 +580,8 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/collections',
-              builder: (context, state) => const LibraryScreen(initialIndex: 2),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: LibraryScreen(initialIndex: 2)),
               routes: [
                 GoRoute(
                   path: ':id',

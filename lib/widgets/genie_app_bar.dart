@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/theme_provider.dart';
+import '../services/translation_service.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'bibliogenius_logo.dart';
+import 'quick_actions_sheet.dart';
 
 class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
   final dynamic title;
@@ -13,7 +15,8 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
   final Widget? leading;
   final bool automaticallyImplyLeading;
-  final bool showQuickActions; // Show Scanner & Online Search buttons
+  final bool showQuickActions; // Legacy direct buttons
+  final List<Widget>? contextualQuickActions; // For the new Quick Actions menu
 
   const GenieAppBar({
     super.key,
@@ -24,7 +27,8 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.automaticallyImplyLeading = true,
     this.transparent = false,
-    this.showQuickActions = false, // Disabled by default to avoid duplicates
+    this.showQuickActions = false,
+    this.contextualQuickActions,
   });
 
   final bool transparent;
@@ -157,6 +161,67 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
         },
       ),
       actions: [
+        // Global Quick Actions Button (New)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                // Determine if we are on the main library screen to hide redundant actions
+                final currentPath = GoRouterState.of(context).uri.path;
+                final hideGenericActions =
+                    currentPath == '/books' ||
+                    currentPath.startsWith('/books?');
+
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  builder: (context) => QuickActionsSheet(
+                    contextualActions: contextualQuickActions,
+                    hideGenericActions: hideGenericActions,
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt, color: Colors.white, size: 20),
+                    if (MediaQuery.of(context).size.width > 600) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        TranslationService.translate(
+                          context,
+                          'quick_actions_title',
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
         // Quick Action Buttons (Scanner & Online Search) - only when explicitly enabled
         if (showQuickActions) ...[
           IconButton(

@@ -246,7 +246,8 @@ class MdnsService {
                 debugPrint(
                   '📚 mDNS: Using resolved host for "${service.name}": $host',
                 );
-              } else if (ipFromAttrs != null && _isLinkLocalAddress(ipFromAttrs)) {
+              } else if (ipFromAttrs != null &&
+                  _isLinkLocalAddress(ipFromAttrs)) {
                 debugPrint(
                   '⚠️ mDNS: Peer advertised link-local IP ($ipFromAttrs), skipping',
                 );

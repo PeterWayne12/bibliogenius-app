@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/services/wizard_service.dart';
+import 'package:bibliogenius/services/wizard_service.dart';
 
 void main() {
   test('WizardService checks and sets seen status', () async {

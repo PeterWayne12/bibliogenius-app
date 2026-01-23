@@ -168,15 +168,22 @@ class _AddContactScreenState extends State<AddContactScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                      color:
+                          Theme.of(context).appBarTheme.foregroundColor ??
+                          Colors.white,
                     ),
                   )
                 : TextButton(
                     onPressed: _saveContact,
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.white.withOpacity(0.2),
-                      foregroundColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      foregroundColor:
+                          Theme.of(context).appBarTheme.foregroundColor ??
+                          Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                     ),
                     child: Text(
                       widget.contact != null

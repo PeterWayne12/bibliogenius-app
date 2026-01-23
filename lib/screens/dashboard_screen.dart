@@ -58,12 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   final GlobalKey _menuKey = GlobalKey(debugLabel: 'dashboard_menu');
 
   // Search preferences state
-  Map<String, bool> _searchPrefs = {
-    'inventaire': true,
-    'bnf': true,
-    'openlibrary': true,
-    'google_books': true,
-  };
+  Map<String, bool> _searchPrefs = {};
 
   @override
   void initState() {
@@ -446,9 +441,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. Quick Actions [MOVED TO TOP]
-                      _buildQuickActions(context, themeProvider, isKid),
-                      const SizedBox(height: 32),
+                      // 1. [REMOVED] Quick Actions (now in AppBar)
+                      // const SizedBox(height: 32),
 
                       // 2. Header with Quote (if enabled)
                       if (themeProvider.quotesEnabled) ...[
@@ -1008,6 +1002,11 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildSearchConfiguration(BuildContext context) {
+    // Defaults matching ExternalSearchScreen logic
+    final deviceLang = Localizations.localeOf(context).languageCode;
+    final bnfDefault = deviceLang == 'fr';
+    final googleDefault = false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1023,7 +1022,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               _buildSwitchTile(
                 context,
                 'Inventaire.io',
-                'inventaire_desc',
+                'source_inventaire_desc',
                 _searchPrefs['inventaire'] ?? true,
                 (val) => _updateSearchPreference('inventaire', val),
                 icon: Icons.language,
@@ -1031,15 +1030,15 @@ class _DashboardScreenState extends State<DashboardScreen>
               _buildSwitchTile(
                 context,
                 'Bibliothèque Nationale (BNF)',
-                'bnf_desc',
-                _searchPrefs['bnf'] ?? true,
+                'source_bnf_desc',
+                _searchPrefs['bnf'] ?? bnfDefault,
                 (val) => _updateSearchPreference('bnf', val),
                 icon: Icons.account_balance,
               ),
               _buildSwitchTile(
                 context,
                 'OpenLibrary',
-                'openlibrary_desc',
+                'source_openlibrary_desc',
                 _searchPrefs['openlibrary'] ?? true,
                 (val) => _updateSearchPreference('openlibrary', val),
                 icon: Icons.local_library,
@@ -1047,8 +1046,8 @@ class _DashboardScreenState extends State<DashboardScreen>
               _buildSwitchTile(
                 context,
                 'Google Books',
-                'google_books_desc',
-                _searchPrefs['google_books'] ?? true,
+                'source_google_desc',
+                _searchPrefs['google_books'] ?? googleDefault,
                 (val) => _updateSearchPreference('google_books', val),
                 icon: Icons.search,
               ),
@@ -1125,204 +1124,6 @@ class _DashboardScreenState extends State<DashboardScreen>
         value: value,
         onChanged: onChanged,
       ),
-    );
-  }
-
-  Widget _buildQuickActions(
-    BuildContext context,
-    ThemeProvider themeProvider,
-    bool isKid,
-  ) {
-    if (isKid) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(
-            context,
-            TranslationService.translate(context, 'quick_actions'),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildKidActionCard(
-                  context,
-                  TranslationService.translate(context, 'action_scan_barcode'),
-                  Icons.qr_code_scanner,
-                  Colors.orange,
-                  () async {
-                    final isbn = await context.push<String>('/scan');
-                    if (isbn != null && context.mounted) {
-                      context.push('/books/add', extra: {'isbn': isbn});
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildKidActionCard(
-                  context,
-                  TranslationService.translate(context, 'action_search_online'),
-                  Icons.search,
-                  Colors.blue,
-                  () => context.push('/search/external'),
-                  key: const Key('addBookButton'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(
-          context,
-          TranslationService.translate(context, 'quick_actions'),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // 1. Search Bar (Fake)
-              ScaleOnTap(
-                onTap: () => context.push('/books'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search, color: Colors.grey),
-                      const SizedBox(width: 12),
-                      Text(
-                        TranslationService.translate(
-                          context,
-                          'search_in_library',
-                        ),
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 2. Primary Action: Add Book
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  key: _addKey,
-                  onPressed: () => context.push('/books/add'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 4,
-                    shadowColor: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.4),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: Text(
-                    TranslationService.translate(context, 'action_add_book'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 3. Secondary Actions Grid
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isSmall = constraints.maxWidth < 400;
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.start,
-                    children: [
-                      _buildQuickActionCard(
-                        context,
-                        label: TranslationService.translate(
-                          context,
-                          'action_scan_barcode',
-                        ),
-                        icon: Icons.qr_code_scanner,
-                        color: Colors.orange,
-                        onTap: () async {
-                          final isbn = await context.push<String>('/scan');
-                          if (isbn != null && context.mounted) {
-                            context.push('/books/add', extra: {'isbn': isbn});
-                          }
-                        },
-                        width: isSmall
-                            ? (constraints.maxWidth - 12) / 2
-                            : (constraints.maxWidth - 24) / 3,
-                      ),
-                      _buildQuickActionCard(
-                        context,
-                        label: TranslationService.translate(
-                          context,
-                          'action_search_online',
-                        ),
-                        icon: Icons.travel_explore,
-                        color: Colors.blue,
-                        onTap: () => context.push('/search/external'),
-                        width: isSmall
-                            ? (constraints.maxWidth - 12) / 2
-                            : (constraints.maxWidth - 24) / 3,
-                      ),
-                      _buildQuickActionCard(
-                        context,
-                        label: TranslationService.translate(
-                          context,
-                          'action_checkout_book',
-                        ),
-                        icon: Icons.local_library,
-                        color: Colors.purple,
-                        onTap: () => context.push('/network-search'),
-                        width: isSmall
-                            ? constraints.maxWidth
-                            : (constraints.maxWidth - 24) / 3,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 

@@ -263,9 +263,13 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${TranslationService.translate(context, 'error')}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${TranslationService.translate(context, 'error')}: $e',
+            ),
+          ),
+        );
       }
     }
   }

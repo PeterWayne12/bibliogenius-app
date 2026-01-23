@@ -174,6 +174,19 @@ class _ShelvesScreenState extends State<ShelvesScreen> {
                   : null),
         automaticallyImplyLeading: false,
         showQuickActions: true,
+        contextualQuickActions: [
+          ListTile(
+            leading: const Icon(Icons.add_circle_outline),
+            title: Text(
+              TranslationService.translate(context, 'create_shelf') ??
+                  'Create Shelf',
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close Quick Actions sheet
+              _showCreateShelfDialog();
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(

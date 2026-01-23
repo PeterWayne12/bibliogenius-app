@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:app/screens/scan_screen.dart';
-import 'package:app/services/api_service.dart';
+import 'package:bibliogenius/screens/scan_screen.dart';
+import 'package:bibliogenius/services/api_service.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:app/providers/theme_provider.dart';
+import 'package:bibliogenius/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/mock_classes.dart';
 

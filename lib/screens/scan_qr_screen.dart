@@ -109,12 +109,8 @@ class _ScanContactViewState extends State<ScanContactView> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              MobileScanner(
-                controller: cameraController,
-                onDetect: _onDetect,
-              ),
-              if (_isProcessingScan)
-                const CircularProgressIndicator(),
+              MobileScanner(controller: cameraController, onDetect: _onDetect),
+              if (_isProcessingScan) const CircularProgressIndicator(),
               // Add a scanner overlay
               Container(
                 decoration: BoxDecoration(

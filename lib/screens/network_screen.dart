@@ -143,6 +143,45 @@ class _NetworkScreenState extends State<NetworkScreen>
     return Scaffold(
       appBar: GenieAppBar(
         title: TranslationService.translate(context, 'nav_network'),
+        contextualQuickActions: [
+          ListTile(
+            leading: const Icon(Icons.qr_code, color: Colors.purple),
+            title: Text(TranslationService.translate(context, 'show_my_code')),
+            onTap: () {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(
+                    TranslationService.translate(context, 'show_my_code'),
+                  ),
+                  content: const ShareContactView(),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: Text(
+                        TranslationService.translate(context, 'close'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_add, color: Colors.blue),
+            title: Text(
+              TranslationService.translate(context, 'enter_manually'),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              final result = await context.push('/contacts/add');
+              if (result == true) {
+                _contactsListKey.currentState?.reloadMembers();
+              }
+            },
+          ),
+        ],
         leading: isMobile
             ? IconButton(
                 icon: const Icon(Icons.menu, color: Colors.white),
@@ -176,6 +215,7 @@ class _NetworkScreenState extends State<NetworkScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'network_add_fab',
         onPressed: () => _showAddConnectionSheet(context),
         child: const Icon(Icons.add),
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app/utils/isbn_validator.dart';
+import 'package:bibliogenius/utils/isbn_validator.dart';
 
 void main() {
   group('IsbnValidator', () {
