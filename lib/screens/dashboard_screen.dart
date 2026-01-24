@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:go_router/go_router.dart';
 import '../widgets/genie_app_bar.dart';
 import '../widgets/contextual_help_sheet.dart';
@@ -10,24 +10,13 @@ import '../models/book.dart';
 // import 'genie_chat_screen.dart'; // Removed as we use route string
 import '../providers/theme_provider.dart';
 
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:universal_html/html.dart' as html;
-import 'dart:io' as io;
-import 'package:dio/dio.dart' show Response;
-import 'dart:convert';
-import '../services/auth_service.dart';
-
 import '../widgets/premium_book_card.dart';
+
 import '../services/quote_service.dart';
 import '../models/quote.dart';
 import '../theme/app_design.dart';
 import '../services/backup_reminder_service.dart';
 import 'statistics_screen.dart';
-import '../utils/app_constants.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -46,25 +35,19 @@ class _DashboardScreenState extends State<DashboardScreen>
   final Map<String, dynamic> _stats = {};
   List<Book> _recentBooks = [];
   List<Book> _readingListBooks = [];
+  List<Book> _allBooks = []; // Full list for search context
   Book? _heroBook;
-  String? _libraryName;
   bool _quoteExpanded = false;
 
-  Map<String, dynamic>? _config; // For settings
-  Map<String, dynamic>? _userInfo; // For settings
-  Map<String, dynamic>? _userStatus; // For settings logic (gamification etc)
-
-  final GlobalKey _addKey = GlobalKey(debugLabel: 'dashboard_add');
   final GlobalKey _statsKey = GlobalKey(debugLabel: 'dashboard_stats');
   final GlobalKey _menuKey = GlobalKey(debugLabel: 'dashboard_menu');
 
   // Search preferences state
-  Map<String, bool> _searchPrefs = {};
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _fetchDashboardData();
     // Verify locale changes on startup/init
     // Removed redundant _fetchDashboardData call in postFrameCallback
@@ -155,15 +138,11 @@ class _DashboardScreenState extends State<DashboardScreen>
           if (name != null) {
             themeProvider.setLibraryName(name);
           }
-          if (mounted) {
-            setState(() {
-              _libraryName = name;
-            });
-          }
         }
 
         if (mounted) {
           setState(() {
+            _allBooks = books;
             _stats['total_books'] = books.length;
             _stats['borrowed_count'] = books
                 .where((b) => b.readingStatus == 'borrowed')
@@ -231,43 +210,27 @@ class _DashboardScreenState extends State<DashboardScreen>
             setState(() {
               _stats['active_loans'] = statusData['loans_count'] ?? 0;
               _userName = statusData['name'];
-              _userStatus = statusData; // Store full status for settings
-
-              // Load search prefs from user status
-              if (_userStatus != null && _userStatus!['config'] != null) {
-                final config = _userStatus!['config'];
-                if (config['fallback_preferences'] != null) {
-                  final prefs = config['fallback_preferences'] as Map;
-                  prefs.forEach((key, value) {
-                    if (value is bool) {
-                      _searchPrefs[key.toString()] = value;
-                    }
-                  });
-                }
-              }
             });
           }
         }
 
-        // Fetch Config and Me for Settings Tab
-        print('Dashboard: Fetching config and me...');
+        // Fetch Config for library name
+        print('Dashboard: Fetching config...');
         final configRes = await api.getLibraryConfig();
-        final meRes = await api.getMe();
 
         if (mounted) {
           setState(() {
-            _config = configRes.data;
-            _userInfo = meRes.data;
+            final config = configRes.data;
 
             // Sync library name from config
-            final name = _config?['library_name'] ?? _config?['name'];
+            final name = config?['library_name'] ?? config?['name'];
             if (name != null) {
               themeProvider.setLibraryName(name);
-              _libraryName = name;
+              // _libraryName removed
             }
 
             // Sync profile type
-            final profileType = _config?['profile_type'];
+            final profileType = config?['profile_type'];
             if (profileType != null) {
               themeProvider.setProfileType(profileType);
             }
@@ -402,10 +365,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               icon: const Icon(Icons.insights_rounded, size: 22),
               text: TranslationService.translate(context, 'nav_statistics'),
             ),
-            Tab(
-              icon: const Icon(Icons.settings_rounded, size: 22),
-              text: TranslationService.translate(context, 'configuration'),
-            ),
           ],
         ),
       ),
@@ -423,8 +382,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               _buildDashboardTab(context, isWide, themeProvider, isKid),
               // Tab 2: Statistics
               const StatisticsContent(),
-              // Tab 3: Configuration
-              _buildConfigurationTab(context),
             ],
           ),
         ),
@@ -449,7 +406,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(
-                top: kToolbarHeight + kTextTabBarHeight,
+                top: 24,
                 left: isWide ? 32 : 16,
                 right: isWide ? 32 : 16,
                 bottom: 16,
@@ -576,8 +533,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                       const SizedBox(height: 24),
 
-                      const SizedBox(height: 32),
-
                       // Main Content Container
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,7 +573,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 24),
                           ],
 
                           // Reading List
@@ -655,7 +610,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             ),
                           ],
 
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 24),
                           if (!isKid)
                             Center(
                               child: ScaleOnTap(
@@ -692,7 +647,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 24),
                         ],
                       ),
                     ],
@@ -701,444 +656,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
           );
-  }
-
-  Widget _buildConfigurationTab(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    // Safety check for user info
-    final hasPassword = _userInfo?['has_password'] ?? false;
-    final mfaEnabled = _userInfo?['mfa_enabled'] ?? false;
-    final email = _userInfo?['email'] ?? '';
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        top: kToolbarHeight + 48 + MediaQuery.of(context).padding.top + 16,
-        left: 16,
-        right: 16,
-        bottom: 16,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Modules Section
-          Text(
-            TranslationService.translate(context, 'modules') ?? 'Modules',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                _buildModuleToggle(
-                  context,
-                  'quotes_module',
-                  'quotes_module_desc',
-                  Icons.format_quote,
-                  themeProvider.quotesEnabled,
-                  (value) => themeProvider.setQuotesEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'gamification_module',
-                  'gamification_desc',
-                  Icons.emoji_events,
-                  themeProvider.gamificationEnabled,
-                  (value) => themeProvider.setGamificationEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'collections_module',
-                  'collections_module_desc',
-                  Icons.collections_bookmark,
-                  themeProvider.collectionsEnabled,
-                  (value) => themeProvider.setCollectionsEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'commerce_module',
-                  'commerce_module_desc',
-                  Icons.storefront,
-                  themeProvider.commerceEnabled,
-                  (value) => themeProvider.setCommerceEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'audio_module',
-                  'audio_module_desc',
-                  Icons.headphones,
-                  themeProvider.audioEnabled,
-                  (value) => themeProvider.setAudioEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'network_module',
-                  'network_module_desc',
-                  Icons.hub,
-                  themeProvider.networkEnabled,
-                  (value) => themeProvider.setNetworkEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'module_edition_browser',
-                  'module_edition_browser_desc',
-                  Icons.layers,
-                  themeProvider.editionBrowserEnabled,
-                  (value) => themeProvider.setEditionBrowserEnabled(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'enable_borrowing_module',
-                  'borrowing_module_desc',
-                  Icons.swap_horiz,
-                  themeProvider.canBorrowBooks,
-                  (value) => themeProvider.setCanBorrowBooks(value),
-                ),
-                _buildModuleToggle(
-                  context,
-                  'module_digital_formats',
-                  'module_digital_formats_desc',
-                  Icons.tablet_mac,
-                  themeProvider.digitalFormatsEnabled,
-                  (value) => themeProvider.setDigitalFormatsEnabled(value),
-                ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.account_tree),
-                  title: Text(
-                    TranslationService.translate(context, 'enable_taxonomy') ??
-                        'Hierarchical Tags',
-                  ),
-                  subtitle: const Text('Gestion de sous-étagères'),
-                  value: AppConstants.enableHierarchicalTags,
-                  onChanged: (bool value) async {
-                    setState(() {
-                      AppConstants.enableHierarchicalTags = value;
-                    });
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('enableHierarchicalTags', value);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            TranslationService.translate(
-                                  context,
-                                  'restart_required_for_changes',
-                                ) ??
-                                'Please restart the app for changes to take full effect',
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-
-          // App Settings Section
-          Text(
-            TranslationService.translate(context, 'app_settings') ??
-                'App Settings',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.library_books),
-                  title: Text(
-                    TranslationService.translate(context, 'library_name') ??
-                        'Library Name',
-                  ),
-                  subtitle: Text(_libraryName ?? 'My Library'),
-                  trailing: const Icon(Icons.edit),
-                  onTap: () {
-                    // TODO: Implement rename dialog if needed or keep it read-only for now
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: Text(
-                    TranslationService.translate(context, 'profile_type') ??
-                        'Profile Type',
-                  ),
-                  subtitle: Text(themeProvider.profileType.toUpperCase()),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-
-          // Security Section
-          Text(
-            TranslationService.translate(context, 'security') ?? 'Security',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.lock),
-                  title: Text(
-                    TranslationService.translate(context, 'password') ??
-                        'Password',
-                  ),
-                  subtitle: Text(
-                    hasPassword
-                        ? '********'
-                        : (TranslationService.translate(context, 'not_set') ??
-                              'Not set'),
-                  ),
-                  trailing: TextButton(
-                    onPressed: _showChangePasswordDialog,
-                    child: Text(
-                      TranslationService.translate(context, 'change') ??
-                          'Change',
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.security),
-                  title: Text(
-                    TranslationService.translate(context, 'two_factor_auth') ??
-                        'Two-Factor Authentication',
-                  ),
-                  subtitle: Text(
-                    mfaEnabled
-                        ? (TranslationService.translate(context, 'enabled') ??
-                              'Enabled')
-                        : (TranslationService.translate(context, 'disabled') ??
-                              'Disabled'),
-                  ),
-                  trailing: Switch(
-                    value: mfaEnabled,
-                    onChanged: (val) {
-                      if (val) {
-                        _setupMfa();
-                      } else {
-                        // Disable MFA logic (todo)
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-
-          // Search Configuration
-          _buildSearchConfiguration(context),
-
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-
-          // Data Management
-          Text(
-            TranslationService.translate(context, 'data_management') ??
-                'Data Management',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _exportData,
-                icon: const Icon(Icons.download),
-                label: Text(
-                  TranslationService.translate(context, 'export_backup') ??
-                      'Export Backup',
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: _importBackup,
-                icon: const Icon(Icons.upload),
-                label: Text(
-                  TranslationService.translate(context, 'import_backup') ??
-                      'Import Backup',
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => context.push('/shelves-management'),
-                icon: const Icon(Icons.folder_special),
-                label: Text(
-                  TranslationService.translate(context, 'manage_shelves') ??
-                      'Manage Shelves',
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 24),
-
-          // Session / Logout
-          OutlinedButton.icon(
-            onPressed: () async {
-              final authService = Provider.of<AuthService>(
-                context,
-                listen: false,
-              );
-              // Small delay to ensure any pending theme/UI updates are settled
-              await Future.delayed(const Duration(milliseconds: 200));
-
-              await authService.logout();
-              if (mounted) {
-                context.go('/login');
-              }
-            },
-            icon: const Icon(Icons.logout),
-            label: Text(TranslationService.translate(context, 'logout')),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-              foregroundColor: Colors.red,
-            ),
-          ),
-          const SizedBox(height: 100), // Bottom padding
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchConfiguration(BuildContext context) {
-    // Defaults matching ExternalSearchScreen logic
-    final deviceLang = Localizations.localeOf(context).languageCode;
-    final bnfDefault = deviceLang == 'fr';
-    final googleDefault = false;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          TranslationService.translate(context, 'search_sources') ??
-              'Search Sources',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Column(
-            children: [
-              _buildSwitchTile(
-                context,
-                'Inventaire.io',
-                'source_inventaire_desc',
-                _searchPrefs['inventaire'] ?? true,
-                (val) => _updateSearchPreference('inventaire', val),
-                icon: Icons.language,
-              ),
-              _buildSwitchTile(
-                context,
-                'Bibliothèque Nationale (BNF)',
-                'source_bnf_desc',
-                _searchPrefs['bnf'] ?? bnfDefault,
-                (val) => _updateSearchPreference('bnf', val),
-                icon: Icons.account_balance,
-              ),
-              _buildSwitchTile(
-                context,
-                'OpenLibrary',
-                'source_openlibrary_desc',
-                _searchPrefs['openlibrary'] ?? true,
-                (val) => _updateSearchPreference('openlibrary', val),
-                icon: Icons.local_library,
-              ),
-              _buildSwitchTile(
-                context,
-                'Google Books',
-                'source_google_desc',
-                _searchPrefs['google_books'] ?? googleDefault,
-                (val) => _updateSearchPreference('google_books', val),
-                icon: Icons.search,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSwitchTile(
-    BuildContext context,
-    String title,
-    String subtitleKey,
-    bool value,
-    ValueChanged<bool> onChanged, {
-    IconData? icon,
-  }) {
-    return SwitchListTile(
-      secondary: icon != null ? Icon(icon) : null,
-      title: Text(title),
-      subtitle: Text(
-        TranslationService.translate(context, subtitleKey) ?? subtitleKey,
-      ),
-      value: value,
-      onChanged: onChanged,
-    );
-  }
-
-  Future<void> _updateSearchPreference(String source, bool enabled) async {
-    setState(() {
-      _searchPrefs[source] = enabled;
-    });
-
-    try {
-      final api = Provider.of<ApiService>(context, listen: false);
-      await api.updateGamificationConfig(fallbackPreferences: _searchPrefs);
-
-      // Update local _userStatus config to reflect changes
-      if (_userStatus != null) {
-        if (_userStatus!['config'] == null) {
-          _userStatus!['config'] = {};
-        }
-        _userStatus!['config']['fallback_preferences'] = _searchPrefs;
-      }
-    } catch (e) {
-      debugPrint('Error updating search preference: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${TranslationService.translate(context, 'error_update')}: $e',
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Widget _buildModuleToggle(
-    BuildContext context,
-    String titleKey,
-    String descKey,
-    IconData icon,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: SwitchListTile(
-        secondary: Icon(icon),
-        title: Text(TranslationService.translate(context, titleKey)),
-        subtitle: Text(TranslationService.translate(context, descKey)),
-        value: value,
-        onChanged: onChanged,
-      ),
-    );
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -1261,31 +778,87 @@ class _DashboardScreenState extends State<DashboardScreen>
                             )
                           else
                             const SizedBox.shrink(),
-                          // Author attribution
+                          // Author attribution (Clickable)
                           Expanded(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  width: 16,
-                                  height: 1,
-                                  color: textColor.withValues(alpha: 0.3),
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    _dailyQuote!.author,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: textColor,
-                                      letterSpacing: 0.3,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                            child: Builder(
+                              builder: (context) {
+                                // Smart Search Logic
+                                final rawSource = _dailyQuote!.source;
+                                final rawAuthor = _dailyQuote!.author;
+                                final source = rawSource == 'Wikiquote'
+                                    ? ''
+                                    : rawSource;
+                                final author = rawAuthor == 'Wikiquote'
+                                    ? ''
+                                    : rawAuthor;
+
+                                if (author.isEmpty && source.isEmpty)
+                                  return const SizedBox.shrink();
+
+                                final localBook = (source.isNotEmpty)
+                                    ? _allBooks.cast<Book?>().firstWhere(
+                                        (b) =>
+                                            b!.title.toLowerCase().contains(
+                                              source.toLowerCase(),
+                                            ) ||
+                                            source.toLowerCase().contains(
+                                              b.title.toLowerCase(),
+                                            ),
+                                        orElse: () => null,
+                                      )
+                                    : null;
+
+                                return InkWell(
+                                  onTap: () {
+                                    if (localBook != null) {
+                                      context.push('/books/${localBook.id}');
+                                    } else {
+                                      final searchQuery = source.isNotEmpty
+                                          ? "$author $source"
+                                          : author;
+                                      context.push(
+                                        '/search/external?q=${Uri.encodeComponent(searchQuery)}',
+                                      );
+                                    }
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        width: 16,
+                                        height: 1,
+                                        color: textColor.withValues(alpha: 0.3),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          _dailyQuote!.author,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: textColor,
+                                            letterSpacing: 0.3,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor: textColor
+                                                .withValues(alpha: 0.3),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        localBook != null
+                                            ? Icons.arrow_forward
+                                            : Icons.search,
+                                        size: 14,
+                                        color: textColor.withValues(alpha: 0.5),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -1590,512 +1163,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _exportData() async {
-    try {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              TranslationService.translate(context, 'preparing_backup'),
-            ),
-          ),
-        );
-      }
-
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.exportData();
-
-      if (kIsWeb) {
-        // Web export: trigger download directly
-        final blob = html.Blob([response.data]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..setAttribute(
-            'download',
-            'bibliogenius_backup_${DateTime.now().toIso8601String().split('T')[0]}.json',
-          )
-          ..click();
-        html.Url.revokeObjectUrl(url);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                TranslationService.translate(context, 'backup_downloaded'),
-              ),
-            ),
-          );
-        }
-      } else {
-        // Mobile/Desktop export: use share_plus
-        final directory = await getTemporaryDirectory();
-        final filename =
-            'bibliogenius_backup_${DateTime.now().toIso8601String().split('T')[0]}.json';
-        final file = io.File('${directory.path}/$filename');
-        await file.writeAsBytes(response.data);
-
-        await Share.shareXFiles([
-          XFile(file.path),
-        ], text: 'My BiblioGenius Backup');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${TranslationService.translate(context, 'export_fail')}: $e',
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _importBackup() async {
-    try {
-      // Pick a file (JSON for backup, CSV/TXT for book list)
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json', 'csv', 'txt'],
-        withData: kIsWeb,
-      );
-
-      if (result == null || result.files.isEmpty) {
-        return; // User cancelled
-      }
-
-      final file = result.files.first;
-      final extension = file.extension?.toLowerCase();
-
-      // If it's a CSV or TXT, redirect to book import
-      if (extension == 'csv' || extension == 'txt') {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                TranslationService.translate(context, 'importing_books'),
-              ),
-            ),
-          );
-        }
-
-        final apiService = Provider.of<ApiService>(context, listen: false);
-        late final Response response;
-
-        if (kIsWeb) {
-          // On web, bytes are loaded into memory
-          if (file.bytes == null) throw Exception('No file data');
-          response = await apiService.importBooks(
-            file.bytes!,
-            filename: file.name,
-          );
-        } else {
-          // On native, use path
-          if (file.path == null) throw Exception('No file path');
-          response = await apiService.importBooks(file.path!);
-        }
-
-        if (mounted) {
-          if (response.statusCode == 200) {
-            final imported = response.data['imported'];
-            _fetchDashboardData(); // Refresh
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${TranslationService.translate(context, 'import_success')} $imported ${TranslationService.translate(context, 'books')}',
-                ),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else {
-            throw Exception(response.data['error'] ?? 'Import failed');
-          }
-        }
-        return;
-      }
-
-      // JSON Backup Import Logic
-      List<int> bytes;
-      if (kIsWeb) {
-        if (file.bytes == null) throw Exception('Could not read file');
-        bytes = file.bytes!;
-      } else {
-        if (file.path == null) throw Exception('File path is null');
-        final ioFile = io.File(file.path!);
-        bytes = await ioFile.readAsBytes();
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              TranslationService.translate(context, 'importing_backup'),
-            ),
-          ),
-        );
-      }
-
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.importBackup(bytes);
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final booksCount = data['books_imported'] ?? 0;
-        final message = data['message'] ?? 'Import successful';
-
-        if (mounted) {
-          _fetchDashboardData();
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '$message - $booksCount ${TranslationService.translate(context, 'books_imported')}',
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        throw Exception(response.data['error'] ?? 'Import failed');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${TranslationService.translate(context, 'import_fail')}: $e',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _setupMfa() async {
-    final apiService = Provider.of<ApiService>(context, listen: false);
-
-    // Check if we're in FFI/local mode where MFA is not supported
-    if (apiService.useFfi) {
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                TranslationService.translate(context, 'two_factor_auth') ??
-                    'Two-Factor Authentication',
-              ),
-            ],
-          ),
-          content: Text(
-            TranslationService.translate(context, 'mfa_requires_server') ??
-                'Two-factor authentication is only available when connected to a remote BiblioGenius server. In local mode, your data is already secured on your device.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(TranslationService.translate(context, 'ok') ?? 'OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    try {
-      final response = await apiService.setup2Fa();
-      final data = response.data;
-      final secret = data['secret'];
-      final qrCode = data['qr_code']; // Base64 string
-
-      if (!mounted) return;
-
-      final codeController = TextEditingController();
-      String? verifyError;
-
-      await showDialog(
-        context: context,
-        builder: (dialogContext) => StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Text(
-              TranslationService.translate(context, 'setup_2fa') ?? 'Setup 2FA',
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    TranslationService.translate(context, 'scan_qr_code') ??
-                        'Scan this QR code with your authenticator app:',
-                  ),
-                  const SizedBox(height: 16),
-                  if (qrCode != null)
-                    Image.memory(base64Decode(qrCode), height: 200, width: 200),
-                  const SizedBox(height: 16),
-                  SelectableText(
-                    '${TranslationService.translate(context, 'secret_key') ?? 'Secret Key'}: $secret',
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: codeController,
-                    decoration: InputDecoration(
-                      labelText:
-                          TranslationService.translate(
-                            context,
-                            'verification_code',
-                          ) ??
-                          'Verification Code',
-                      errorText: verifyError,
-                      border: const OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  TranslationService.translate(context, 'cancel') ?? 'Cancel',
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  setState(() => verifyError = null);
-                  final code = codeController.text.trim();
-                  if (code.length != 6) {
-                    setState(
-                      () => verifyError =
-                          TranslationService.translate(
-                            context,
-                            'invalid_code',
-                          ) ??
-                          'Invalid code',
-                    );
-                    return;
-                  }
-
-                  try {
-                    await apiService.verify2Fa(secret, code);
-                    if (mounted) {
-                      Navigator.pop(context); // Close dialog
-                      _fetchDashboardData(); // Refresh status
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            TranslationService.translate(
-                                  context,
-                                  'mfa_enabled_success',
-                                ) ??
-                                'MFA Enabled Successfully',
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    setState(
-                      () => verifyError =
-                          TranslationService.translate(
-                            context,
-                            'verification_failed',
-                          ) ??
-                          'Verification failed',
-                    );
-                  }
-                },
-                child: Text(
-                  TranslationService.translate(context, 'verify') ?? 'Verify',
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${TranslationService.translate(context, 'error_initializing_mfa') ?? 'Error initializing MFA'}: $e',
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _showChangePasswordDialog() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final hasPassword = await authService.hasPasswordSet();
-
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    String? errorText;
-
-    if (!mounted) return;
-
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(
-            hasPassword
-                ? (TranslationService.translate(context, 'change_password') ??
-                      'Change Password')
-                : (TranslationService.translate(context, 'set_password') ??
-                      'Set Password'),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!hasPassword)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      TranslationService.translate(
-                            context,
-                            'first_time_password',
-                          ) ??
-                          'Set a password to protect your data',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  ),
-                if (hasPassword)
-                  TextField(
-                    controller: currentPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText:
-                          TranslationService.translate(
-                            context,
-                            'current_password',
-                          ) ??
-                          'Current Password',
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                if (hasPassword) const SizedBox(height: 16),
-                TextField(
-                  controller: newPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText:
-                        TranslationService.translate(context, 'new_password') ??
-                        'New Password',
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText:
-                        TranslationService.translate(
-                          context,
-                          'confirm_password',
-                        ) ??
-                        'Confirm Password',
-                    errorText: errorText,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                TranslationService.translate(context, 'cancel') ?? 'Cancel',
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // Validate
-                if (newPasswordController.text.length < 4) {
-                  setState(
-                    () => errorText =
-                        TranslationService.translate(
-                          context,
-                          'password_too_short',
-                        ) ??
-                        'Password must be at least 4 characters',
-                  );
-                  return;
-                }
-                if (newPasswordController.text !=
-                    confirmPasswordController.text) {
-                  setState(
-                    () => errorText =
-                        TranslationService.translate(
-                          context,
-                          'passwords_dont_match',
-                        ) ??
-                        'Passwords do not match',
-                  );
-                  return;
-                }
-
-                if (hasPassword) {
-                  // Verify old password first
-                  final isValid = await authService.verifyPassword(
-                    currentPasswordController.text,
-                  );
-                  if (!isValid) {
-                    setState(
-                      () => errorText =
-                          TranslationService.translate(
-                            context,
-                            'password_incorrect',
-                          ) ??
-                          'Incorrect password',
-                    );
-                    return;
-                  }
-                  // Change password
-                  await authService.changePassword(
-                    currentPasswordController.text,
-                    newPasswordController.text,
-                  );
-                } else {
-                  // First time setting password
-                  await authService.savePassword(newPasswordController.text);
-                }
-
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        TranslationService.translate(
-                              context,
-                              'password_changed_success',
-                            ) ??
-                            'Password changed successfully',
-                      ),
-                    ),
-                  );
-                }
-              },
-              child: Text(
-                TranslationService.translate(context, 'save') ?? 'Save',
               ),
             ),
           ],

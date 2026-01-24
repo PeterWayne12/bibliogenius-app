@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 Consumer<ThemeProvider>(
                   builder: (context, themeProvider, _) {
                     final themeColor = Theme.of(context).primaryColor;

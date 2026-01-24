@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
 import '../services/translation_service.dart';
 import '../models/book.dart';
@@ -375,34 +376,86 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     Gradient gradient,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      height: 140,
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(AppDesign.radiusMedium),
-        boxShadow: AppDesign.subtleShadow,
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color:
+                (gradient is LinearGradient
+                        ? gradient.colors.first
+                        : Colors.blue)
+                    .withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: gradient,
-              borderRadius: BorderRadius.circular(10),
+          // Decorative background icon
+          Positioned(
+            right: -15,
+            top: -15,
+            child: ShaderMask(
+              shaderCallback: (rect) => LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: 0.2),
+                  Colors.white.withValues(alpha: 0.05),
+                ],
+              ).createShader(rect),
+              child: Icon(icon, size: 100, color: Colors.white),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Icon wrapper
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 20),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        height: 1.0,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1180,6 +1233,11 @@ class StatisticsContent extends StatefulWidget {
 
 class _StatisticsContentState extends State<StatisticsContent>
     with TickerProviderStateMixin {
+  String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
   List<Book> _books = [];
   bool _isLoading = true;
   late AnimationController _animController;
@@ -1273,7 +1331,7 @@ class _StatisticsContentState extends State<StatisticsContent>
         onRefresh: _fetchData,
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            top: kToolbarHeight + 48 + MediaQuery.of(context).padding.top + 16,
+            top: 20,
             left: 16.0,
             right: 16.0,
             bottom: 16.0,
@@ -1282,6 +1340,7 @@ class _StatisticsContentState extends State<StatisticsContent>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSummaryCards(),
+              const SizedBox(height: 32),
               _buildSectionTitle(
                 TranslationService.translate(context, 'reading_habits'),
                 Icons.pie_chart,
@@ -1304,35 +1363,93 @@ class _StatisticsContentState extends State<StatisticsContent>
         .where((b) => b.readingStatus == 'to_read')
         .length;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSummaryCard(
-            TranslationService.translate(context, 'total_books'),
-            totalBooks.toString(),
-            Icons.menu_book,
-            AppDesign.primaryGradient,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            TranslationService.translate(context, 'books_read'),
-            readBooks.toString(),
-            Icons.check_circle,
-            AppDesign.successGradient,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            TranslationService.translate(context, 'reading_status_to_read'),
-            toReadBooks.toString(),
-            Icons.bookmark,
-            AppDesign.accentGradient,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          // Mobile: Stack vertically
+          return Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: _buildSummaryCard(
+                  TranslationService.translate(context, 'total_books'),
+                  totalBooks.toString(),
+                  Icons.menu_book,
+                  AppDesign.pastelPrimaryGradient,
+                  onTap: () => context.go('/books'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: _buildSummaryCard(
+                  TranslationService.translate(context, 'books_read'),
+                  readBooks.toString(),
+                  Icons.check_circle,
+                  AppDesign.pastelSuccessGradient,
+                  onTap: () => context.go('/books?status=read'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: _buildSummaryCard(
+                  _capitalizeFirstLetter(
+                    TranslationService.translate(
+                      context,
+                      'reading_status_to_read',
+                    ),
+                  ),
+                  toReadBooks.toString(),
+                  Icons.bookmark,
+                  AppDesign.pastelAccentGradient,
+                  onTap: () => context.go('/books?status=to_read'),
+                ),
+              ),
+            ],
+          );
+        } else {
+          // Desktop/Tablet: Row
+          return Row(
+            children: [
+              Expanded(
+                child: _buildSummaryCard(
+                  TranslationService.translate(context, 'total_books'),
+                  totalBooks.toString(),
+                  Icons.menu_book,
+                  AppDesign.pastelPrimaryGradient,
+                  onTap: () => context.go('/books'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSummaryCard(
+                  TranslationService.translate(context, 'books_read'),
+                  readBooks.toString(),
+                  Icons.check_circle,
+                  AppDesign.pastelSuccessGradient,
+                  onTap: () => context.go('/books?status=read'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSummaryCard(
+                  _capitalizeFirstLetter(
+                    TranslationService.translate(
+                      context,
+                      'reading_status_to_read',
+                    ),
+                  ),
+                  toReadBooks.toString(),
+                  Icons.bookmark,
+                  AppDesign.pastelAccentGradient,
+                  onTap: () => context.go('/books?status=to_read'),
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -1340,30 +1457,95 @@ class _StatisticsContentState extends State<StatisticsContent>
     String label,
     String value,
     IconData icon,
-    Gradient gradient,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(AppDesign.radiusLarge),
-        boxShadow: AppDesign.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ShaderMask(
-            shaderCallback: (bounds) => gradient.createShader(bounds),
-            child: Icon(icon, size: 24, color: Colors.white),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        ],
+    Gradient gradient, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 140,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color:
+                  (gradient is LinearGradient
+                          ? gradient.colors.first
+                          : Colors.blue)
+                      .withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative background icon
+            Positioned(
+              right: -15,
+              top: -15,
+              child: ShaderMask(
+                shaderCallback: (rect) => LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.2),
+                    Colors.white.withValues(alpha: 0.05),
+                  ],
+                ).createShader(rect),
+                child: Icon(icon, size: 100, color: Colors.white),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Icon wrapper
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 20),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.0,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

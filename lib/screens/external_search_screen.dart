@@ -43,6 +43,7 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
   // Dynamic source options based on enabled sources in profile
   List<Map<String, dynamic>> _sourceOptions = [];
   bool _sourcesLoaded = false;
+  bool _initialSearchDone = false;
 
   // Language filter (defaults to user's language)
   // _selectedLanguage: null = "all languages" (no strict filter, but still prioritize user's lang)
@@ -92,6 +93,26 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       }
 
       _loadEnabledSources();
+    }
+
+    if (!_initialSearchDone) {
+      final state = GoRouterState.of(context);
+      if (state.uri.queryParameters.containsKey('q')) {
+        final q = state.uri.queryParameters['q'];
+        if (q != null && q.isNotEmpty) {
+          _initialSearchDone = true;
+          // Heuristic: If q contains ' - ', split into Author/Title?
+          // For now, put it all in Author if it looks like an Author search from dashboard
+          // The dashboard sends "$author $source" or "$author".
+          // Let's put it in the most generic field. Title controller acts as general keyword often?
+          // Actually, let's put it in Title controller as "Keywords"
+          _titleController.text = q;
+          // Trigger search after build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _search();
+          });
+        }
+      }
     }
   }
 

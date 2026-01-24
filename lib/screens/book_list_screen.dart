@@ -86,8 +86,13 @@ class _BookListScreenState extends State<BookListScreen>
       // Initialize filters from query params
       final state = GoRouterState.of(context);
       if (state.uri.queryParameters.containsKey('tag')) {
+        _tagFilter = state.uri.queryParameters['tag'];
+      }
+      if (state.uri.queryParameters.containsKey('status')) {
+        _selectedStatus = state.uri.queryParameters['status'];
+      }
+      if (_tagFilter != null || _selectedStatus != null) {
         setState(() {
-          _tagFilter = state.uri.queryParameters['tag'];
           _filterBooks();
         });
       }
@@ -122,6 +127,16 @@ class _BookListScreenState extends State<BookListScreen>
       if (mounted) {
         setState(() {
           _tagFilter = newTag;
+          _filterBooks();
+        });
+      }
+    }
+
+    final newStatus = state.uri.queryParameters['status'];
+    if (newStatus != _selectedStatus) {
+      if (mounted) {
+        setState(() {
+          _selectedStatus = newStatus;
           _filterBooks();
         });
       }

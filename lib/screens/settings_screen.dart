@@ -637,7 +637,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       final api = Provider.of<ApiService>(context, listen: false);
-      await api.updateGamificationConfig(fallbackPreferences: _searchPrefs);
+
+      // Get profile type from config or ThemeProvider
+      final profileType = _config?['profile_type'] ??
+          Provider.of<ThemeProvider>(context, listen: false).profileType;
+
+      // Use updateProfile which properly syncs to enabled_modules in database
+      // This ensures Google Books and other module toggles persist correctly
+      await api.updateProfile(
+        profileType: profileType,
+        fallbackPreferences: _searchPrefs,
+      );
 
       if (_userStatus != null) {
         if (_userStatus!['config'] == null) {

@@ -80,6 +80,45 @@ class AppDesign {
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // PASTEL GRADIENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Pastel Primary (Soft Purple/Indigo)
+  static const pastelPrimaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF818CF8), Color(0xFFA78BFA)],
+  );
+
+  /// Pastel Success (Soft Green)
+  static const pastelSuccessGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF34D399), Color(0xFF10B981)],
+  );
+
+  /// Pastel Accent (Soft Pink)
+  static const pastelAccentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFF472B6), Color(0xFFEC4899)],
+  );
+
+  /// Pastel Warning (Soft Orange)
+  static const pastelWarningGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+  );
+
+  /// Pastel Ocean (Soft Blue)
+  static const pastelOceanGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF38BDF8), Color(0xFF0EA5E9)],
+  );
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // SHADOW PRESETS
   // ═══════════════════════════════════════════════════════════════════════════
 
