@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../services/collection_export_service.dart';
 import '../../services/translation_service.dart';
 import '../../widgets/cached_book_cover.dart';
+import '../../widgets/premium_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -278,6 +279,16 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     }
   }
 
+  Future<void> _addBook() async {
+    final result = await context.push(
+      '/books/add',
+      extra: {'collectionId': widget.collection.id},
+    );
+    if (result == true) {
+      _refreshBooks();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -342,6 +353,10 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
           ),
         ],
         actions: [],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addBook,
+        child: const Icon(Icons.add),
       ),
       body: FutureBuilder<List<CollectionBook>>(
         future: _booksFuture,
@@ -466,37 +481,27 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                       )
                     : books.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.auto_stories_outlined,
-                              size: 64,
-                              color: Colors.grey[300],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
+                        child: PremiumEmptyState(
+                          message:
                               TranslationService.translate(
                                 context,
-                                'no_books_yet',
-                              ),
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton.icon(
-                              onPressed: _importBooks,
-                              icon: const Icon(Icons.add),
-                              label: Text(
-                                TranslationService.translate(
-                                  context,
-                                  'add_books',
-                                ),
-                              ),
-                            ),
-                          ],
+                                'empty_collection',
+                              ) ??
+                              'Empty Collection',
+                          description:
+                              TranslationService.translate(
+                                context,
+                                'collection_empty_state_desc',
+                              ) ??
+                              'This collection has no books yet.',
+                          icon: Icons.bookmark_border,
+                          buttonLabel:
+                              TranslationService.translate(
+                                context,
+                                'add_books',
+                              ) ??
+                              'Add Books',
+                          onAction: _addBook,
                         ),
                       )
                     : ListView.builder(

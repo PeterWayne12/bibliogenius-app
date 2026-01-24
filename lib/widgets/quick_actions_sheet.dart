@@ -92,23 +92,50 @@ class QuickActionsSheet extends StatelessWidget {
             // Primary Button: Add Book
             SizedBox(
               height: 50,
-              child: FilledButton.icon(
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   context.push('/books/add');
                 },
-                icon: const Icon(Icons.add),
-                label: Text(
-                  TranslationService.translate(context, 'add_book_button'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary, // Blue/Primary
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor,
+                        Theme.of(context).primaryColor.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          TranslationService.translate(
+                            context,
+                            'add_book_button',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

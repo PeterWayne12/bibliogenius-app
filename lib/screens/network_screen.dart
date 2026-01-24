@@ -537,11 +537,14 @@ class _ContactsListViewState extends State<ContactsListView> {
                           ),
                         ],
                       ),
-                      onTap: () {
-                        context.push(
-                          '/contacts/${member.id}?isNetwork=${member.source == NetworkMemberSource.network}',
-                        );
-                      },
+                      onTap: AppConstants.enableP2PFeatures
+                          ? () {
+                              context.push(
+                                '/contacts/${member.id}?isNetwork=${member.source == NetworkMemberSource.network}',
+                                extra: member.toContact(),
+                              );
+                            }
+                          : null,
                     );
                   },
                 ),

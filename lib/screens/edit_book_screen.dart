@@ -16,8 +16,15 @@ import '../utils/global_keys.dart';
 
 class EditBookScreen extends StatefulWidget {
   final Book book;
+  final Collection? initialCollection;
+  final String? initialSubject;
 
-  const EditBookScreen({super.key, required this.book});
+  const EditBookScreen({
+    super.key,
+    required this.book,
+    this.initialCollection,
+    this.initialSubject,
+  });
 
   @override
   State<EditBookScreen> createState() => _EditBookScreenState();
@@ -109,6 +116,13 @@ class _EditBookScreenState extends State<EditBookScreen> {
         ? List.from(widget.book.subjects!)
         : [];
 
+    // Auto-fill initial subject if provided and not already present
+    if (widget.initialSubject != null && widget.initialSubject!.isNotEmpty) {
+      if (!_selectedTags.contains(widget.initialSubject)) {
+        _selectedTags.add(widget.initialSubject!);
+      }
+    }
+
     // Initialize price controller
     _priceController = TextEditingController(
       text: widget.book.price?.toString() ?? '',
@@ -126,13 +140,29 @@ class _EditBookScreenState extends State<EditBookScreen> {
   }
 
   Future<void> _loadCollections() async {
+    // Auto-fill initial collection if provided
+    if (widget.initialCollection != null) {
+      setState(() {
+        if (!_selectedCollections.any(
+          (c) => c.id == widget.initialCollection!.id,
+        )) {
+          _selectedCollections.add(widget.initialCollection!);
+        }
+      });
+    }
+
     if (widget.book.id == null) return;
     try {
       final api = Provider.of<ApiService>(context, listen: false);
       final collections = await api.getBookCollections(widget.book.id!);
       if (mounted) {
         setState(() {
-          _selectedCollections = collections;
+          // Merge with initial if present, avoiding duplicates
+          for (var c in collections) {
+            if (!_selectedCollections.any((existing) => existing.id == c.id)) {
+              _selectedCollections.add(c);
+            }
+          }
         });
       }
     } catch (e) {
@@ -1226,24 +1256,24 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 const SizedBox(height: 24),
               ],
 
-              // Collections
-              CollectionSelector(
-                selectedCollections: _selectedCollections,
-                onChanged: (collections) {
-                  setState(() {
-                    _selectedCollections = collections;
-                    _hasChanges = true;
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-
               // Tags
               HierarchicalTagSelector(
                 selectedTags: _selectedTags,
                 onTagsChanged: (tags) {
                   setState(() {
                     _selectedTags = tags;
+                    _hasChanges = true;
+                  });
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Collections
+              CollectionSelector(
+                selectedCollections: _selectedCollections,
+                onChanged: (collections) {
+                  setState(() {
+                    _selectedCollections = collections;
                     _hasChanges = true;
                   });
                 },

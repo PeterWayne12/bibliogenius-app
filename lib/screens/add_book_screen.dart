@@ -93,11 +93,13 @@ class _AddBookScreenState extends State<AddBookScreen> {
       final collections = await api.getCollections();
       try {
         final collection = collections.firstWhere(
-          (c) => c.id == widget.preSelectedCollectionId,
+          (c) => c.id.toString() == widget.preSelectedCollectionId.toString(),
         );
         if (mounted) {
           setState(() {
-            if (!_selectedCollections.any((c) => c.id == collection.id)) {
+            if (!_selectedCollections.any(
+              (c) => c.id.toString() == collection.id.toString(),
+            )) {
               _selectedCollections.add(collection);
             }
           });
@@ -477,24 +479,56 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     ),
                   )
                 // Desktop: full button
-                : TextButton(
+                : ElevatedButton(
                     onPressed: _saveBook,
                     key: const Key('saveBookButton'),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      foregroundColor: Theme.of(
-                        context,
-                      ).appBarTheme.foregroundColor,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      elevation: 4,
+                      shadowColor: Colors.black26,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
                       ),
                     ),
-                    child: Text(
-                      TranslationService.translate(context, 'save_book'),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.check,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              TranslationService.translate(
+                                context,
+                                'save_book',
+                              ),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1105,15 +1139,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
             ],
             const SizedBox(height: 24),
 
-            // Collections
-            CollectionSelector(
-              selectedCollections: _selectedCollections,
-              onChanged: (collections) {
-                setState(() {
-                  _selectedCollections = collections;
-                });
-              },
-            ),
             const SizedBox(height: 24),
 
             _buildLabel(TranslationService.translate(context, 'isbn_label')),
@@ -1513,6 +1538,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   },
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 24),
+
+            // Collections
+            CollectionSelector(
+              selectedCollections: _selectedCollections,
+              onChanged: (collections) {
+                setState(() {
+                  _selectedCollections = collections;
+                });
+              },
             ),
             const SizedBox(height: 32),
 

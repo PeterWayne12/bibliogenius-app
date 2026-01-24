@@ -193,7 +193,7 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
       options.add({'value': 'openlibrary', 'label': 'Open Library'});
     }
     if (bnfEnabled) {
-      options.add({'value': 'bnf', 'label': 'data.bnf.fr'});
+      options.add({'value': 'bnf', 'label': 'BNF'});
     }
     if (googleBooksEnabled) {
       options.add({'value': 'google_books', 'label': 'Google Books'});
@@ -858,14 +858,25 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
-                              label: Text(option['label'] as String),
+                              label: Text(
+                                option['label'] as String,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                  fontSize: 13,
+                                ),
+                              ),
                               selected: isSelected,
+                              showCheckmark: false,
                               onSelected: (_) {
                                 setState(
                                   () => _upstreamSource =
                                       option['value'] as String?,
                                 );
-                                // Auto-trigger search when source is changed
                                 if (_titleController.text.isNotEmpty ||
                                     _authorController.text.isNotEmpty ||
                                     _subjectController.text.isNotEmpty) {
@@ -873,14 +884,19 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                                 }
                               },
                               selectedColor: Theme.of(context).primaryColor,
-                              labelStyle: TextStyle(
-                                color: isSelected ? Colors.white : null,
-                                fontSize: 12,
+                              backgroundColor: Theme.of(context).cardColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : Theme.of(context).dividerColor,
+                                ),
                               ),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
+                                horizontal: 12,
+                                vertical: 8,
                               ),
-                              visualDensity: VisualDensity.compact,
                             ),
                           );
                         }).toList(),
@@ -1039,6 +1055,11 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
 
   /// Green empty state matching NetworkSearchScreen
   Widget _buildEmptyState() {
+    // Matching the "Default" theme Teal banner colors from GenieAppBar
+    // Gradient there is [Color(0xFF6BB0A9), Color(0xFF5C8C9F)]
+    const primaryTeal = Color(0xFF5C8C9F); // Darker shade for text/icon
+    const secondaryTeal = Color(0xFF6BB0A9); // Lighter shade for background
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -1048,14 +1069,10 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                color: secondaryTeal.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.search,
-                size: 64,
-                color: Color(0xFF4CAF50),
-              ),
+              child: const Icon(Icons.search, size: 64, color: primaryTeal),
             ),
             const SizedBox(height: 24),
             Text(
@@ -1066,7 +1083,7 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF2E7D32),
+                color: primaryTeal,
               ),
             ),
             const SizedBox(height: 12),

@@ -145,7 +145,7 @@ class SearchResultCard extends StatelessWidget {
           topLeft: Radius.circular(16),
           bottomLeft: Radius.circular(16),
         ),
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: const Color(0xFFE0F7FA),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
@@ -156,7 +156,7 @@ class SearchResultCard extends StatelessWidget {
           imageUrl: url,
           fit: BoxFit.cover,
           placeholder: Container(
-            color: theme.colorScheme.surfaceContainerHighest,
+            color: const Color(0xFFE0F7FA),
             child: Center(
               child: Text(
                 title.isNotEmpty ? title[0].toUpperCase() : '',

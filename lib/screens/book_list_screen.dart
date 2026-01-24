@@ -9,6 +9,7 @@ import '../services/translation_service.dart';
 import '../models/book.dart';
 import '../models/tag.dart';
 import '../widgets/bookshelf_view.dart';
+import '../widgets/premium_empty_state.dart';
 import '../widgets/book_cover_grid.dart';
 import '../widgets/premium_book_card.dart';
 import '../theme/app_design.dart';
@@ -132,13 +133,17 @@ class _BookListScreenState extends State<BookListScreen>
       }
     }
 
-    final newStatus = state.uri.queryParameters['status'];
-    if (newStatus != _selectedStatus) {
-      if (mounted) {
-        setState(() {
-          _selectedStatus = newStatus;
-          _filterBooks();
-        });
+    // Only sync status from URL if URL explicitly contains the 'status' parameter.
+    // This preserves local filter state when navigating without URL params.
+    if (state.uri.queryParameters.containsKey('status')) {
+      final newStatus = state.uri.queryParameters['status'];
+      if (newStatus != _selectedStatus) {
+        if (mounted) {
+          setState(() {
+            _selectedStatus = newStatus;
+            _filterBooks();
+          });
+        }
       }
     }
 
@@ -499,18 +504,23 @@ class _BookListScreenState extends State<BookListScreen>
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_book_fab',
         key: const Key('addBookButton'),
-        onPressed: () async {
-          final result = await context.push('/books/add');
-          if (result == true) {
-            _handleRefreshTrigger(); // Use central refresh trigger
-          }
-        },
+        onPressed: _addBook,
         child: const Icon(Icons.add),
       ),
     );
   }
 
   bool _showBorrowedConfig = true; // Store config value
+
+  Future<void> _addBook() async {
+    final result = await context.push(
+      '/books/add',
+      extra: {'shelfId': _currentShelf?.name ?? _tagFilter},
+    );
+    if (result == true) {
+      _handleRefreshTrigger(); // Use central refresh trigger
+    }
+  }
 
   Future<void> _fetchBooks({bool silent = false}) async {
     if (!silent) setState(() => _isLoading = true);
@@ -561,11 +571,17 @@ class _BookListScreenState extends State<BookListScreen>
   // Triggered when filters change or search query changes
   void _filterBooks() {
     List<Book> tempBooks = List.from(_books);
+    debugPrint(
+      '🔍 _filterBooks: Starting with ${tempBooks.length} books, _selectedStatus=$_selectedStatus',
+    );
 
     // Apply "Owned only" default filter
     // Exception: If user explicitly selects "wanting" (Wishlist), show them regardless of ownership
     if (!_showAllBooks && _selectedStatus != 'wanting') {
       tempBooks = tempBooks.where((b) => b.owned).toList();
+      debugPrint(
+        '🔍 _filterBooks: After owned filter: ${tempBooks.length} books',
+      );
     }
 
     // Apply "show borrowed" config logic:
@@ -578,9 +594,27 @@ class _BookListScreenState extends State<BookListScreen>
 
     // Apply status filter
     if (_selectedStatus != null) {
-      tempBooks = tempBooks
-          .where((book) => book.readingStatus == _selectedStatus)
-          .toList();
+      debugPrint('🔍 _filterBooks: Filtering by status=$_selectedStatus');
+      debugPrint(
+        '🔍 _filterBooks: Books statuses before filter: ${tempBooks.map((b) => "${b.title}: ${b.readingStatus}").take(5).toList()}',
+      );
+
+      if (_selectedStatus == 'owned') {
+        // "Non classés" = books with no reading status (null or empty)
+        tempBooks = tempBooks
+            .where(
+              (book) =>
+                  book.readingStatus == null || book.readingStatus!.isEmpty,
+            )
+            .toList();
+      } else {
+        tempBooks = tempBooks
+            .where((book) => book.readingStatus == _selectedStatus)
+            .toList();
+      }
+      debugPrint(
+        '🔍 _filterBooks: After status filter: ${tempBooks.length} books',
+      );
     }
 
     // Apply tag filter with hierarchy support
@@ -1251,9 +1285,58 @@ class _BookListScreenState extends State<BookListScreen>
               ),
             ),
           ),
+
+          // 4. Reset Filters Button - visible when any filter is active
+          if (_selectedStatus != null ||
+              _tagFilter != null ||
+              _searchQuery.isNotEmpty ||
+              _showAllBooks) ...[
+            const SizedBox(width: 8),
+            ScaleOnTap(
+              onTap: _resetAllFilters,
+              child: Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.clear_all, size: 18, color: Colors.red),
+                    const SizedBox(width: 6),
+                    Text(
+                      TranslationService.translate(context, 'reset_filters') ??
+                          'Réinitialiser',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  void _resetAllFilters() {
+    setState(() {
+      _selectedStatus = null;
+      _tagFilter = null;
+      _currentShelf = null;
+      _searchQuery = '';
+      _isSearching = false;
+      _showAllBooks = false;
+      _searchController.clear();
+      _filterBooks();
+    });
   }
 
   Widget _buildViewModeToggle(IconData icon, ViewMode mode) {
@@ -1546,18 +1629,54 @@ class _BookListScreenState extends State<BookListScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.search_off,
-                    size: 64,
-                    color: Colors.grey.withOpacity(0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    TranslationService.translate(context, 'no_books_found'),
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey.withOpacity(0.8),
-                    ),
+                  PremiumEmptyState(
+                    message: _currentShelf != null
+                        ? (TranslationService.translate(
+                                context,
+                                'no_books_found',
+                              ) ??
+                              'This shelf is empty')
+                        : (TranslationService.translate(
+                                context,
+                                'no_books_found',
+                              ) ??
+                              'No books found'),
+                    description: _currentShelf != null
+                        ? (TranslationService.translate(
+                                context,
+                                'shelf_empty_desc',
+                              ) ??
+                              'Add books to this shelf to organize your library.')
+                        : (TranslationService.translate(
+                                context,
+                                'search_empty_desc',
+                              ) ??
+                              'Try adjusting your filters or search terms.'),
+                    icon: _currentShelf != null
+                        ? Icons.bookmark_border
+                        : Icons.search_off,
+                    buttonLabel: _currentShelf != null
+                        ? (TranslationService.translate(
+                                context,
+                                'add_first_book_in_shelf',
+                              ) ??
+                              'Add my first book to this shelf')
+                        : (_tagFilter != null ||
+                                  _searchQuery.isNotEmpty ||
+                                  _selectedStatus != null
+                              ? (TranslationService.translate(
+                                      context,
+                                      'reset_filters',
+                                    ) ??
+                                    'Reset')
+                              : null),
+                    onAction: _currentShelf != null
+                        ? _addBook
+                        : (_tagFilter != null ||
+                                  _searchQuery.isNotEmpty ||
+                                  _selectedStatus != null
+                              ? _resetAllFilters
+                              : null),
                   ),
                 ],
               ),

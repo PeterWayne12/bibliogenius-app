@@ -18,7 +18,8 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showQuickActions; // Legacy direct buttons
   final List<Widget>? contextualQuickActions; // For the new Quick Actions menu
   final bool showBackButton;
-  final VoidCallback? onBookAdded; // Callback when a book is added via quick actions
+  final VoidCallback?
+  onBookAdded; // Callback when a book is added via quick actions
 
   const GenieAppBar({
     super.key,
@@ -182,8 +183,22 @@ class GenieAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).primaryColor,
+                  Theme.of(context).primaryColor.withOpacity(0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(20),

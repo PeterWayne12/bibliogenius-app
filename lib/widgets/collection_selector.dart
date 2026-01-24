@@ -211,83 +211,161 @@ class _CollectionSelectionDialogState
         ],
       ),
       content: SizedBox(
-        width: double.maxFinite,
-        height: 500,
+        width: 450,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // List View
-            Expanded(
+            // List View section with max height
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4,
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.grey.shade50,
                 ),
                 child: _collections.isEmpty
-                    ? const Center(child: Text('No collections found'))
-                    : ListView.builder(
-                        itemCount: _collections.length,
-                        itemBuilder: (context, index) {
-                          final collection = _collections[index];
-                          final isSelected = _selectedIds.contains(
-                            collection.id,
-                          );
-                          return CheckboxListTile(
-                            title: Text(collection.name),
-                            value: isSelected,
-                            onChanged: (_) => _toggleCollection(collection),
-                            dense: true,
-                          );
-                        },
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: Text('No collections found'),
+                        ),
+                      )
+                    : Scrollbar(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _collections.length,
+                          itemBuilder: (context, index) {
+                            final collection = _collections[index];
+                            final isSelected = _selectedIds.contains(
+                              collection.id,
+                            );
+                            return CheckboxListTile(
+                              title: Text(
+                                collection.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              value: isSelected,
+                              onChanged: (_) => _toggleCollection(collection),
+                              activeColor: Theme.of(context).primaryColor,
+                              controlAffinity: ListTileControlAffinity.trailing,
+                              dense: true,
+                            );
+                          },
+                        ),
                       ),
               ),
             ),
 
-            const Divider(height: 32),
+            const SizedBox(height: 16),
 
             // Create New Collection Section
-            Text(
-              TranslationService.translate(context, 'create_new_collection'),
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _newCollectionNameController,
-                    decoration: InputDecoration(
-                      hintText: TranslationService.translate(
-                        context,
-                        'collection_name_hint',
-                      ),
-                      isDense: true,
-                      border: const OutlineInputBorder(),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    TranslationService.translate(
+                      context,
+                      'create_new_collection',
+                    ),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  icon: _isCreating
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _newCollectionNameController,
+                          decoration: InputDecoration(
+                            hintText: TranslationService.translate(
+                              context,
+                              'collection_name_hint',
+                            ),
+                            isDense: true,
+                            fillColor: Colors.white,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                        )
-                      : const Icon(Icons.add),
-                  onPressed: _isCreating ? null : _createNewCollection,
-                ),
-              ],
+                          onSubmitted: (_) => _createNewCollection(),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton.filled(
+                        icon: _isCreating
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.add),
+                        onPressed: _isCreating ? null : _createNewCollection,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
+      actionsPadding: const EdgeInsets.only(right: 16, bottom: 16),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: _finish,
-          child: Text(TranslationService.translate(context, 'done')),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).primaryColor,
+                  Theme.of(context).primaryColor.withOpacity(0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              child: Text(
+                TranslationService.translate(context, 'done'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
