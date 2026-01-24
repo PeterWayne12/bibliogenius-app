@@ -250,6 +250,18 @@ class ApiService {
             'status': 'available',
             // library_id handled by createCopy default
           });
+
+          // [FIX] Update the book itself to owned=true so it shows up correctly in lists
+          // Pass only the field we want to update; updateBook handles merging with existing data
+          try {
+            await updateBook(createdBook.id!, {'owned': true});
+            debugPrint(
+              '✅ Ownership status updated to true for Book ID ${createdBook.id}',
+            );
+          } catch (e) {
+            debugPrint('⚠️ Failed to update ownership status: $e');
+            // We don't rethrow here because the book and copy were created successfully
+          }
         }
 
         return Response(

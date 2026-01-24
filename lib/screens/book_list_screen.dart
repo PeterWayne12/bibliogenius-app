@@ -161,6 +161,16 @@ class _BookListScreenState extends State<BookListScreen>
 
   void _handleRefreshTrigger() {
     _fetchBooks();
+
+    // Smart Refresh: Double-check after 1s to catch any WAL/Hybrid sync latency
+    // This ensures books added via the Native+HTTP hybrid methods (which might have a split-second delay
+    // in 'owned' status propagation) appear correctly without manual refresh.
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        debugPrint('🔄 Smart Refresh: Executing silent double-check...');
+        _fetchBooks(silent: true);
+      }
+    });
   }
 
   @override
@@ -477,7 +487,7 @@ class _BookListScreenState extends State<BookListScreen>
         onPressed: () async {
           final result = await context.push('/books/add');
           if (result == true) {
-            _fetchBooks(); // Refresh if book was added
+            _handleRefreshTrigger(); // Use central refresh trigger
           }
         },
         child: const Icon(Icons.add),
@@ -487,13 +497,13 @@ class _BookListScreenState extends State<BookListScreen>
 
   bool _showBorrowedConfig = true; // Store config value
 
-  Future<void> _fetchBooks() async {
-    setState(() => _isLoading = true);
+  Future<void> _fetchBooks({bool silent = false}) async {
+    if (!silent) setState(() => _isLoading = true);
     final apiService = Provider.of<ApiService>(context, listen: false);
 
     try {
       debugPrint(
-        'Fetching books with status: $_selectedStatus, tag: $_tagFilter, search: $_searchQuery',
+        'Fetching books with status: $_selectedStatus, tag: $_tagFilter, search: $_searchQuery (silent: $silent)',
       );
       // Fetch all books initially, filtering will happen locally
       final books = await apiService.getBooks();
@@ -520,12 +530,12 @@ class _BookListScreenState extends State<BookListScreen>
           _allTags = tags; // Store tags for hierarchy traversal
           _libraryName = libraryName;
           _filterBooks(); // Apply filters after fetching all books
-          _isLoading = false;
+          if (!silent) _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        if (!silent) setState(() => _isLoading = false);
         debugPrint('Error loading books: $e');
       }
     }
