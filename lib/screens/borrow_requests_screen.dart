@@ -41,7 +41,12 @@ class _LoansScreenState extends State<LoansScreen>
   void initState() {
     super.initState();
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final tabCount = themeProvider.canBorrowBooks ? 3 : 2;
+    // Tab count depends on:
+    // - networkEnabled: show "Demandes" tab only if mDNS is enabled
+    // - canBorrowBooks: show "Empruntés" tab only if borrowing is enabled
+    int tabCount = 1; // At minimum: Prêtés
+    if (themeProvider.networkEnabled) tabCount++; // +Demandes
+    if (themeProvider.canBorrowBooks) tabCount++; // +Empruntés
     _mainTabController = TabController(length: tabCount, vsync: this);
     _requestsTabController = TabController(length: 3, vsync: this);
     _fetchAllData();
@@ -61,28 +66,38 @@ class _LoansScreenState extends State<LoansScreen>
   Future<void> _fetchAllData({bool silent = false}) async {
     if (!silent) setState(() => _isLoading = true);
     final api = Provider.of<ApiService>(context, listen: false);
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+
     try {
-      // Fetch requests
-      final inRes = await api.getIncomingRequests();
-      final outRes = await api.getOutgoingRequests();
-      final connRes = await api.getPendingPeers();
+      // Only fetch P2P requests if mDNS is enabled
+      if (themeProvider.networkEnabled) {
+        final inRes = await api.getIncomingRequests();
+        final outRes = await api.getOutgoingRequests();
+        final connRes = await api.getPendingPeers();
+
+        if (mounted) {
+          _incomingRequests = inRes.data;
+          _outgoingRequests = outRes.data;
+          _connectionRequests = connRes.data['requests'] ?? [];
+        }
+      }
 
       // Fetch active loans (books I lent)
       final loansRes = await api.getLoans(status: 'active');
 
       List<dynamic> borrowedBooks = [];
-      try {
-        final borrowedRes = await api.getLoans(status: 'borrowed');
-        borrowedBooks = borrowedRes.data['loans'] ?? [];
-      } catch (e) {
-        debugPrint('Could not fetch borrowed books: $e');
+      if (themeProvider.canBorrowBooks) {
+        try {
+          // Borrowed books are stored as temporary copies, not loans
+          final borrowedRes = await api.getBorrowedCopies();
+          borrowedBooks = borrowedRes.data['loans'] ?? [];
+        } catch (e) {
+          debugPrint('Could not fetch borrowed books: $e');
+        }
       }
 
       if (mounted) {
         setState(() {
-          _incomingRequests = inRes.data;
-          _outgoingRequests = outRes.data;
-          _connectionRequests = connRes.data['requests'] ?? [];
           _activeLoans = loansRes.data['loans'] ?? [];
           _borrowedBooks = borrowedBooks;
         });
@@ -147,6 +162,7 @@ class _LoansScreenState extends State<LoansScreen>
     final bool isMobile = width <= 600;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final canBorrow = themeProvider.canBorrowBooks;
+    final networkEnabled = themeProvider.networkEnabled;
 
     if (widget.isTabView) {
       return Column(
@@ -159,11 +175,12 @@ class _LoansScreenState extends State<LoansScreen>
               unselectedLabelColor: Colors.white70,
               indicatorColor: Colors.white,
               tabs: [
-                Tab(
-                  key: const Key('requestsTab'),
-                  icon: const Icon(Icons.mail_outline),
-                  text: TranslationService.translate(context, 'tab_requests'),
-                ),
+                if (networkEnabled)
+                  Tab(
+                    key: const Key('requestsTab'),
+                    icon: const Icon(Icons.mail_outline),
+                    text: TranslationService.translate(context, 'tab_requests'),
+                  ),
                 Tab(
                   key: const Key('lentTab'),
                   icon: const Icon(Icons.arrow_upward),
@@ -184,7 +201,7 @@ class _LoansScreenState extends State<LoansScreen>
                 : TabBarView(
                     controller: _mainTabController,
                     children: [
-                      _buildRequestsTab(),
+                      if (networkEnabled) _buildRequestsTab(),
                       _buildLentTab(),
                       if (canBorrow) _buildBorrowedTab(),
                     ],
@@ -210,11 +227,12 @@ class _LoansScreenState extends State<LoansScreen>
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
           tabs: [
-            Tab(
-              key: const Key('requestsTab'),
-              icon: const Icon(Icons.mail_outline),
-              text: TranslationService.translate(context, 'tab_requests'),
-            ),
+            if (networkEnabled)
+              Tab(
+                key: const Key('requestsTab'),
+                icon: const Icon(Icons.mail_outline),
+                text: TranslationService.translate(context, 'tab_requests'),
+              ),
             Tab(
               key: const Key('lentTab'),
               icon: const Icon(Icons.arrow_upward),
@@ -240,7 +258,7 @@ class _LoansScreenState extends State<LoansScreen>
           : TabBarView(
               controller: _mainTabController,
               children: [
-                _buildRequestsTab(),
+                if (networkEnabled) _buildRequestsTab(),
                 _buildLentTab(),
                 if (canBorrow) _buildBorrowedTab(),
               ],
@@ -400,13 +418,121 @@ class _LoansScreenState extends State<LoansScreen>
         itemCount: _borrowedBooks.length,
         itemBuilder: (context, index) {
           final book = _borrowedBooks[index];
-          return ListTile(
-            title: Text(book['title'] ?? 'Unknown'),
-            subtitle: Text(book['from_library'] ?? ''),
-          );
+          return _buildBorrowedBookTile(book);
         },
       ),
     );
+  }
+
+  Widget _buildBorrowedBookTile(Map<String, dynamic> book) {
+    final title = book['title'] ?? 'Unknown';
+    final notes = book['notes'] as String? ?? '';
+    final acquisitionDate = book['acquisition_date'] ?? '';
+    final cover = book['cover'] as String?;
+
+    // Extract contact name from notes (format: "Borrowed from: Name (ID: x)")
+    String borrowedFrom = '';
+    if (notes.isNotEmpty) {
+      final match = RegExp(r'(?:Emprunté de|Borrowed from|Emprunté à)[:\s]*([^(]+)').firstMatch(notes);
+      if (match != null) {
+        borrowedFrom = match.group(1)?.trim() ?? '';
+      }
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        leading: cover != null && cover.isNotEmpty
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Image.network(
+                  cover,
+                  width: 40,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    child: const Icon(Icons.book, color: Colors.white),
+                  ),
+                ),
+              )
+            : CircleAvatar(
+                backgroundColor: Colors.blue,
+                child: const Icon(Icons.book, color: Colors.white),
+              ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (borrowedFrom.isNotEmpty)
+              Text(
+                '${TranslationService.translate(context, 'borrowed_from')}: $borrowedFrom',
+                style: TextStyle(color: Colors.blue[700], fontSize: 12),
+              ),
+            if (acquisitionDate.isNotEmpty)
+              Text(
+                '${TranslationService.translate(context, 'loan_date')}: ${_formatDate(acquisitionDate)}',
+                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              ),
+          ],
+        ),
+        isThreeLine: borrowedFrom.isNotEmpty || acquisitionDate.isNotEmpty,
+        trailing: IconButton(
+          icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+          tooltip: TranslationService.translate(context, 'mark_returned'),
+          onPressed: () => _returnBorrowedBook(book),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _returnBorrowedBook(Map<String, dynamic> book) async {
+    final copyId = book['id'] as int?;
+    if (copyId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(TranslationService.translate(context, 'confirm_return_title')),
+        content: Text(TranslationService.translate(context, 'confirm_return_borrowed')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(TranslationService.translate(context, 'cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(TranslationService.translate(context, 'confirm')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final api = Provider.of<ApiService>(context, listen: false);
+        // Delete the temporary copy when returned
+        await api.deleteCopy(copyId);
+        _fetchAllData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(TranslationService.translate(context, 'book_returned_success')),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_getFriendlyErrorMessage(e))),
+          );
+        }
+      }
+    }
   }
 
   // === Request list builders (from original) ===

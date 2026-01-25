@@ -231,7 +231,6 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   Future<void> _borrowFromContact(BuildContext context) async {
-    debugPrint('🔧 ContactDetails: _borrowFromContact() called');
     // Navigate to the borrow book screen
     final result = await Navigator.push<bool>(
       context,

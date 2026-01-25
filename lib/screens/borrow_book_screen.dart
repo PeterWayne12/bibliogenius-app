@@ -173,6 +173,8 @@ class _BorrowBookScreenState extends State<BorrowBookScreen> {
       final api = Provider.of<ApiService>(context, listen: false);
 
       // 1. Create the book with proper data
+      // Note: reading_status defaults to 'to_read' if not provided
+      // The 'borrowed' state is tracked via the Copy's status field
       final bookData = {
         'title': _titleController.text,
         'author': _authorController.text.isEmpty ? null : _authorController.text,
@@ -180,7 +182,7 @@ class _BorrowBookScreenState extends State<BorrowBookScreen> {
         'cover': _foundBook?['cover'],
         'publisher': _foundBook?['publisher'],
         'year': _foundBook?['year'],
-        'reading_status': 'borrowed',
+        // Don't set reading_status - backend defaults to 'to_read'
         'owned': false, // Important: not owned, just borrowed
       };
 
@@ -236,7 +238,6 @@ class _BorrowBookScreenState extends State<BorrowBookScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔧 BorrowBookScreen: build() called');
     final theme = Theme.of(context);
 
     return Scaffold(

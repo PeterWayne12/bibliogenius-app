@@ -568,6 +568,18 @@ class ApiService {
     return await _dio.get('/api/loans', queryParameters: params);
   }
 
+  /// Get borrowed copies (books borrowed from others, stored as temporary copies)
+  Future<Response> getBorrowedCopies() async {
+    // Use local HTTP server since FFI doesn't have this endpoint yet
+    if (useFfi) {
+      final localDio = Dio(
+        BaseOptions(baseUrl: 'http://127.0.0.1:$httpPort'),
+      );
+      return await localDio.get('/api/copies/borrowed');
+    }
+    return await _dio.get('/api/copies/borrowed');
+  }
+
   Future<Response> returnLoan(int loanId) async {
     if (useFfi) {
       try {
