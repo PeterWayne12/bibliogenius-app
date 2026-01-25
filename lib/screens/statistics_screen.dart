@@ -6,6 +6,8 @@ import '../services/api_service.dart';
 import '../services/translation_service.dart';
 import '../models/book.dart';
 import '../models/contact.dart';
+import '../models/tag.dart';
+import '../models/collection.dart';
 import '../widgets/genie_app_bar.dart';
 import '../theme/app_design.dart';
 import '../providers/theme_provider.dart';
@@ -23,6 +25,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   List<Book> _books = [];
   List<dynamic> _loans = [];
   Map<int, Contact> _contactsMap = {};
+  List<Tag> _tags = [];
+  List<Collection> _collections = [];
   Map<String, dynamic>? _salesStats;
   bool _isLoading = true;
   late AnimationController _animController;
@@ -84,6 +88,22 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         }
       } catch (e) {}
 
+      // Fetch tags (shelves)
+      List<Tag> tags = [];
+      try {
+        tags = await api.getTags();
+      } catch (e) {
+        debugPrint('Error fetching tags: $e');
+      }
+
+      // Fetch collections
+      List<Collection> collections = [];
+      try {
+        collections = await api.getCollections();
+      } catch (e) {
+        debugPrint('Error fetching collections: $e');
+      }
+
       Map<String, dynamic>? salesStats;
       if (Provider.of<ThemeProvider>(context, listen: false).isBookseller) {
         try {
@@ -101,6 +121,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           _books = books;
           _loans = loans;
           _contactsMap = contactsMap;
+          _tags = tags;
+          _collections = collections;
           _salesStats = salesStats;
           _isLoading = false;
         });
@@ -215,6 +237,28 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       ),
                       const SizedBox(height: 16),
                       _buildBorrowedStatisticsSection(),
+                    ],
+                    // Shelf Statistics Section - only if shelves exist
+                    if (_tags.isNotEmpty) ...[
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(
+                        TranslationService.translate(context, 'shelf_statistics'),
+                        Icons.shelves,
+                        AppDesign.warningGradient,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildShelfStatisticsSection(),
+                    ],
+                    // Collection Statistics Section - only if collections exist
+                    if (_collections.isNotEmpty) ...[
+                      const SizedBox(height: 32),
+                      _buildSectionTitle(
+                        TranslationService.translate(context, 'collection_statistics'),
+                        Icons.collections_bookmark,
+                        AppDesign.darkGradient,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildCollectionStatisticsSection(),
                     ],
                     const SizedBox(height: 40),
                   ],
@@ -474,6 +518,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       'reading': const Color(0xFF0EA5E9),
       'to_read': const Color(0xFFF59E0B),
       'wanting': const Color(0xFFEC4899),
+      'abandoned': const Color(0xFFEF4444),
       'owned': const Color(0xFF607D8B),
       'borrowed': const Color(0xFF8B5CF6),
       'unknown': Colors.grey,
@@ -543,6 +588,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         return TranslationService.translate(context, 'reading_status_to_read');
       case 'wanting':
         return TranslationService.translate(context, 'reading_status_wanting');
+      case 'abandoned':
+        return TranslationService.translate(context, 'reading_status_abandoned');
       case 'owned':
         return TranslationService.translate(context, 'owned_status');
       case 'lent':
@@ -1175,6 +1222,211 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
+  Widget _buildShelfStatisticsSection() {
+    final totalShelves = _tags.length;
+    final totalBooksInShelves = _tags.fold<int>(0, (sum, tag) => sum + tag.count);
+
+    // Top shelves (by book count)
+    var topShelves = _tags.toList()
+      ..sort((a, b) => b.count.compareTo(a.count));
+    if (topShelves.length > 5) topShelves = topShelves.sublist(0, 5);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(AppDesign.radiusLarge),
+        boxShadow: AppDesign.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary stats row
+          Row(
+            children: [
+              Expanded(
+                child: _buildMiniStat(
+                  TranslationService.translate(context, 'total_shelves'),
+                  totalShelves.toString(),
+                  Icons.shelves,
+                  const Color(0xFFF59E0B),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMiniStat(
+                  TranslationService.translate(context, 'books_in_shelves'),
+                  totalBooksInShelves.toString(),
+                  Icons.menu_book,
+                  const Color(0xFFD97706),
+                ),
+              ),
+            ],
+          ),
+
+          if (topShelves.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text(
+              TranslationService.translate(context, 'top_shelves'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            ...topShelves.map(
+              (tag) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.label_outline,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        tag.name,
+                        style: const TextStyle(fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${tag.count}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFFF59E0B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollectionStatisticsSection() {
+    final totalCollections = _collections.length;
+    final totalBooksInCollections = _collections.fold<int>(
+      0,
+      (sum, col) => sum + col.totalBooks,
+    );
+
+    // Top collections (by book count)
+    var topCollections = _collections.toList()
+      ..sort((a, b) => b.totalBooks.compareTo(a.totalBooks));
+    if (topCollections.length > 5) topCollections = topCollections.sublist(0, 5);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(AppDesign.radiusLarge),
+        boxShadow: AppDesign.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary stats row
+          Row(
+            children: [
+              Expanded(
+                child: _buildMiniStat(
+                  TranslationService.translate(context, 'total_collections'),
+                  totalCollections.toString(),
+                  Icons.collections_bookmark,
+                  const Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMiniStat(
+                  TranslationService.translate(context, 'books_in_collections'),
+                  totalBooksInCollections.toString(),
+                  Icons.menu_book,
+                  const Color(0xFF475569),
+                ),
+              ),
+            ],
+          ),
+
+          if (topCollections.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text(
+              TranslationService.translate(context, 'top_collections'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            ...topCollections.map(
+              (col) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.bookmark_outline,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            col.name,
+                            style: const TextStyle(fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (col.description != null && col.description!.isNotEmpty)
+                            Text(
+                              col.description!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[600],
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${col.totalBooks}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSalesStatisticsSection() {
     if (_salesStats == null) return const SizedBox.shrink();
 
@@ -1595,6 +1847,7 @@ class _StatisticsContentState extends State<StatisticsContent>
       'reading': const Color(0xFF6366F1),
       'to_read': const Color(0xFFF59E0B),
       'wanting': const Color(0xFFEC4899),
+      'abandoned': const Color(0xFFEF4444),
       'borrowed': const Color(0xFF8B5CF6),
       'unknown': Colors.grey,
     };

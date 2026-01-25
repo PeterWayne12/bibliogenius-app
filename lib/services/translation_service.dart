@@ -777,6 +777,18 @@ class TranslationService {
       'books_borrowed': 'Borrowed',
       'borrowed_books_list': 'Currently Borrowed',
       'no_borrowed_books': 'No borrowed books',
+      // Shelf Statistics
+      'shelf_statistics': 'Shelves',
+      'total_shelves': 'Shelves',
+      'books_in_shelves': 'Books catalogued',
+      'top_shelves': 'Top Shelves',
+      'no_shelves': 'No shelves yet',
+      // Collection Statistics
+      'collection_statistics': 'Collections',
+      'total_collections': 'Collections',
+      'books_in_collections': 'Books in collections',
+      'top_collections': 'Top Collections',
+      'no_collections': 'No collections yet',
       'wizard_menu_title': 'Main Menu',
       'wizard_menu_desc': 'Access your library, contacts, and settings here.',
       'wizard_add_title': 'Add Books',
@@ -2300,6 +2312,18 @@ class TranslationService {
       'books_borrowed': 'Empruntés',
       'borrowed_books_list': 'Actuellement empruntés',
       'no_borrowed_books': 'Aucun livre emprunté',
+      // Shelf Statistics
+      'shelf_statistics': 'Étagères',
+      'total_shelves': 'Étagères',
+      'books_in_shelves': 'Livres classés',
+      'top_shelves': 'Étagères principales',
+      'no_shelves': 'Aucune étagère',
+      // Collection Statistics
+      'collection_statistics': 'Collections',
+      'total_collections': 'Collections',
+      'books_in_collections': 'Livres en collections',
+      'top_collections': 'Collections principales',
+      'no_collections': 'Aucune collection',
       'wizard_menu_title': 'Menu Principal',
       'wizard_menu_desc':
           'Accédez à votre bibliothèque, vos contacts et vos paramètres ici.',

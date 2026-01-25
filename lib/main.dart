@@ -435,7 +435,13 @@ class _AppRouterState extends State<AppRouter> with WidgetsBindingObserver {
             ),
             GoRoute(
               path: '/network',
-              builder: (context, state) => const NetworkScreen(initialIndex: 0),
+              builder: (context, state) {
+                // Support query parameter for initial loans tab: ?tab=lent or ?tab=borrowed
+                final loansTab = state.uri.queryParameters['tab'];
+                // If a loans tab is specified, go to Loans tab (index 1)
+                final initialIndex = loansTab != null ? 1 : 0;
+                return NetworkScreen(initialIndex: initialIndex, initialLoansTab: loansTab);
+              },
               routes: [
                 GoRoute(
                   path: 'contact/:id',

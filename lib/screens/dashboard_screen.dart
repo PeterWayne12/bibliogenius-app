@@ -144,9 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           setState(() {
             _allBooks = books;
             _stats['total_books'] = books.length;
-            _stats['borrowed_count'] = books
-                .where((b) => b.readingStatus == 'borrowed')
-                .length;
+            // Note: borrowed_count is now fetched separately from getBorrowedCopies()
 
             final readingListCandidates = books
                 .where((b) => ['reading', 'to_read'].contains(b.readingStatus))
@@ -208,9 +206,34 @@ class _DashboardScreenState extends State<DashboardScreen>
           final statusData = statusRes.data;
           if (mounted) {
             setState(() {
-              _stats['active_loans'] = statusData['loans_count'] ?? 0;
               _userName = statusData['name'];
             });
+          }
+        }
+
+        // Fetch active loans count (books lent to others) - same query as LoansScreen
+        print('Dashboard: Fetching active loans...');
+        final loansRes = await api.getLoans(status: 'active');
+        if (mounted && loansRes.statusCode == 200) {
+          final loans = loansRes.data['loans'] ?? [];
+          setState(() {
+            _stats['active_loans'] = loans.length;
+          });
+        }
+
+        // Fetch borrowed copies count (books borrowed from others) - same query as LoansScreen
+        if (themeProvider.canBorrowBooks) {
+          print('Dashboard: Fetching borrowed copies...');
+          try {
+            final borrowedRes = await api.getBorrowedCopies();
+            if (mounted && borrowedRes.statusCode == 200) {
+              final borrowed = borrowedRes.data['loans'] ?? [];
+              setState(() {
+                _stats['borrowed_count'] = borrowed.length;
+              });
+            }
+          } catch (e) {
+            debugPrint('Could not fetch borrowed copies: $e');
           }
         }
 
@@ -450,6 +473,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                               (_stats['active_loans'] ?? 0).toString(),
                               Icons.arrow_upward,
                               isAccent: true,
+                              onTap: () => context.push('/network?tab=lent'),
                             ),
                             if (!themeProvider.isLibrarian)
                               _buildStatCard(
@@ -460,6 +484,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 (_stats['borrowed_count'] ?? 0).toString(),
                                 Icons.arrow_downward,
+                                onTap: () => context.push('/network?tab=borrowed'),
                               ),
                             if (!isKid)
                               _buildStatCard(
@@ -475,6 +500,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       ),
                                 (_stats['contacts_count'] ?? 0).toString(),
                                 Icons.people,
+                                onTap: () => context.push('/network'),
                               ),
                           ];
 

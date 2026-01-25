@@ -24,8 +24,10 @@ enum NetworkFilter { all, libraries, contacts }
 /// Unified screen displaying Contacts and Loans tabs
 class NetworkScreen extends StatefulWidget {
   final int initialIndex;
+  /// Initial sub-tab for LoansScreen: 'requests', 'lent', or 'borrowed'
+  final String? initialLoansTab;
 
-  const NetworkScreen({super.key, this.initialIndex = 0});
+  const NetworkScreen({super.key, this.initialIndex = 0, this.initialLoansTab});
 
   @override
   State<NetworkScreen> createState() => _NetworkScreenState();
@@ -201,7 +203,7 @@ class _NetworkScreenState extends State<NetworkScreen>
           // Tab 1: Contacts (now directly showing the list)
           ContactsListView(key: _contactsListKey),
           // Tab 2: Loans (Existing BorrowRequestsScreen as view)
-          const LoansScreen(isTabView: true),
+          LoansScreen(isTabView: true, initialTab: widget.initialLoansTab),
         ],
       ),
       floatingActionButton: FloatingActionButton(

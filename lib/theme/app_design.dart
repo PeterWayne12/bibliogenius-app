@@ -317,7 +317,7 @@ class _ScaleOnTapState extends State<ScaleOnTap> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final child = GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
         setState(() => _isPressed = false);
@@ -331,5 +331,14 @@ class _ScaleOnTapState extends State<ScaleOnTap> {
         child: widget.child,
       ),
     );
+
+    // Show pointer cursor on hover when clickable
+    if (widget.onTap != null) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: child,
+      );
+    }
+    return child;
   }
 }

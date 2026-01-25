@@ -9,13 +9,15 @@ import '../providers/theme_provider.dart';
 
 /// Screen for managing loans, borrows, and P2P requests
 /// Structure:
-/// - Demandes (Requests): Incoming/Outgoing/Connections
+/// - Demandes (Requests): Incoming/Outgoing/Connections (only if networkEnabled)
 /// - Prêtés (Lent): Books you lent to others
 /// - Empruntés (Borrowed): Books you borrowed from others (hidden if canBorrowBooks=false)
 class LoansScreen extends StatefulWidget {
   final bool isTabView;
+  /// Initial tab to show: 'requests', 'lent', or 'borrowed'
+  final String? initialTab;
 
-  const LoansScreen({super.key, this.isTabView = false});
+  const LoansScreen({super.key, this.isTabView = false, this.initialTab});
 
   @override
   State<LoansScreen> createState() => _LoansScreenState();
@@ -47,7 +49,21 @@ class _LoansScreenState extends State<LoansScreen>
     int tabCount = 1; // At minimum: Prêtés
     if (themeProvider.networkEnabled) tabCount++; // +Demandes
     if (themeProvider.canBorrowBooks) tabCount++; // +Empruntés
-    _mainTabController = TabController(length: tabCount, vsync: this);
+
+    // Calculate initial tab index based on initialTab parameter
+    int initialIndex = 0;
+    if (widget.initialTab != null) {
+      if (widget.initialTab == 'lent') {
+        // Lent is after Requests (if enabled), otherwise first
+        initialIndex = themeProvider.networkEnabled ? 1 : 0;
+      } else if (widget.initialTab == 'borrowed' && themeProvider.canBorrowBooks) {
+        // Borrowed is last tab
+        initialIndex = tabCount - 1;
+      }
+      // 'requests' stays at 0 (default)
+    }
+
+    _mainTabController = TabController(length: tabCount, vsync: this, initialIndex: initialIndex);
     _requestsTabController = TabController(length: 3, vsync: this);
     _fetchAllData();
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
