@@ -35,6 +35,7 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
   String? _error;
   bool _booksAdded = false;
   bool _showAdvancedFilters = false; // Collapsed by default on mobile
+  bool _useCarouselView = true; // Carousel view by default
 
   // Source filter (upstream - before search)
   String?
@@ -374,16 +375,19 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
     }
 
     // Helper to create a unique key for deduplication
+    // Priority: ISBN (if available) > visual attributes
     String editionKey(Map<String, dynamic> edition) {
+      final isbn = (edition['isbn'] as String?)?.replaceAll('-', '').trim() ?? '';
+      // If ISBN is available, use it as primary key (same ISBN = same edition)
+      if (isbn.isNotEmpty && isbn.length >= 10) {
+        return 'isbn:$isbn';
+      }
+      // Fallback: visual attributes for editions without ISBN
       final title = (edition['title'] as String?)?.toLowerCase().trim() ?? '';
-      final cover = (edition['cover_url'] as String?) ?? '';
       final publisher =
           (edition['publisher'] as String?)?.toLowerCase().trim() ?? '';
       final year = edition['publication_year']?.toString() ?? '';
-      // Deduplicate based on visual attributes (what the user sees)
-      // Ignoring ISBN here ensures that an edition with ISBN and one without
-      // are considered duplicates if they look the same.
-      return '$title|$cover|$publisher|$year';
+      return 'visual:$title|$publisher|$year';
     }
 
     for (final work in workMap.values) {
@@ -743,7 +747,6 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context);
-    final useEditionBrowser = theme.editionBrowserEnabled;
 
     return PopScope(
       canPop: false,
@@ -995,17 +998,90 @@ class _ExternalSearchScreenState extends State<ExternalSearchScreen> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
+                // View mode toggle (only show when results exist)
+                if (_searchResults.isNotEmpty && !_isSearching)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${_groupedWorks.length} ${TranslationService.translate(context, 'works') ?? 'œuvres'}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
+                        const Spacer(),
+                        // View mode toggle
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildViewToggleButton(
+                                icon: Icons.view_carousel,
+                                isActive: _useCarouselView,
+                                onTap: () => setState(() => _useCarouselView = true),
+                                tooltip: TranslationService.translate(context, 'view_carousel') ?? 'Carousel',
+                              ),
+                              _buildViewToggleButton(
+                                icon: Icons.view_list,
+                                isActive: !(_useCarouselView),
+                                onTap: () => setState(() => _useCarouselView = false),
+                                tooltip: TranslationService.translate(context, 'view_list') ?? 'Liste',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Expanded(
                   child: _isSearching
                       ? const Center(child: CircularProgressIndicator())
                       : _searchResults.isEmpty
                       ? _buildEmptyState()
-                      : useEditionBrowser
+                      : (_useCarouselView)
                       ? _buildGroupedView()
                       : _buildFlatListView(),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewToggleButton({
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isActive
+                ? Theme.of(context).primaryColor.withOpacity(0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: isActive
+                ? Theme.of(context).primaryColor
+                : Colors.grey[600],
           ),
         ),
       ),

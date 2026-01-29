@@ -189,10 +189,13 @@ class QuickActionsSheet extends StatelessWidget {
                 icon: Icons.travel_explore, // Globe with search
                 color: Colors.blue,
                 label: 'quick_search_online',
-                onTap: () {
+                onTap: () async {
                   final router = GoRouter.of(context);
                   Navigator.pop(context);
-                  router.push('/search/external');
+                  final result = await router.push('/search/external');
+                  if (result == true && onBookAdded != null) {
+                    onBookAdded!();
+                  }
                 },
               ),
               const SizedBox(width: 12),
